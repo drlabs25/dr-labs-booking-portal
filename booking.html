@@ -80,11 +80,13 @@
     <label>Tests</label>
     <input type="text" placeholder="Search Test" oninput="loadTests(this.value)">
     <div id="testList"></div>
+    <div id="selectedTests"></div> <!-- NEW -->
 
     <!-- Package selection -->
     <label>Packages</label>
     <input type="text" placeholder="Search Package" oninput="loadPackages(this.value)">
     <div id="packageList"></div>
+    <div id="selectedPackages"></div> <!-- NEW -->
 
     <input type="number" id="totalAmount" placeholder="Total Amount" readonly>
 
@@ -124,14 +126,12 @@ window.onload = function() {
             timeSelect.add(opt);
         }
     }
-
-    // Load only phlebos on page load
     loadPhlebos();
 };
 
 function loadTests(query) {
     query = (query || "").trim();
-    if (query.length === 0) {
+    if (query.length < 2) {
         document.getElementById("testList").innerHTML = "";
         return;
     }
@@ -140,7 +140,7 @@ function loadTests(query) {
         .then(tests => {
             let html = "";
             tests.forEach(t => {
-                html += `<label><input type="checkbox" value="${t.code}|${t.cost}" onchange="recalculateTotal()"> ${t.name} - ₹${t.cost}</label><br>`;
+                html += `<div><button type="button" onclick="addSelectedTest('${t.code}','${t.name}','${t.cost}')">${t.name} - ₹${t.cost}</button></div>`;
             });
             document.getElementById("testList").innerHTML = html;
         });
@@ -148,7 +148,7 @@ function loadTests(query) {
 
 function loadPackages(query) {
     query = (query || "").trim();
-    if (query.length === 0) {
+    if (query.length < 2) {
         document.getElementById("packageList").innerHTML = "";
         return;
     }
@@ -157,10 +157,41 @@ function loadPackages(query) {
         .then(packages => {
             let html = "";
             packages.forEach(p => {
-                html += `<label><input type="checkbox" value="${p.code}|${p.cost}" onchange="recalculateTotal()"> ${p.name} - ₹${p.cost}</label><br>`;
+                html += `<div><button type="button" onclick="addSelectedPackage('${p.code}','${p.name}','${p.cost}')">${p.name} - ₹${p.cost}</button></div>`;
             });
             document.getElementById("packageList").innerHTML = html;
         });
+}
+
+function addSelectedTest(code, name, cost) {
+    let container = document.getElementById("selectedTests");
+    if (!document.getElementById("test_" + code)) {
+        let div = document.createElement("div");
+        div.id = "test_" + code;
+        div.innerHTML = `${name} - ₹${cost} <button type="button" onclick="removeSelected('test_${code}')">Remove</button>
+                         <input type="hidden" class="selected-test" value="${code}|${cost}">`;
+        container.appendChild(div);
+    }
+    document.getElementById("testList").innerHTML = "";
+    recalculateTotal();
+}
+
+function addSelectedPackage(code, name, cost) {
+    let container = document.getElementById("selectedPackages");
+    if (!document.getElementById("package_" + code)) {
+        let div = document.createElement("div");
+        div.id = "package_" + code;
+        div.innerHTML = `${name} - ₹${cost} <button type="button" onclick="removeSelected('package_${code}')">Remove</button>
+                         <input type="hidden" class="selected-package" value="${code}|${cost}">`;
+        container.appendChild(div);
+    }
+    document.getElementById("packageList").innerHTML = "";
+    recalculateTotal();
+}
+
+function removeSelected(id) {
+    document.getElementById(id).remove();
+    recalculateTotal();
 }
 
 function calcAge() {
@@ -179,13 +210,13 @@ function calcAge() {
 
 function recalculateTotal() {
     let testsCost = 0;
-    document.querySelectorAll("#testList input[type='checkbox']:checked").forEach(chk => {
-        testsCost += parseFloat(chk.value.split("|")[1]) || 0;
+    document.querySelectorAll(".selected-test").forEach(item => {
+        testsCost += parseFloat(item.value.split("|")[1]) || 0;
     });
 
     let packagesCost = 0;
-    document.querySelectorAll("#packageList input[type='checkbox']:checked").forEach(chk => {
-        packagesCost += parseFloat(chk.value.split("|")[1]) || 0;
+    document.querySelectorAll(".selected-package").forEach(item => {
+        packagesCost += parseFloat(item.value.split("|")[1]) || 0;
     });
 
     let totalAmount = testsCost + packagesCost;
@@ -206,7 +237,6 @@ function searchCustomer() {
         alert("Enter a valid 10-digit Customer Number");
         return;
     }
-
     fetch(`${API_URL}?action=searchBookings&customerNumber=${encodeURIComponent(num)}`)
         .then(res => res.json())
         .then(bookings => {
@@ -251,7 +281,6 @@ function createBooking() {
         preferredDate: document.getElementById("prefDate").value,
         preferredTime: document.getElementById("prefTime").value
     };
-
     if (!params.customerNumber || params.customerNumber.length !== 10) { alert("Enter valid 10-digit customer number"); return; }
     if (!params.mainCustomerName) { alert("Enter customer name"); return; }
     if (!params.age) { alert("Enter age"); return; }
@@ -262,7 +291,6 @@ function createBooking() {
     if (!params.phleboName) { alert("Select phlebo"); return; }
     if (!params.preferredDate) { alert("Select preferred date"); return; }
     if (!params.preferredTime) { alert("Select preferred time"); return; }
-
     saveBooking(); 
 }
 
