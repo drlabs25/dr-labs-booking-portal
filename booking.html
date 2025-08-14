@@ -24,7 +24,7 @@
 <div class="flex">
     <input type="number" id="custNumber" placeholder="Customer Number (10 digits)" maxlength="10" oninput="validateCustomerNumber(this)">
     <button onclick="searchCustomer()">Search</button>
-    <button id="createBookingBtn" onclick="showBookingForm()" disabled>Create Booking</button>
+    <button id="createBookingBtn" onclick="validateAndShowBookingForm()" disabled>Create Booking</button>
 </div>
 
 <!-- Booking History -->
@@ -39,6 +39,7 @@
                 <th>Preferred Date & Time</th>
                 <th>Technician Name</th>
                 <th>Agent Name</th>
+                <th>Created Date & Time</th> <!-- Added column -->
                 <th>Edit</th>
                 <th>Cancel</th>
                 <th>Paid</th>
@@ -158,6 +159,16 @@ function validateCustomerNumber(input) {
     } else {
         document.getElementById("createBookingBtn").disabled = true;
     }
+}
+
+// New: Validate before showing booking form
+function validateAndShowBookingForm() {
+    let num = document.getElementById("custNumber").value;
+    if (num.length !== 10) {
+        alert("Please enter valid Number");
+        return;
+    }
+    showBookingForm();
 }
 
 function loadTests(query) {
@@ -292,6 +303,7 @@ function searchCustomer() {
                     <td>${b.dateTime}</td>
                     <td>${b.phlebo}</td>
                     <td>${b.agent}</td>
+                    <td>${b.createdDateTime || ''}</td> <!-- New column data -->
                     <td><button class="small-btn edit" onclick="editBooking('${b.bookingId}')">E</button></td>
                     <td><button class="small-btn cancel" onclick="updateStatus('${b.bookingId}','Cancel')">X</button></td>
                     <td><button class="small-btn paid" onclick="updateStatus('${b.bookingId}','Paid')">P</button></td>
