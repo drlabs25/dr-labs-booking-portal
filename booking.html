@@ -75,7 +75,7 @@
         <option value="">--Select Phlebo--</option>
     </select>
     <input type="number" id="pincode" placeholder="Pincode (6 digits)" maxlength="6" required>
-    <input type="date" id="prefDate" onchange="checkPhleboAvailability()">
+    <input type="date" id="prefDate" min="" onchange="checkPhleboAvailability()">
     <select id="prefTime" onchange="checkPhleboAvailability()"></select>
 
     <!-- Test selection -->
@@ -106,6 +106,11 @@
 
 <script>
 window.onload = function() {
+    // Disable past dates for Preferred Date
+    let today = new Date().toISOString().split("T")[0];
+    document.getElementById("prefDate").setAttribute("min", today);
+
+    // Time slot generation
     let timeSelect = document.getElementById('prefTime');
     let startHour = 6, endHour = 18;
     for (let h = startHour; h < endHour; h++) {
@@ -119,6 +124,11 @@ window.onload = function() {
             timeSelect.add(opt);
         }
     }
+
+    // Load tests, packages, and phlebos
+    loadTests();
+    loadPackages();
+    loadPhlebos();
 };
 
 function calcAge() {
@@ -180,6 +190,45 @@ function searchCustomer() {
 
 function showBookingForm() {
     document.getElementById("bookingForm").style.display = 'block';
+}
+
+// Mandatory field validation
+function createBooking() {
+    let params = {
+        customerNumber: document.getElementById("custNumber").value.trim(),
+        mainCustomerName: document.getElementById("custName").value.trim(),
+        age: document.getElementById("age").value.trim(),
+        gender: document.getElementById("gender").value,
+        address: document.getElementById("address").value.trim(),
+        location: document.getElementById("location").value.trim(),
+        city: document.getElementById("city").value,
+        phleboName: document.getElementById("phleboList").value,
+        preferredDate: document.getElementById("prefDate").value,
+        preferredTime: document.getElementById("prefTime").value
+    };
+
+    if (!params.customerNumber || params.customerNumber.length !== 10) { alert("Enter valid 10-digit customer number"); return; }
+    if (!params.mainCustomerName) { alert("Enter customer name"); return; }
+    if (!params.age) { alert("Enter age"); return; }
+    if (!params.gender) { alert("Select gender"); return; }
+    if (!params.address) { alert("Enter address"); return; }
+    if (!params.location) { alert("Enter location"); return; }
+    if (!params.city) { alert("Select city"); return; }
+    if (!params.phleboName) { alert("Select phlebo"); return; }
+    if (!params.preferredDate) { alert("Select preferred date"); return; }
+    if (!params.preferredTime) { alert("Select preferred time"); return; }
+
+    // If validation passes, call your existing save logic
+    saveBooking(); // This assumes you have this function in script.js
+}
+
+// Clear form for Sub Booking but keep customer number
+function addSubBooking() {
+    let custNum = document.getElementById("custNumber").value;
+    document.querySelectorAll("#bookingForm input, #bookingForm select, #bookingForm textarea").forEach(el => {
+        if (el.id !== "custNumber") el.value = "";
+    });
+    document.getElementById("custNumber").value = custNum;
 }
 
 function filterTests(query) { /* Filtering logic here */ }
