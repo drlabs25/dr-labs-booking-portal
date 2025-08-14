@@ -1,20 +1,20 @@
+
 <!DOCTYPE html>
 <html>
 <head>
-  <base target="_top">
-  <?!= include('style'); ?>
-  <script><?!= include('script'); ?></script>
+<meta charset="UTF-8">
+<title>Dr. Labs Booking Portal</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-
+<header>
+    <img src="logo.png" alt="Dr. Labs Logo">
+</header>
+<div class="container">
 <h1>Welcome to Dr. Labs Booking Portal</h1>
-<img src="DrLabsLogo.png" alt="Dr. Labs Logo">
-<br><br>
-
-<!-- Direct page navigation for reliability -->
-<button onclick="window.location.href='https://script.google.com/macros/s/AKfycbyLXVqjq8B5qpoqNOIxaUK6W0JQeaUTHQJMhYlJEBrDDGRgSOn5_EAzlMNFtq1nxTlx9Q/exec?page=admin-login'">Admin Login</button>
-<button onclick="window.location.href='https://script.google.com/macros/s/AKfycbyLXVqjq8B5qpoqNOIxaUK6W0JQeaUTHQJMhYlJEBrDDGRgSOn5_EAzlMNFtq1nxTlx9Q/exec?page=agent-login'">Agent Login</button>
-<button onclick="window.location.href='https://script.google.com/macros/s/AKfycbyLXVqjq8B5qpoqNOIxaUK6W0JQeaUTHQJMhYlJEBrDDGRgSOn5_EAzlMNFtq1nxTlx9Q/exec?page=report'">Report</button>
-
+<button onclick="location.href='admin-login.html'">Admin Login</button>
+<button onclick="location.href='agent-login.html'">Agent Login</button>
+<button onclick="location.href='report.html'">Report</button>
+</div>
 </body>
 </html>

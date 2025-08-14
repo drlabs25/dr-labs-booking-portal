@@ -1,0 +1,180 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Booking</title>
+<link rel="stylesheet" href="style.css">
+<script src="script.js"></script>
+<style>
+.small-btn { padding: 5px 10px; font-size: 12px; border-radius: 50%; border: none; cursor: pointer; }
+.cancel { background: red; color: white; }
+.edit { background: orange; color: white; }
+.paid { background: green; color: white; }
+.flex { display: flex; gap: 10px; flex-wrap: wrap; }
+.flex input, .flex select { flex: 1; }
+</style>
+</head>
+<body>
+<button class="nav-btn back" onclick="goBack()">Back</button>
+<button class="nav-btn home" onclick="goHome()">Home</button>
+<div class="container">
+<h2>Booking Form</h2>
+
+<!-- Search Section -->
+<div class="flex">
+    <input type="number" id="custNumber" placeholder="Customer Number (10 digits)" maxlength="10">
+    <button onclick="searchCustomer()">Search</button>
+    <button onclick="showBookingForm()">Create Booking</button>
+</div>
+
+<!-- Booking History -->
+<div id="history" style="display:none;">
+    <h3>Booking History</h3>
+    <div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Customer Number</th>
+                <th>Customer Name</th>
+                <th>Preferred Date & Time</th>
+                <th>Technician Name</th>
+                <th>Agent Name</th>
+                <th>Edit</th>
+                <th>Cancel</th>
+                <th>Paid</th>
+            </tr>
+        </thead>
+        <tbody id="historyBody"></tbody>
+    </table>
+    </div>
+</div>
+
+<!-- Booking Form Fields -->
+<div id="bookingForm" style="display:none;">
+    <h3>New Booking</h3>
+    <input type="text" id="custName" placeholder="Main Customer Name" required>
+    <input type="date" id="dob" placeholder="Date of Birth" onchange="calcAge()">
+    <input type="number" id="age" placeholder="Age" required>
+    <select id="gender">
+        <option>Male</option>
+        <option>Female</option>
+    </select>
+    <textarea id="address" placeholder="Address" maxlength="500" required></textarea>
+    <input type="text" id="location" placeholder="Location" maxlength="100" required>
+    <select id="city">
+        <option>Chennai</option>
+        <option>Bangalore</option>
+        <option>Hyderabad</option>
+        <option>Mumbai</option>
+        <option>Delhi</option>
+        <option>Coimbatore</option>
+    </select>
+    <select id="phleboList" onchange="checkPhleboAvailability()">
+        <option value="">--Select Phlebo--</option>
+    </select>
+    <input type="number" id="pincode" placeholder="Pincode (6 digits)" maxlength="6" required>
+    <input type="date" id="prefDate" onchange="checkPhleboAvailability()">
+    <select id="prefTime" onchange="checkPhleboAvailability()"></select>
+
+    <!-- Test selection -->
+    <h4>Tests</h4>
+    <input type="text" placeholder="Search Test" oninput="filterTests(this.value)">
+    <div id="testList"></div>
+
+    <!-- Package selection -->
+    <h4>Packages</h4>
+    <input type="text" placeholder="Search Package" oninput="filterPackages(this.value)">
+    <div id="packageList"></div>
+
+    <input type="number" id="totalAmount" placeholder="Total Amount" readonly>
+    <select id="discountList" onchange="recalculateTotal()">
+        <option value="0">No Discount</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+    </select>
+    <input type="number" id="techCharge" placeholder="Technician Charge" oninput="recalculateTotal()">
+    <input type="number" id="totalToPay" placeholder="Total Amount to be Paid" readonly>
+
+    <button onclick="createBooking()">Submit</button>
+    <button onclick="addSubBooking()">Sub Booking</button>
+    <button onclick="confirmBooking()">Confirm Booking</button>
+</div>
+
+</div>
+
+<script>
+window.onload = function() {
+    let timeSelect = document.getElementById('prefTime');
+    let startHour = 6, endHour = 18;
+    for (let h = startHour; h < endHour; h++) {
+        let times = [`${h}:00`, `${h}:30`];
+        for (let i = 0; i < times.length; i++) {
+            let nextH = h + (i === 0 ? 0 : 1);
+            let nextM = (i === 0 ? ":30" : ":00");
+            let display = `${times[i]} - ${nextH}${nextM}`;
+            let opt = document.createElement("option");
+            opt.text = display;
+            timeSelect.add(opt);
+        }
+    }
+}
+
+function calcAge() {
+    let dob = document.getElementById("dob").value;
+    if (dob) {
+        let birth = new Date(dob);
+        let today = new Date();
+        let age = today.getFullYear() - birth.getFullYear();
+        let m = today.getMonth() - birth.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+            age--;
+        }
+        document.getElementById("age").value = age;
+    }
+}
+
+function recalculateTotal() {
+    let totalAmount = parseFloat(document.getElementById("totalAmount").value) || 0;
+    let discount = parseFloat(document.getElementById("discountList").value) || 0;
+    let techCharge = parseFloat(document.getElementById("techCharge").value) || 0;
+    let totalToPay = (totalAmount - discount) + techCharge;
+    document.getElementById("totalToPay").value = totalToPay.toFixed(2);
+}
+
+function checkPhleboAvailability() {
+    let phlebo = document.getElementById("phleboList").value;
+    let date = document.getElementById("prefDate").value;
+    let time = document.getElementById("prefTime").value;
+    if (phlebo && date && time) {
+        // Placeholder: replace with Google Sheet check
+        let booked = false;
+        if (booked) {
+            alert("Preferred time not available");
+        }
+    }
+}
+
+function searchCustomer() {
+    let num = document.getElementById("custNumber").value;
+    if (num.length !== 10) {
+        alert("Enter a valid 10-digit Customer Number");
+        return;
+    }
+    document.getElementById("history").style.display = 'block';
+}
+
+function showBookingForm() {
+    document.getElementById("bookingForm").style.display = 'block';
+}
+
+function filterTests(query) {
+    // Placeholder for filtering test list
+}
+function filterPackages(query) {
+    // Placeholder for filtering package list
+}
+</script>
+
+</body>
+</html>
