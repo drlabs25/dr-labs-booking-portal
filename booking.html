@@ -39,7 +39,7 @@
                 <th>Preferred Date & Time</th>
                 <th>Technician Name</th>
                 <th>Agent Name</th>
-                <th>Created Date & Time</th> <!-- Added column -->
+                <th>Created Date & Time</th>
                 <th>Edit</th>
                 <th>Cancel</th>
                 <th>Paid</th>
@@ -53,6 +53,9 @@
 <!-- Booking Form Fields -->
 <div id="bookingForm" style="display:none;">
     <h3>New Booking</h3>
+    <!-- Hidden bookingId for edit mode -->
+    <input type="hidden" id="bookingId">
+    
     <input type="text" id="custName" placeholder="Main Customer Name" required>
     <input type="date" id="dob" placeholder="Date of Birth" onchange="calcAge()">
     <input type="number" id="age" placeholder="Age" required>
@@ -113,7 +116,6 @@
 
     <input type="number" id="totalAmount" placeholder="Total Amount" readonly>
 
-    <!-- Discount changed to percentage -->
     <select id="discountList" onchange="recalculateTotal()">
         <option value="0">No Discount</option>
         <option value="5">5%</option>
@@ -153,15 +155,10 @@ window.onload = function() {
 };
 
 function validateCustomerNumber(input) {
-    input.value = input.value.replace(/[^0-9]/g, ''); // allow only digits
-    if (input.value.length === 10) {
-        document.getElementById("createBookingBtn").disabled = false;
-    } else {
-        document.getElementById("createBookingBtn").disabled = true;
-    }
+    input.value = input.value.replace(/[^0-9]/g, '');
+    document.getElementById("createBookingBtn").disabled = (input.value.length !== 10);
 }
 
-// New: Validate before showing booking form
 function validateAndShowBookingForm() {
     let num = document.getElementById("custNumber").value;
     if (num.length !== 10) {
@@ -303,7 +300,7 @@ function searchCustomer() {
                     <td>${b.dateTime}</td>
                     <td>${b.phlebo}</td>
                     <td>${b.agent}</td>
-                    <td>${b.createdDateTime || ''}</td> <!-- New column data -->
+                    <td>${b.createdDateTime || ''}</td>
                     <td><button class="small-btn edit" onclick="editBooking('${b.bookingId}')">E</button></td>
                     <td><button class="small-btn cancel" onclick="updateStatus('${b.bookingId}','Cancel')">X</button></td>
                     <td><button class="small-btn paid" onclick="updateStatus('${b.bookingId}','Paid')">P</button></td>
@@ -318,8 +315,10 @@ function showBookingForm() {
 }
 
 function createBooking() {
+    let actionType = document.getElementById("bookingId").value ? "updateBooking" : "saveBooking";
     let params = new URLSearchParams({
-        action: "saveBooking",
+        action: actionType,
+        bookingId: document.getElementById("bookingId").value,
         customerNumber: document.getElementById("custNumber").value.trim(),
         mainCustomerName: document.getElementById("custName").value.trim(),
         dob: document.getElementById("dob").value,
@@ -345,7 +344,7 @@ function createBooking() {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                alert("Booking saved! ID: " + data.bookingId);
+                alert((actionType === "updateBooking" ? "Booking updated!" : "Booking saved!") + " ID: " + data.bookingId);
             } else {
                 alert("Failed to save booking.");
             }
@@ -358,6 +357,45 @@ function addSubBooking() {
         if (el.id !== "custNumber") el.value = "";
     });
     document.getElementById("custNumber").value = custNum;
+}
+
+// Updated: editBooking now calls getBookingDetails
+function editBooking(bookingId) {
+    fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`)
+        .then(res => res.json())
+        .then(data => {
+            if (!data || data.success === false) {
+                alert("Booking not found");
+                return;
+            }
+            document.getElementById("bookingId").value = bookingId;
+            document.getElementById("custNumber").value = data.customerNumber;
+            document.getElementById("custName").value = data.mainCustomerName;
+            document.getElementById("dob").value = data.dob;
+            document.getElementById("age").value = data.age;
+            document.getElementById("gender").value = data.gender;
+            document.getElementById("address").value = data.address;
+            document.getElementById("location").value = data.location;
+            document.getElementById("city").value = data.city;
+            document.getElementById("phleboList").value = data.phleboName;
+            document.getElementById("pincode").value = data.pincode;
+            document.getElementById("prefDate").value = data.preferredDate;
+            document.getElementById("prefTime").value = data.preferredTime;
+            document.getElementById("totalAmount").value = data.totalAmount;
+            document.getElementById("discountList").value = data.discount;
+            document.getElementById("techCharge").value = data.techCharge;
+            document.getElementById("totalToPay").value = data.totalToPay;
+
+            // Reload tests
+            document.getElementById("selectedTestsBody").innerHTML = "";
+            (data.tests || []).forEach(t => addSelectedTest(t.code, t.name, t.cost));
+
+            // Reload packages
+            document.getElementById("selectedPackagesBody").innerHTML = "";
+            (data.packages || []).forEach(p => addSelectedPackage(p.code, p.name, p.cost));
+
+            showBookingForm();
+        });
 }
 </script>
 </body>
