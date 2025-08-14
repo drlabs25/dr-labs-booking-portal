@@ -89,11 +89,16 @@
     <div id="packageList"></div>
 
     <input type="number" id="totalAmount" placeholder="Total Amount" readonly>
+
+    <!-- Discount changed to percentage -->
     <select id="discountList" onchange="recalculateTotal()">
         <option value="0">No Discount</option>
-        <option value="50">50</option>
-        <option value="100">100</option>
+        <option value="5">5%</option>
+        <option value="10">10%</option>
+        <option value="15">15%</option>
+        <option value="20">20%</option>
     </select>
+
     <input type="number" id="techCharge" placeholder="Technician Charge" oninput="recalculateTotal()">
     <input type="number" id="totalToPay" placeholder="Total Amount to be Paid" readonly>
 
@@ -145,12 +150,44 @@ function calcAge() {
     }
 }
 
+// ✅ Updated recalculateTotal for % discount & package cost formula
 function recalculateTotal() {
-    let totalAmount = parseFloat(document.getElementById("totalAmount").value) || 0;
-    let discount = parseFloat(document.getElementById("discountList").value) || 0;
+    let testsCost = 0;
+    document.querySelectorAll("#testList input[type='checkbox']:checked").forEach(chk => {
+        testsCost += parseFloat(chk.value.split("|")[1]) || 0;
+    });
+
+    let packagesCost = 0;
+    document.querySelectorAll("#packageList input[type='checkbox']:checked").forEach(chk => {
+        packagesCost += parseFloat(chk.value.split("|")[1]) || 0;
+    });
+
+    let totalAmount = testsCost + packagesCost;
+    document.getElementById("totalAmount").value = totalAmount.toFixed(2);
+
+    let discountPercent = parseFloat(document.getElementById("discountList").value) || 0;
     let techCharge = parseFloat(document.getElementById("techCharge").value) || 0;
-    let totalToPay = (totalAmount - discount) + techCharge;
+
+    let discountedPart = (totalAmount - packagesCost) - ((discountPercent / 100) * (totalAmount - packagesCost));
+    let totalToPay = discountedPart + packagesCost + techCharge;
+
     document.getElementById("totalToPay").value = totalToPay.toFixed(2);
+}
+
+// Search filter for tests
+function filterTests(query) {
+    query = query.toLowerCase();
+    document.querySelectorAll("#testList label").forEach(label => {
+        label.style.display = label.textContent.toLowerCase().includes(query) ? "" : "none";
+    });
+}
+
+// Search filter for packages
+function filterPackages(query) {
+    query = query.toLowerCase();
+    document.querySelectorAll("#packageList label").forEach(label => {
+        label.style.display = label.textContent.toLowerCase().includes(query) ? "" : "none";
+    });
 }
 
 // Override searchCustomer to inject Edit/Cancel/Paid buttons
@@ -218,11 +255,9 @@ function createBooking() {
     if (!params.preferredDate) { alert("Select preferred date"); return; }
     if (!params.preferredTime) { alert("Select preferred time"); return; }
 
-    // If validation passes, call your existing save logic
-    saveBooking(); // This assumes you have this function in script.js
+    saveBooking(); 
 }
 
-// Clear form for Sub Booking but keep customer number
 function addSubBooking() {
     let custNum = document.getElementById("custNumber").value;
     document.querySelectorAll("#bookingForm input, #bookingForm select, #bookingForm textarea").forEach(el => {
@@ -230,9 +265,6 @@ function addSubBooking() {
     });
     document.getElementById("custNumber").value = custNum;
 }
-
-function filterTests(query) { /* Filtering logic here */ }
-function filterPackages(query) { /* Filtering logic here */ }
 </script>
 
 </body>
