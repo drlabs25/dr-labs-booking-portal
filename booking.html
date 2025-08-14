@@ -22,9 +22,9 @@
 
 <!-- Search Section -->
 <div class="flex">
-    <input type="number" id="custNumber" placeholder="Customer Number (10 digits)" maxlength="10">
+    <input type="number" id="custNumber" placeholder="Customer Number (10 digits)" maxlength="10" oninput="validateCustomerNumber(this)">
     <button onclick="searchCustomer()">Search</button>
-    <button onclick="showBookingForm()">Create Booking</button>
+    <button id="createBookingBtn" onclick="showBookingForm()" disabled>Create Booking</button>
 </div>
 
 <!-- Booking History -->
@@ -150,6 +150,15 @@ window.onload = function() {
     }
     loadPhlebos();
 };
+
+function validateCustomerNumber(input) {
+    input.value = input.value.replace(/[^0-9]/g, ''); // allow only digits
+    if (input.value.length === 10) {
+        document.getElementById("createBookingBtn").disabled = false;
+    } else {
+        document.getElementById("createBookingBtn").disabled = true;
+    }
+}
 
 function loadTests(query) {
     query = (query || "").trim();
