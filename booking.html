@@ -318,29 +318,38 @@ function showBookingForm() {
 }
 
 function createBooking() {
-    let params = {
+    let params = new URLSearchParams({
+        action: "saveBooking",
         customerNumber: document.getElementById("custNumber").value.trim(),
         mainCustomerName: document.getElementById("custName").value.trim(),
+        dob: document.getElementById("dob").value,
         age: document.getElementById("age").value.trim(),
         gender: document.getElementById("gender").value,
         address: document.getElementById("address").value.trim(),
         location: document.getElementById("location").value.trim(),
         city: document.getElementById("city").value,
         phleboName: document.getElementById("phleboList").value,
+        pincode: document.getElementById("pincode").value,
         preferredDate: document.getElementById("prefDate").value,
-        preferredTime: document.getElementById("prefTime").value
-    };
-    if (!params.customerNumber || params.customerNumber.length !== 10) { alert("Enter valid 10-digit customer number"); return; }
-    if (!params.mainCustomerName) { alert("Enter customer name"); return; }
-    if (!params.age) { alert("Enter age"); return; }
-    if (!params.gender) { alert("Select gender"); return; }
-    if (!params.address) { alert("Enter address"); return; }
-    if (!params.location) { alert("Enter location"); return; }
-    if (!params.city) { alert("Select city"); return; }
-    if (!params.phleboName) { alert("Select phlebo"); return; }
-    if (!params.preferredDate) { alert("Select preferred date"); return; }
-    if (!params.preferredTime) { alert("Select preferred time"); return; }
-    saveBooking(); 
+        preferredTime: document.getElementById("prefTime").value,
+        tests: getSelectedTests(),
+        packages: getSelectedPackages(),
+        totalAmount: document.getElementById("totalAmount").value,
+        discount: document.getElementById("discountList").value,
+        techCharge: document.getElementById("techCharge").value,
+        totalToPay: document.getElementById("totalToPay").value,
+        agentName: "Agent Name Here"
+    });
+
+    fetch(`${API_URL}?${params.toString()}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert("Booking saved! ID: " + data.bookingId);
+            } else {
+                alert("Failed to save booking.");
+            }
+        });
 }
 
 function addSubBooking() {
