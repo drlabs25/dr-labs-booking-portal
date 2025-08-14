@@ -135,9 +135,9 @@ function searchCustomer() {
                     <td>${b.dateTime}</td>
                     <td>${b.phlebo}</td>
                     <td>${b.agent}</td>
-                    <td><button class="small-btn edit">E</button></td>
-                    <td><button class="small-btn cancel">X</button></td>
-                    <td><button class="small-btn paid">P</button></td>
+                    <td><button class="small-btn edit" onclick="editBooking('${b.bookingId}')">E</button></td>
+                    <td><button class="small-btn cancel" onclick="updateStatus('${b.bookingId}','Cancel')">X</button></td>
+                    <td><button class="small-btn paid" onclick="updateStatus('${b.bookingId}','Paid')">P</button></td>
                 `;
                 body.appendChild(tr);
             });
@@ -227,5 +227,48 @@ function filterReport() {
                 `;
                 tbody.appendChild(tr);
             });
+        });
+}
+
+/** Update booking status **/
+function updateStatus(bookingId, status) {
+    fetch(`${API_URL}?action=updateBookingStatus&bookingId=${encodeURIComponent(bookingId)}&status=${encodeURIComponent(status)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert(`Booking marked as ${status}`);
+                searchCustomer(); // Refresh table after update
+            } else {
+                alert("Failed to update status");
+            }
+        });
+}
+
+/** Edit booking **/
+function editBooking(bookingId) {
+    fetch(`${API_URL}?action=getBookingDetails&bookingId=${encodeURIComponent(bookingId)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success === false) {
+                alert("Booking not found");
+                return;
+            }
+            showBookingForm();
+            document.getElementById("custNumber").value = data.customerNumber;
+            document.getElementById("custName").value = data.mainCustomerName;
+            document.getElementById("dob").value = data.dob;
+            document.getElementById("age").value = data.age;
+            document.getElementById("gender").value = data.gender;
+            document.getElementById("address").value = data.address;
+            document.getElementById("location").value = data.location;
+            document.getElementById("city").value = data.city;
+            document.getElementById("phleboList").value = data.phleboName;
+            document.getElementById("pincode").value = data.pincode;
+            document.getElementById("prefDate").value = data.preferredDate;
+            document.getElementById("prefTime").value = data.preferredTime;
+            document.getElementById("totalAmount").value = data.totalAmount;
+            document.getElementById("discountList").value = data.discount;
+            document.getElementById("techCharge").value = data.techCharge;
+            document.getElementById("totalToPay").value = data.totalToPay;
         });
 }
