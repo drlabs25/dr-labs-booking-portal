@@ -80,13 +80,35 @@
     <label>Tests</label>
     <input type="text" placeholder="Search Test" oninput="loadTests(this.value)">
     <div id="testList"></div>
-    <div id="selectedTests"></div> <!-- NEW -->
+    <div id="selectedTests">
+        <table border="1" style="width:100%; margin-top:5px;">
+            <thead>
+                <tr>
+                    <th>Test Name</th>
+                    <th>Cost</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="selectedTestsBody"></tbody>
+        </table>
+    </div>
 
     <!-- Package selection -->
     <label>Packages</label>
     <input type="text" placeholder="Search Package" oninput="loadPackages(this.value)">
     <div id="packageList"></div>
-    <div id="selectedPackages"></div> <!-- NEW -->
+    <div id="selectedPackages">
+        <table border="1" style="width:100%; margin-top:5px;">
+            <thead>
+                <tr>
+                    <th>Package Name</th>
+                    <th>Cost</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="selectedPackagesBody"></tbody>
+        </table>
+    </div>
 
     <input type="number" id="totalAmount" placeholder="Total Amount" readonly>
 
@@ -164,26 +186,32 @@ function loadPackages(query) {
 }
 
 function addSelectedTest(code, name, cost) {
-    let container = document.getElementById("selectedTests");
     if (!document.getElementById("test_" + code)) {
-        let div = document.createElement("div");
-        div.id = "test_" + code;
-        div.innerHTML = `${name} - ₹${cost} <button type="button" onclick="removeSelected('test_${code}')">Remove</button>
-                         <input type="hidden" class="selected-test" value="${code}|${cost}">`;
-        container.appendChild(div);
+        let tr = document.createElement("tr");
+        tr.id = "test_" + code;
+        tr.innerHTML = `
+            <td>${name}</td>
+            <td>₹${cost}</td>
+            <td><button type="button" onclick="removeSelected('test_${code}')">Remove</button></td>
+            <input type="hidden" class="selected-test" value="${code}|${cost}">
+        `;
+        document.getElementById("selectedTestsBody").appendChild(tr);
     }
     document.getElementById("testList").innerHTML = "";
     recalculateTotal();
 }
 
 function addSelectedPackage(code, name, cost) {
-    let container = document.getElementById("selectedPackages");
     if (!document.getElementById("package_" + code)) {
-        let div = document.createElement("div");
-        div.id = "package_" + code;
-        div.innerHTML = `${name} - ₹${cost} <button type="button" onclick="removeSelected('package_${code}')">Remove</button>
-                         <input type="hidden" class="selected-package" value="${code}|${cost}">`;
-        container.appendChild(div);
+        let tr = document.createElement("tr");
+        tr.id = "package_" + code;
+        tr.innerHTML = `
+            <td>${name}</td>
+            <td>₹${cost}</td>
+            <td><button type="button" onclick="removeSelected('package_${code}')">Remove</button></td>
+            <input type="hidden" class="selected-package" value="${code}|${cost}">
+        `;
+        document.getElementById("selectedPackagesBody").appendChild(tr);
     }
     document.getElementById("packageList").innerHTML = "";
     recalculateTotal();
