@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <?!= include('style'); ?>
+  <script><?!= include('script'); ?></script>
+</head>
+<body>
+
+<header>
+    Admin Login
+    <nav>
+        <button onclick="window.history.back()">Back</button>
+        <button onclick="window.location.href='https://script.google.com/macros/s/AKfycbyLXVqjq8B5qpoqNOIxaUK6W0JQeaUTHQJMhYlJEBrDDGRgSOn5_EAzlMNFtq1nxTlx9Q/exec'">Home</button>
+    </nav>
+</header>
+
+<div class="container">
+    <label for="adminUser">Username</label>
+    <input type="text" id="adminUser">
+
+    <label for="adminPass">Password</label>
+    <input type="password" id="adminPass">
+
+    <!-- Keep this for credential check before redirect -->
+    <button onclick="adminLogin()">Login</button>
+</div>
+
+</body>
+</html>

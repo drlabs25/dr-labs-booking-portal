@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <?!= include('style'); ?>
+  <script><?!= include('script'); ?></script>
+</head>
+<body>
+
+<header>
+    Test Details
+    <nav>
+        <!-- Direct navigation with Web App URL -->
+        <button onclick="window.location.href='https://script.google.com/macros/s/AKfycbyLXVqjq8B5qpoqNOIxaUK6W0JQeaUTHQJMhYlJEBrDDGRgSOn5_EAzlMNFtq1nxTlx9Q/exec?page=admin-dashboard'">Back</button>
+        <button onclick="window.location.href='https://script.google.com/macros/s/AKfycbyLXVqjq8B5qpoqNOIxaUK6W0JQeaUTHQJMhYlJEBrDDGRgSOn5_EAzlMNFtq1nxTlx9Q/exec'">Home</button>
+    </nav>
+</header>
+
+<div class="container">
+    <h3>Search Test</h3>
+    <input type="text" id="searchInput" placeholder="Enter Test Code">
+    <button onclick="searchRecord('test')">Search</button>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Test Code</th>
+                <th>Test Name</th>
+                <th>Status</th>
+                <th>Change Status</th>
+            </tr>
+        </thead>
+        <tbody id="resultBody"></tbody>
+    </table>
+
+    <h3>Add Test</h3>
+    <form id="testForm">
+        <label>Test Name</label>
+        <input type="text" required>
+
+        <label>Test Cost</label>
+        <input type="number" required>
+
+        <label>Test Code</label>
+        <input type="text" required>
+
+        <!-- Calls saveRecord() from script.html -->
+        <button type="button" onclick="saveRecord('testForm')">Submit</button>
+    </form>
+
+    <h3>Bulk Upload Tests (CSV)</h3>
+    <input type="file" accept=".csv" onchange="uploadCSV(this)" class="csv-upload">
+</div>
+
+</body>
+</html>

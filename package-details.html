@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <?!= include('style'); ?>
+  <script><?!= include('script'); ?></script>
+</head>
+<body>
+
+<header>
+    Package Details
+    <nav>
+        <!-- Direct navigation with full Web App URL -->
+        <button onclick="window.location.href='https://script.google.com/macros/s/AKfycbyLXVqjq8B5qpoqNOIxaUK6W0JQeaUTHQJMhYlJEBrDDGRgSOn5_EAzlMNFtq1nxTlx9Q/exec?page=admin-dashboard'">Back</button>
+        <button onclick="window.location.href='https://script.google.com/macros/s/AKfycbyLXVqjq8B5qpoqNOIxaUK6W0JQeaUTHQJMhYlJEBrDDGRgSOn5_EAzlMNFtq1nxTlx9Q/exec'">Home</button>
+    </nav>
+</header>
+
+<div class="container">
+    <h3>Search Package</h3>
+    <input type="text" id="searchInput" placeholder="Enter Package Code">
+    <button onclick="searchRecord('package')">Search</button>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Package Code</th>
+                <th>Package Name</th>
+                <th>Status</th>
+                <th>Change Status</th>
+            </tr>
+        </thead>
+        <tbody id="resultBody"></tbody>
+    </table>
+
+    <h3>Add Package</h3>
+    <form id="packageForm">
+        <label>Package Name</label>
+        <input type="text" required>
+
+        <label>Package Cost</label>
+        <input type="number" required>
+
+        <label>Package Code</label>
+        <input type="text" required>
+
+        <!-- Calls saveRecord() in script.html -->
+        <button type="button" onclick="saveRecord('packageForm')">Submit</button>
+    </form>
+
+    <h3>Bulk Upload Packages (CSV)</h3>
+    <input type="file" accept=".csv" onchange="uploadCSV(this)" class="csv-upload">
+</div>
+
+</body>
+</html>

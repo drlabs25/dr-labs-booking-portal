@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <?!= include('style'); ?>
+  <script><?!= include('script'); ?></script>
+</head>
+<body>
+
+<header>
+    Reports
+    <nav>
+        <!-- Direct navigation using your Web App URL -->
+        <button onclick="window.location.href='https://script.google.com/macros/s/AKfycbyLXVqjq8B5qpoqNOIxaUK6W0JQeaUTHQJMhYlJEBrDDGRgSOn5_EAzlMNFtq1nxTlx9Q/exec?page=admin-dashboard'">Back</button>
+        <button onclick="window.location.href='https://script.google.com/macros/s/AKfycbyLXVqjq8B5qpoqNOIxaUK6W0JQeaUTHQJMhYlJEBrDDGRgSOn5_EAzlMNFtq1nxTlx9Q/exec'">Home</button>
+    </nav>
+</header>
+
+<div class="container">
+    <h3>Filter Reports</h3>
+
+    <label>Start Date</label>
+    <input type="date" id="startDate">
+
+    <label>End Date</label>
+    <input type="date" id="endDate">
+
+    <label>Phlebo Name</label>
+    <input type="text" id="phleboName">
+
+    <label>Agent Name</label>
+    <input type="text" id="agentNameFilter">
+
+    <label>Location</label>
+    <input type="text" id="locationFilter">
+
+    <!-- Calls filterReport() and downloadCSV() from script.html -->
+    <button onclick="filterReport()">Filter</button>
+    <button onclick="downloadCSV()">Download CSV</button>
+
+    <h3>Report Results</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Agent Name</th>
+                <th>No. of Bookings</th>
+                <th>No. of Cancelled</th>
+                <th>No. of Paid</th>
+                <th>Total Confirmed Bookings</th>
+            </tr>
+        </thead>
+        <tbody id="reportBody"></tbody>
+    </table>
+</div>
+
+</body>
+</html>
