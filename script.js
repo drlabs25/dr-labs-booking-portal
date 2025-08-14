@@ -39,52 +39,66 @@ function agentLogin() {
         });
 }
 
-/** Load Tests with live search **/
+// Load Tests with optional search term
 function loadTests(searchTerm = "") {
-    if (searchTerm.trim().length < 1) {
-        document.getElementById("testList").innerHTML = "";
-        return;
-    }
-    fetch(`${API_URL}?action=getTests&search=${encodeURIComponent(searchTerm)}`)
+    fetch(`https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec?action=getTests&search=${encodeURIComponent(searchTerm)}`)
         .then(res => res.json())
-        .then(tests => {
-            const list = document.getElementById("testList");
-            list.innerHTML = "";
-            tests.forEach(t => {
+        .then(data => {
+            let testList = document.getElementById("testList");
+            testList.innerHTML = "";
+            data.forEach(test => {
                 let chk = document.createElement("input");
                 chk.type = "checkbox";
-                chk.value = `${t.code}|${t.cost}|${t.name}`;
-                chk.onchange = recalcTotalFromSelection;
-                list.appendChild(chk);
-                list.appendChild(document.createTextNode(` ${t.name} - ₹${t.cost}`));
-                list.appendChild(document.createElement("br"));
+                chk.value = test.name;
+                chk.dataset.cost = test.cost;
+                chk.onchange = recalculateTotal;
+
+                let lbl = document.createElement("label");
+                lbl.textContent = `${test.name} (${test.cost})`;
+
+                let div = document.createElement("div");
+                div.appendChild(chk);
+                div.appendChild(lbl);
+
+                testList.appendChild(div);
             });
         });
 }
 
-/** Load Packages with live search **/
+// Load Packages with optional search term
 function loadPackages(searchTerm = "") {
-    if (searchTerm.trim().length < 1) {
-        document.getElementById("packageList").innerHTML = "";
-        return;
-    }
-    fetch(`${API_URL}?action=getPackages&search=${encodeURIComponent(searchTerm)}`)
+    fetch(`https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec?action=getPackages&search=${encodeURIComponent(searchTerm)}`)
         .then(res => res.json())
-        .then(packages => {
-            const list = document.getElementById("packageList");
-            list.innerHTML = "";
-            packages.forEach(p => {
+        .then(data => {
+            let packageList = document.getElementById("packageList");
+            packageList.innerHTML = "";
+            data.forEach(pkg => {
                 let chk = document.createElement("input");
                 chk.type = "checkbox";
-                chk.value = `${p.code}|${p.cost}|${p.name}`;
-                chk.onchange = recalcTotalFromSelection;
-                list.appendChild(chk);
-                list.appendChild(document.createTextNode(` ${p.name} - ₹${p.cost}`));
-                list.appendChild(document.createElement("br"));
+                chk.value = pkg.name;
+                chk.dataset.cost = pkg.cost;
+                chk.onchange = recalculateTotal;
+
+                let lbl = document.createElement("label");
+                lbl.textContent = `${pkg.name} (${pkg.cost})`;
+
+                let div = document.createElement("div");
+                div.appendChild(chk);
+                div.appendChild(lbl);
+
+                packageList.appendChild(div);
             });
         });
 }
 
+// Search filters
+function filterTests(query) {
+    loadTests(query);
+}
+
+function filterPackages(query) {
+    loadPackages(query);
+}
 /** Load Phlebos **/
 function loadPhlebos() {
     fetch(`${API_URL}?action=getPhlebos`)
