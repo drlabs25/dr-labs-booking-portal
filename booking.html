@@ -132,8 +132,6 @@
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbw4sBOSu5WL_Cep7M1B9qYgfvBSQ0iuuCfbrRQDG6y4qPl6fJfap-4LLaX_wMqvg3ZV8A/exec";
-
 window.onload = function() {
     let today = new Date().toISOString().split("T")[0];
     document.getElementById("prefDate").setAttribute("min", today);
@@ -155,10 +153,15 @@ window.onload = function() {
 };
 
 function validateCustomerNumber(input) {
-    input.value = input.value.replace(/[^0-9]/g, '');
-    document.getElementById("createBookingBtn").disabled = (input.value.length !== 10);
+    input.value = input.value.replace(/[^0-9]/g, ''); // allow only digits
+    if (input.value.length === 10) {
+        document.getElementById("createBookingBtn").disabled = false;
+    } else {
+        document.getElementById("createBookingBtn").disabled = true;
+    }
 }
 
+// New: Validate before showing booking form
 function validateAndShowBookingForm() {
     let num = document.getElementById("custNumber").value;
     if (num.length !== 10) {
@@ -258,16 +261,21 @@ function recalculateTotal() {
     document.querySelectorAll(".selected-test").forEach(item => {
         testsCost += parseFloat(item.value.split("|")[1]) || 0;
     });
+
     let packagesCost = 0;
     document.querySelectorAll(".selected-package").forEach(item => {
         packagesCost += parseFloat(item.value.split("|")[1]) || 0;
     });
+
     let totalAmount = testsCost + packagesCost;
     document.getElementById("totalAmount").value = totalAmount.toFixed(2);
+
     let discountPercent = parseFloat(document.getElementById("discountList").value) || 0;
     let techCharge = parseFloat(document.getElementById("techCharge").value) || 0;
+
     let discountedPart = (totalAmount - packagesCost) - ((discountPercent / 100) * (totalAmount - packagesCost));
     let totalToPay = discountedPart + packagesCost + techCharge;
+
     document.getElementById("totalToPay").value = totalToPay.toFixed(2);
 }
 
@@ -295,7 +303,7 @@ function searchCustomer() {
                     <td>${b.dateTime}</td>
                     <td>${b.phlebo}</td>
                     <td>${b.agent}</td>
-                    <td>${b.createdDateTime || ''}</td>
+                    <td>${b.createdDateTime || ''}</td> <!-- New column data -->
                     <td><button class="small-btn edit" onclick="editBooking('${b.bookingId}')">E</button></td>
                     <td><button class="small-btn cancel" onclick="updateStatus('${b.bookingId}','Cancel')">X</button></td>
                     <td><button class="small-btn paid" onclick="updateStatus('${b.bookingId}','Paid')">P</button></td>
@@ -310,46 +318,40 @@ function showBookingForm() {
 }
 
 function createBooking() {
-  let formData = new FormData();
+    let params = new URLSearchParams({
+        action: "saveBooking",
+        customerNumber: document.getElementById("custNumber").value.trim(),
+        mainCustomerName: document.getElementById("custName").value.trim(),
+        dob: document.getElementById("dob").value,
+        age: document.getElementById("age").value.trim(),
+        gender: document.getElementById("gender").value,
+        address: document.getElementById("address").value.trim(),
+        location: document.getElementById("location").value.trim(),
+        city: document.getElementById("city").value,
+        phleboName: document.getElementById("phleboList").value,
+        pincode: document.getElementById("pincode").value,
+        preferredDate: document.getElementById("prefDate").value,
+        preferredTime: document.getElementById("prefTime").value,
+        tests: getSelectedTests(),
+        packages: getSelectedPackages(),
+        totalAmount: document.getElementById("totalAmount").value,
+        discount: document.getElementById("discountList").value,
+        techCharge: document.getElementById("techCharge").value,
+        totalToPay: document.getElementById("totalToPay").value,
+        agentName: "Agent Name Here"
+    });
 
-  formData.append("action", "saveBooking");
-  formData.append("customerNumber", document.getElementById("customerNumber").value);
-  formData.append("mainCustomerName", document.getElementById("mainCustomerName").value);
-  formData.append("dob", document.getElementById("dob").value);
-  formData.append("age", document.getElementById("age").value);
-  formData.append("gender", document.getElementById("gender").value);
-  formData.append("address", document.getElementById("address").value);
-  formData.append("location", document.getElementById("location").value);
-  formData.append("city", document.getElementById("city").value);
-  formData.append("phleboName", document.getElementById("phleboName").value);
-  formData.append("pincode", document.getElementById("pincode").value);
-  formData.append("preferredDate", document.getElementById("preferredDate").value);
-  formData.append("preferredTime", document.getElementById("preferredTime").value);
-  formData.append("tests", selectedTests.join(","));       // assuming you store tests in an array
-  formData.append("packages", selectedPackages.join(",")); // assuming you store packages in an array
-  formData.append("totalAmount", document.getElementById("totalAmount").value);
-  formData.append("discount", document.getElementById("discount").value);
-  formData.append("techCharge", document.getElementById("techCharge").value);
-  formData.append("totalToPay", document.getElementById("totalToPay").value);
-  formData.append("agentName", loggedInAgentName); // variable holding logged-in agent name
-
-  fetch(SCRIPT_URL, {  // replace SCRIPT_URL with your Apps Script web app URL
-    method: "POST",
-    body: formData
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      alert("Booking saved! Booking ID: " + data.bookingId);
-    } else {
-      alert("Error: " + (data.message || "Could not save booking"));
-    }
-  })
-  .catch(err => {
-    console.error("Error saving booking:", err);
-    alert("Error saving booking. See console for details.");
-  });
+    fetch(`${API_URL}?${params.toString()}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert("Booking saved! ID: " + data.bookingId);
+            } else {
+                alert("Failed to save booking.");
+            }
+        });
 }
+
 function addSubBooking() {
     let custNum = document.getElementById("custNumber").value;
     document.querySelectorAll("#bookingForm input, #bookingForm select, #bookingForm textarea").forEach(el => {
