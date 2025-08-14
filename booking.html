@@ -310,47 +310,46 @@ function showBookingForm() {
 }
 
 function createBooking() {
-    let params = new URLSearchParams({
-        action: "saveBooking",
-        customerNumber: document.getElementById("custNumber").value.trim(),
-        mainCustomerName: document.getElementById("custName").value.trim(),
-        dob: document.getElementById("dob").value,
-        age: document.getElementById("age").value.trim(),
-        gender: document.getElementById("gender").value,
-        address: document.getElementById("address").value.trim(),
-        location: document.getElementById("location").value.trim(),
-        city: document.getElementById("city").value,
-        phleboName: document.getElementById("phleboList").value,
-        pincode: document.getElementById("pincode").value,
-        preferredDate: document.getElementById("prefDate").value,
-        preferredTime: document.getElementById("prefTime").value,
-        tests: getSelectedTests(),
-        packages: getSelectedPackages(),
-        totalAmount: document.getElementById("totalAmount").value,
-        discount: document.getElementById("discountList").value,
-        techCharge: document.getElementById("techCharge").value,
-        totalToPay: document.getElementById("totalToPay").value,
-        agentName: "Agent Name Here"
-    });
+  let formData = new FormData();
 
-    fetch(API_URL, {
-        method: "POST",
-        body: params
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            alert("Booking saved! ID: " + data.bookingId);
-        } else {
-            alert("Failed to save booking.");
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Error saving booking.");
-    });
+  formData.append("action", "saveBooking");
+  formData.append("customerNumber", document.getElementById("customerNumber").value);
+  formData.append("mainCustomerName", document.getElementById("mainCustomerName").value);
+  formData.append("dob", document.getElementById("dob").value);
+  formData.append("age", document.getElementById("age").value);
+  formData.append("gender", document.getElementById("gender").value);
+  formData.append("address", document.getElementById("address").value);
+  formData.append("location", document.getElementById("location").value);
+  formData.append("city", document.getElementById("city").value);
+  formData.append("phleboName", document.getElementById("phleboName").value);
+  formData.append("pincode", document.getElementById("pincode").value);
+  formData.append("preferredDate", document.getElementById("preferredDate").value);
+  formData.append("preferredTime", document.getElementById("preferredTime").value);
+  formData.append("tests", selectedTests.join(","));       // assuming you store tests in an array
+  formData.append("packages", selectedPackages.join(",")); // assuming you store packages in an array
+  formData.append("totalAmount", document.getElementById("totalAmount").value);
+  formData.append("discount", document.getElementById("discount").value);
+  formData.append("techCharge", document.getElementById("techCharge").value);
+  formData.append("totalToPay", document.getElementById("totalToPay").value);
+  formData.append("agentName", loggedInAgentName); // variable holding logged-in agent name
+
+  fetch(SCRIPT_URL, {  // replace SCRIPT_URL with your Apps Script web app URL
+    method: "POST",
+    body: formData
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      alert("Booking saved! Booking ID: " + data.bookingId);
+    } else {
+      alert("Error: " + (data.message || "Could not save booking"));
+    }
+  })
+  .catch(err => {
+    console.error("Error saving booking:", err);
+    alert("Error saving booking. See console for details.");
+  });
 }
-
 function addSubBooking() {
     let custNum = document.getElementById("custNumber").value;
     document.querySelectorAll("#bookingForm input, #bookingForm select, #bookingForm textarea").forEach(el => {
