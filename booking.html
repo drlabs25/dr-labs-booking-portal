@@ -79,14 +79,14 @@
     <select id="prefTime" onchange="checkPhleboAvailability()"></select>
 
     <!-- Test selection -->
-    <h4>Tests</h4>
-    <input type="text" placeholder="Search Test" oninput="filterTests(this.value)">
-    <div id="testList"></div>
+    <label>Tests</label>
+<input type="text" placeholder="Search Test" oninput="loadTests(this.value)">
+<div id="testList"></div>
 
     <!-- Package selection -->
-    <h4>Packages</h4>
-    <input type="text" placeholder="Search Package" oninput="filterPackages(this.value)">
-    <div id="packageList"></div>
+    <label>Packages</label>
+<input type="text" placeholder="Search Package" oninput="loadPackages(this.value)">
+<div id="packageList"></div>
 
     <input type="number" id="totalAmount" placeholder="Total Amount" readonly>
 
