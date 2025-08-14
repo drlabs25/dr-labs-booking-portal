@@ -144,8 +144,20 @@ function searchCustomer() {
         });
 }
 
-/** Save Booking **/
+/** Save Booking with mandatory field check **/
 function createBooking() {
+    // ✅ Mandatory field validation
+    if (!document.getElementById("custNumber").value || document.getElementById("custNumber").value.length !== 10) return alert("Enter valid 10-digit customer number");
+    if (!document.getElementById("custName").value.trim()) return alert("Enter customer name");
+    if (!document.getElementById("age").value) return alert("Enter age");
+    if (!document.getElementById("gender").value) return alert("Select gender");
+    if (!document.getElementById("address").value.trim()) return alert("Enter address");
+    if (!document.getElementById("location").value.trim()) return alert("Enter location");
+    if (!document.getElementById("city").value) return alert("Select city");
+    if (!document.getElementById("phleboList").value) return alert("Select phlebo");
+    if (!document.getElementById("prefDate").value) return alert("Select preferred date");
+    if (!document.getElementById("prefTime").value) return alert("Select preferred time");
+
     const params = {
         action: "saveBooking",
         customerNumber: document.getElementById("custNumber").value,
@@ -237,7 +249,7 @@ function updateStatus(bookingId, status) {
         .then(data => {
             if (data.success) {
                 alert(`Booking marked as ${status}`);
-                searchCustomer(); // Refresh table after update
+                searchCustomer();
             } else {
                 alert("Failed to update status");
             }
@@ -272,3 +284,24 @@ function editBooking(bookingId) {
             document.getElementById("totalToPay").value = data.totalToPay;
         });
 }
+
+/** ✅ Sub Booking reset **/
+function addSubBooking() {
+    let custNum = document.getElementById("custNumber").value;
+    document.querySelectorAll("#bookingForm input, #bookingForm select, #bookingForm textarea").forEach(el => {
+        if (el.id !== "custNumber") el.value = "";
+    });
+    document.getElementById("custNumber").value = custNum;
+}
+
+/** ✅ On booking page load: set min date + load lists **/
+window.onload = function() {
+    let prefDate = document.getElementById("prefDate");
+    if (prefDate) {
+        let today = new Date().toISOString().split("T")[0];
+        prefDate.min = today;
+    }
+    if (document.getElementById("testList")) loadTests();
+    if (document.getElementById("packageList")) loadPackages();
+    if (document.getElementById("phleboList")) loadPhlebos();
+};
