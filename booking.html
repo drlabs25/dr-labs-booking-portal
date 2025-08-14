@@ -44,9 +44,7 @@
                 <th>Paid</th>
             </tr>
         </thead>
-        <tbody id="historyBody">
-            <!-- Will be populated dynamically in searchCustomer() -->
-        </tbody>
+        <tbody id="historyBody"></tbody>
     </table>
     </div>
 </div>
@@ -80,13 +78,13 @@
 
     <!-- Test selection -->
     <label>Tests</label>
-<input type="text" placeholder="Search Test" oninput="loadTests(this.value)">
-<div id="testList"></div>
+    <input type="text" placeholder="Search Test" oninput="loadTests(this.value)">
+    <div id="testList"></div>
 
     <!-- Package selection -->
     <label>Packages</label>
-<input type="text" placeholder="Search Package" oninput="loadPackages(this.value)">
-<div id="packageList"></div>
+    <input type="text" placeholder="Search Package" oninput="loadPackages(this.value)">
+    <div id="packageList"></div>
 
     <input type="number" id="totalAmount" placeholder="Total Amount" readonly>
 
@@ -106,16 +104,13 @@
     <button onclick="addSubBooking()">Sub Booking</button>
     <button onclick="confirmBooking()">Confirm Booking</button>
 </div>
-
 </div>
 
 <script>
 window.onload = function() {
-    // Disable past dates for Preferred Date
     let today = new Date().toISOString().split("T")[0];
     document.getElementById("prefDate").setAttribute("min", today);
 
-    // Time slot generation
     let timeSelect = document.getElementById('prefTime');
     let startHour = 6, endHour = 18;
     for (let h = startHour; h < endHour; h++) {
@@ -130,11 +125,43 @@ window.onload = function() {
         }
     }
 
-    // Load tests, packages, and phlebos
-    loadTests();
-    loadPackages();
+    // Load only phlebos on page load
     loadPhlebos();
 };
+
+function loadTests(query) {
+    query = (query || "").trim();
+    if (query.length === 0) {
+        document.getElementById("testList").innerHTML = "";
+        return;
+    }
+    fetch(`${API_URL}?action=getTests&search=${encodeURIComponent(query)}`)
+        .then(res => res.json())
+        .then(tests => {
+            let html = "";
+            tests.forEach(t => {
+                html += `<label><input type="checkbox" value="${t.code}|${t.cost}" onchange="recalculateTotal()"> ${t.name} - ₹${t.cost}</label><br>`;
+            });
+            document.getElementById("testList").innerHTML = html;
+        });
+}
+
+function loadPackages(query) {
+    query = (query || "").trim();
+    if (query.length === 0) {
+        document.getElementById("packageList").innerHTML = "";
+        return;
+    }
+    fetch(`${API_URL}?action=getPackages&search=${encodeURIComponent(query)}`)
+        .then(res => res.json())
+        .then(packages => {
+            let html = "";
+            packages.forEach(p => {
+                html += `<label><input type="checkbox" value="${p.code}|${p.cost}" onchange="recalculateTotal()"> ${p.name} - ₹${p.cost}</label><br>`;
+            });
+            document.getElementById("packageList").innerHTML = html;
+        });
+}
 
 function calcAge() {
     let dob = document.getElementById("dob").value;
@@ -150,7 +177,6 @@ function calcAge() {
     }
 }
 
-// ✅ Updated recalculateTotal for % discount & package cost formula
 function recalculateTotal() {
     let testsCost = 0;
     document.querySelectorAll("#testList input[type='checkbox']:checked").forEach(chk => {
@@ -174,23 +200,6 @@ function recalculateTotal() {
     document.getElementById("totalToPay").value = totalToPay.toFixed(2);
 }
 
-// Search filter for tests
-function filterTests(query) {
-    query = query.toLowerCase();
-    document.querySelectorAll("#testList label").forEach(label => {
-        label.style.display = label.textContent.toLowerCase().includes(query) ? "" : "none";
-    });
-}
-
-// Search filter for packages
-function filterPackages(query) {
-    query = query.toLowerCase();
-    document.querySelectorAll("#packageList label").forEach(label => {
-        label.style.display = label.textContent.toLowerCase().includes(query) ? "" : "none";
-    });
-}
-
-// Override searchCustomer to inject Edit/Cancel/Paid buttons
 function searchCustomer() {
     let num = document.getElementById("custNumber").value;
     if (num.length !== 10) {
@@ -229,7 +238,6 @@ function showBookingForm() {
     document.getElementById("bookingForm").style.display = 'block';
 }
 
-// Mandatory field validation
 function createBooking() {
     let params = {
         customerNumber: document.getElementById("custNumber").value.trim(),
@@ -266,6 +274,5 @@ function addSubBooking() {
     document.getElementById("custNumber").value = custNum;
 }
 </script>
-
 </body>
 </html>
