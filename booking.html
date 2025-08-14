@@ -132,6 +132,8 @@
 </div>
 
 <script>
+const API_URL = "https://script.google.com/macros/s/AKfycbw4sBOSu5WL_Cep7M1B9qYgfvBSQ0iuuCfbrRQDG6y4qPl6fJfap-4LLaX_wMqvg3ZV8A/exec";
+
 window.onload = function() {
     let today = new Date().toISOString().split("T")[0];
     document.getElementById("prefDate").setAttribute("min", today);
@@ -153,15 +155,10 @@ window.onload = function() {
 };
 
 function validateCustomerNumber(input) {
-    input.value = input.value.replace(/[^0-9]/g, ''); // allow only digits
-    if (input.value.length === 10) {
-        document.getElementById("createBookingBtn").disabled = false;
-    } else {
-        document.getElementById("createBookingBtn").disabled = true;
-    }
+    input.value = input.value.replace(/[^0-9]/g, '');
+    document.getElementById("createBookingBtn").disabled = (input.value.length !== 10);
 }
 
-// New: Validate before showing booking form
 function validateAndShowBookingForm() {
     let num = document.getElementById("custNumber").value;
     if (num.length !== 10) {
@@ -261,21 +258,16 @@ function recalculateTotal() {
     document.querySelectorAll(".selected-test").forEach(item => {
         testsCost += parseFloat(item.value.split("|")[1]) || 0;
     });
-
     let packagesCost = 0;
     document.querySelectorAll(".selected-package").forEach(item => {
         packagesCost += parseFloat(item.value.split("|")[1]) || 0;
     });
-
     let totalAmount = testsCost + packagesCost;
     document.getElementById("totalAmount").value = totalAmount.toFixed(2);
-
     let discountPercent = parseFloat(document.getElementById("discountList").value) || 0;
     let techCharge = parseFloat(document.getElementById("techCharge").value) || 0;
-
     let discountedPart = (totalAmount - packagesCost) - ((discountPercent / 100) * (totalAmount - packagesCost));
     let totalToPay = discountedPart + packagesCost + techCharge;
-
     document.getElementById("totalToPay").value = totalToPay.toFixed(2);
 }
 
@@ -303,7 +295,7 @@ function searchCustomer() {
                     <td>${b.dateTime}</td>
                     <td>${b.phlebo}</td>
                     <td>${b.agent}</td>
-                    <td>${b.createdDateTime || ''}</td> <!-- New column data -->
+                    <td>${b.createdDateTime || ''}</td>
                     <td><button class="small-btn edit" onclick="editBooking('${b.bookingId}')">E</button></td>
                     <td><button class="small-btn cancel" onclick="updateStatus('${b.bookingId}','Cancel')">X</button></td>
                     <td><button class="small-btn paid" onclick="updateStatus('${b.bookingId}','Paid')">P</button></td>
@@ -341,15 +333,22 @@ function createBooking() {
         agentName: "Agent Name Here"
     });
 
-    fetch(`${API_URL}?${params.toString()}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                alert("Booking saved! ID: " + data.bookingId);
-            } else {
-                alert("Failed to save booking.");
-            }
-        });
+    fetch(API_URL, {
+        method: "POST",
+        body: params
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert("Booking saved! ID: " + data.bookingId);
+        } else {
+            alert("Failed to save booking.");
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Error saving booking.");
+    });
 }
 
 function addSubBooking() {
