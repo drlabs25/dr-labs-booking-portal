@@ -39,8 +39,12 @@ function agentLogin() {
         });
 }
 
-/** Load Tests with live search from Google Sheet **/
+/** Load Tests with live search **/
 function loadTests(searchTerm = "") {
+    if (searchTerm.trim().length < 1) {
+        document.getElementById("testList").innerHTML = "";
+        return;
+    }
     fetch(`${API_URL}?action=getTests&search=${encodeURIComponent(searchTerm)}`)
         .then(res => res.json())
         .then(tests => {
@@ -58,8 +62,12 @@ function loadTests(searchTerm = "") {
         });
 }
 
-/** Load Packages with live search from Google Sheet **/
+/** Load Packages with live search **/
 function loadPackages(searchTerm = "") {
+    if (searchTerm.trim().length < 1) {
+        document.getElementById("packageList").innerHTML = "";
+        return;
+    }
     fetch(`${API_URL}?action=getPackages&search=${encodeURIComponent(searchTerm)}`)
         .then(res => res.json())
         .then(packages => {
@@ -146,7 +154,6 @@ function searchCustomer() {
 
 /** Save Booking with mandatory field check **/
 function createBooking() {
-    // ✅ Mandatory field validation
     if (!document.getElementById("custNumber").value || document.getElementById("custNumber").value.length !== 10) return alert("Enter valid 10-digit customer number");
     if (!document.getElementById("custName").value.trim()) return alert("Enter customer name");
     if (!document.getElementById("age").value) return alert("Enter age");
@@ -194,13 +201,11 @@ function createBooking() {
         });
 }
 
-/** Helper to get selected test/package codes **/
 function getSelectedCodes(containerId) {
     const checks = document.querySelectorAll(`#${containerId} input[type='checkbox']:checked`);
     return Array.from(checks).map(chk => chk.value.split("|")[0]).join(",");
 }
 
-/** ✅ Recalculate totals from selections with % discount logic **/
 function recalcTotalFromSelection() {
     let totalTestCost = 0;
     let totalPackageCost = 0;
@@ -219,14 +224,12 @@ function recalcTotalFromSelection() {
     let discountPercent = parseFloat(document.getElementById("discountList").value) || 0;
     let techCharge = parseFloat(document.getElementById("techCharge").value) || 0;
 
-    // (((Total Amount - Package Cost) - Discount%) + Package Cost) + Technician Charge
     let discounted = (totalAmount - totalPackageCost) * (1 - discountPercent / 100);
     let totalPayable = discounted + totalPackageCost + techCharge;
 
     document.getElementById("totalToPay").value = totalPayable.toFixed(2);
 }
 
-/** Report Filter **/
 function filterReport() {
     const params = {
         action: "getReport",
@@ -256,7 +259,6 @@ function filterReport() {
         });
 }
 
-/** Update booking status **/
 function updateStatus(bookingId, status) {
     fetch(`${API_URL}?action=updateBookingStatus&bookingId=${encodeURIComponent(bookingId)}&status=${encodeURIComponent(status)}`)
         .then(res => res.json())
@@ -270,7 +272,6 @@ function updateStatus(bookingId, status) {
         });
 }
 
-/** Edit booking **/
 function editBooking(bookingId) {
     fetch(`${API_URL}?action=getBookingDetails&bookingId=${encodeURIComponent(bookingId)}`)
         .then(res => res.json())
@@ -299,7 +300,6 @@ function editBooking(bookingId) {
         });
 }
 
-/** ✅ Sub Booking reset **/
 function addSubBooking() {
     let custNum = document.getElementById("custNumber").value;
     document.querySelectorAll("#bookingForm input, #bookingForm select, #bookingForm textarea").forEach(el => {
@@ -308,14 +308,11 @@ function addSubBooking() {
     document.getElementById("custNumber").value = custNum;
 }
 
-/** ✅ On booking page load: set min date + load lists **/
 window.onload = function() {
     let prefDate = document.getElementById("prefDate");
     if (prefDate) {
         let today = new Date().toISOString().split("T")[0];
         prefDate.min = today;
     }
-    if (document.getElementById("testList")) loadTests();
-    if (document.getElementById("packageList")) loadPackages();
     if (document.getElementById("phleboList")) loadPhlebos();
 };
