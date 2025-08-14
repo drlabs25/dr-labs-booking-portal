@@ -39,9 +39,9 @@ function agentLogin() {
         });
 }
 
-/** Load Tests **/
-function loadTests() {
-    fetch(`${API_URL}?action=getTests`)
+/** Load Tests with live search from Google Sheet **/
+function loadTests(searchTerm = "") {
+    fetch(`${API_URL}?action=getTests&search=${encodeURIComponent(searchTerm)}`)
         .then(res => res.json())
         .then(tests => {
             const list = document.getElementById("testList");
@@ -58,9 +58,9 @@ function loadTests() {
         });
 }
 
-/** Load Packages **/
-function loadPackages() {
-    fetch(`${API_URL}?action=getPackages`)
+/** Load Packages with live search from Google Sheet **/
+function loadPackages(searchTerm = "") {
+    fetch(`${API_URL}?action=getPackages&search=${encodeURIComponent(searchTerm)}`)
         .then(res => res.json())
         .then(packages => {
             const list = document.getElementById("packageList");
