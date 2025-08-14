@@ -39,7 +39,7 @@
                 <th>Preferred Date & Time</th>
                 <th>Technician Name</th>
                 <th>Agent Name</th>
-                <th>Created Date & Time</th>
+                <th>Created Date & Time</th> <!-- Added column -->
                 <th>Edit</th>
                 <th>Cancel</th>
                 <th>Paid</th>
@@ -120,10 +120,6 @@
         <option value="10">10%</option>
         <option value="15">15%</option>
         <option value="20">20%</option>
-        <option value="25">25%</option>
-        <option value="30">30%</option>
-        <option value="35">35%</option>
-        <option value="40">40%</option>
     </select>
 
     <input type="number" id="techCharge" placeholder="Technician Charge" oninput="recalculateTotal()">
@@ -153,33 +149,19 @@ window.onload = function() {
             timeSelect.add(opt);
         }
     }
-    loadPhlebos(); // ✅ Load phlebo names on page load
+    loadPhlebos();
 };
 
-// ✅ New: Load phlebo list from Google Sheet
-function loadPhlebos() {
-    fetch(`${API_URL}?action=getPhlebos`)
-        .then(res => res.json())
-        .then(phlebos => {
-            let phleboSelect = document.getElementById("phleboList");
-            phleboSelect.innerHTML = `<option value="">--Select Phlebo--</option>`;
-            phlebos.forEach(p => {
-                let opt = document.createElement("option");
-                opt.value = p.name;
-                opt.textContent = p.name;
-                phleboSelect.appendChild(opt);
-            });
-        })
-        .catch(err => {
-            console.error("Error loading phlebo list:", err);
-        });
-}
-
 function validateCustomerNumber(input) {
-    input.value = input.value.replace(/[^0-9]/g, '');
-    document.getElementById("createBookingBtn").disabled = input.value.length !== 10;
+    input.value = input.value.replace(/[^0-9]/g, ''); // allow only digits
+    if (input.value.length === 10) {
+        document.getElementById("createBookingBtn").disabled = false;
+    } else {
+        document.getElementById("createBookingBtn").disabled = true;
+    }
 }
 
+// New: Validate before showing booking form
 function validateAndShowBookingForm() {
     let num = document.getElementById("custNumber").value;
     if (num.length !== 10) {
@@ -191,7 +173,10 @@ function validateAndShowBookingForm() {
 
 function loadTests(query) {
     query = (query || "").trim();
-    if (query.length < 2) { document.getElementById("testList").innerHTML = ""; return; }
+    if (query.length < 2) {
+        document.getElementById("testList").innerHTML = "";
+        return;
+    }
     fetch(`${API_URL}?action=getTests&search=${encodeURIComponent(query)}`)
         .then(res => res.json())
         .then(tests => {
@@ -205,7 +190,10 @@ function loadTests(query) {
 
 function loadPackages(query) {
     query = (query || "").trim();
-    if (query.length < 2) { document.getElementById("packageList").innerHTML = ""; return; }
+    if (query.length < 2) {
+        document.getElementById("packageList").innerHTML = "";
+        return;
+    }
     fetch(`${API_URL}?action=getPackages&search=${encodeURIComponent(query)}`)
         .then(res => res.json())
         .then(packages => {
@@ -221,9 +209,12 @@ function addSelectedTest(code, name, cost) {
     if (!document.getElementById("test_" + code)) {
         let tr = document.createElement("tr");
         tr.id = "test_" + code;
-        tr.innerHTML = `<td>${name}</td><td>₹${cost}</td>
+        tr.innerHTML = `
+            <td>${name}</td>
+            <td>₹${cost}</td>
             <td><button type="button" onclick="removeSelected('test_${code}')">Remove</button></td>
-            <input type="hidden" class="selected-test" value="${code}|${cost}">`;
+            <input type="hidden" class="selected-test" value="${code}|${cost}">
+        `;
         document.getElementById("selectedTestsBody").appendChild(tr);
     }
     document.getElementById("testList").innerHTML = "";
@@ -234,64 +225,97 @@ function addSelectedPackage(code, name, cost) {
     if (!document.getElementById("package_" + code)) {
         let tr = document.createElement("tr");
         tr.id = "package_" + code;
-        tr.innerHTML = `<td>${name}</td><td>₹${cost}</td>
+        tr.innerHTML = `
+            <td>${name}</td>
+            <td>₹${cost}</td>
             <td><button type="button" onclick="removeSelected('package_${code}')">Remove</button></td>
-            <input type="hidden" class="selected-package" value="${code}|${cost}">`;
+            <input type="hidden" class="selected-package" value="${code}|${cost}">
+        `;
         document.getElementById("selectedPackagesBody").appendChild(tr);
     }
     document.getElementById("packageList").innerHTML = "";
     recalculateTotal();
 }
 
-function removeSelected(id) { document.getElementById(id).remove(); recalculateTotal(); }
+function removeSelected(id) {
+    document.getElementById(id).remove();
+    recalculateTotal();
+}
 
 function calcAge() {
     let dob = document.getElementById("dob").value;
     if (dob) {
-        let birth = new Date(dob), today = new Date();
+        let birth = new Date(dob);
+        let today = new Date();
         let age = today.getFullYear() - birth.getFullYear();
         let m = today.getMonth() - birth.getMonth();
-        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+            age--;
+        }
         document.getElementById("age").value = age;
     }
 }
 
 function recalculateTotal() {
-    let testsCost = 0, packagesCost = 0;
-    document.querySelectorAll(".selected-test").forEach(item => testsCost += parseFloat(item.value.split("|")[1]) || 0);
-    document.querySelectorAll(".selected-package").forEach(item => packagesCost += parseFloat(item.value.split("|")[1]) || 0);
+    let testsCost = 0;
+    document.querySelectorAll(".selected-test").forEach(item => {
+        testsCost += parseFloat(item.value.split("|")[1]) || 0;
+    });
+
+    let packagesCost = 0;
+    document.querySelectorAll(".selected-package").forEach(item => {
+        packagesCost += parseFloat(item.value.split("|")[1]) || 0;
+    });
+
     let totalAmount = testsCost + packagesCost;
     document.getElementById("totalAmount").value = totalAmount.toFixed(2);
+
     let discountPercent = parseFloat(document.getElementById("discountList").value) || 0;
     let techCharge = parseFloat(document.getElementById("techCharge").value) || 0;
+
     let discountedPart = (totalAmount - packagesCost) - ((discountPercent / 100) * (totalAmount - packagesCost));
     let totalToPay = discountedPart + packagesCost + techCharge;
+
     document.getElementById("totalToPay").value = totalToPay.toFixed(2);
 }
 
 function searchCustomer() {
     let num = document.getElementById("custNumber").value;
-    if (num.length !== 10) { alert("Enter a valid 10-digit Customer Number"); return; }
+    if (num.length !== 10) {
+        alert("Enter a valid 10-digit Customer Number");
+        return;
+    }
     fetch(`${API_URL}?action=searchBookings&customerNumber=${encodeURIComponent(num)}`)
         .then(res => res.json())
         .then(bookings => {
             const body = document.getElementById("historyBody");
             body.innerHTML = "";
-            if (bookings.length === 0) { alert("No booking history for this number"); return; }
+            if (bookings.length === 0) {
+                alert("No booking history for this number");
+                return;
+            }
             document.getElementById("history").style.display = 'block';
             bookings.forEach(b => {
                 const tr = document.createElement("tr");
-                tr.innerHTML = `<td>${b.customerNumber}</td><td>${b.name}</td><td>${b.dateTime}</td>
-                    <td>${b.phlebo}</td><td>${b.agent}</td><td>${b.createdDateTime || ''}</td>
+                tr.innerHTML = `
+                    <td>${b.customerNumber}</td>
+                    <td>${b.name}</td>
+                    <td>${b.dateTime}</td>
+                    <td>${b.phlebo}</td>
+                    <td>${b.agent}</td>
+                    <td>${b.createdDateTime || ''}</td> <!-- New column data -->
                     <td><button class="small-btn edit" onclick="editBooking('${b.bookingId}')">E</button></td>
                     <td><button class="small-btn cancel" onclick="updateStatus('${b.bookingId}','Cancel')">X</button></td>
-                    <td><button class="small-btn paid" onclick="updateStatus('${b.bookingId}','Paid')">P</button></td>`;
+                    <td><button class="small-btn paid" onclick="updateStatus('${b.bookingId}','Paid')">P</button></td>
+                `;
                 body.appendChild(tr);
             });
         });
 }
 
-function showBookingForm() { document.getElementById("bookingForm").style.display = 'block'; }
+function showBookingForm() {
+    document.getElementById("bookingForm").style.display = 'block';
+}
 
 function createBooking() {
     let params = {
@@ -316,37 +340,13 @@ function createBooking() {
     if (!params.phleboName) { alert("Select phlebo"); return; }
     if (!params.preferredDate) { alert("Select preferred date"); return; }
     if (!params.preferredTime) { alert("Select preferred time"); return; }
-
-    // NEW: Save to Google Sheet with status = "Submit"
-    fetch(`${API_URL}?action=createBooking`, {
-        method: 'POST',
-        body: JSON.stringify({ ...params, status: 'Submit' }),
-        headers: { 'Content-Type': 'application/json' }
-    })
-    .then(res => res.json())
-    .then(resp => {
-        if (resp.success) {
-            alert("Booking saved successfully!");
-            freezeBookingForm();
-        } else {
-            alert("Error saving booking");
-        }
-    });
-}
-
-function freezeBookingForm() {
-    document.querySelectorAll("#bookingForm input, #bookingForm select, #bookingForm textarea")
-        .forEach(el => { el.readOnly = true; el.disabled = true; });
-    document.querySelector('button[onclick="addSubBooking()"]').disabled = false;
-    document.querySelector('button[onclick="confirmBooking()"]').disabled = false;
+    saveBooking(); 
 }
 
 function addSubBooking() {
     let custNum = document.getElementById("custNumber").value;
     document.querySelectorAll("#bookingForm input, #bookingForm select, #bookingForm textarea").forEach(el => {
         if (el.id !== "custNumber") el.value = "";
-        el.readOnly = false;
-        el.disabled = false;
     });
     document.getElementById("custNumber").value = custNum;
 }
