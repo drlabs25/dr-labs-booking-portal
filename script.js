@@ -49,7 +49,7 @@ function loadTests() {
             tests.forEach(t => {
                 let chk = document.createElement("input");
                 chk.type = "checkbox";
-                chk.value = `${t.code}|${t.cost}`;
+                chk.value = `${t.code}|${t.cost}|${t.name}`;
                 chk.onchange = recalcTotalFromSelection;
                 list.appendChild(chk);
                 list.appendChild(document.createTextNode(` ${t.name} - ₹${t.cost}`));
@@ -68,7 +68,7 @@ function loadPackages() {
             packages.forEach(p => {
                 let chk = document.createElement("input");
                 chk.type = "checkbox";
-                chk.value = `${p.code}|${p.cost}`;
+                chk.value = `${p.code}|${p.cost}|${p.name}`;
                 chk.onchange = recalcTotalFromSelection;
                 list.appendChild(chk);
                 list.appendChild(document.createTextNode(` ${p.name} - ₹${p.cost}`));
@@ -200,16 +200,30 @@ function getSelectedCodes(containerId) {
     return Array.from(checks).map(chk => chk.value.split("|")[0]).join(",");
 }
 
-/** Recalculate totals from selections **/
+/** ✅ Recalculate totals from selections with % discount logic **/
 function recalcTotalFromSelection() {
-    let total = 0;
-    ["testList", "packageList"].forEach(id => {
-        document.querySelectorAll(`#${id} input[type='checkbox']:checked`).forEach(chk => {
-            total += parseFloat(chk.value.split("|")[1]) || 0;
-        });
+    let totalTestCost = 0;
+    let totalPackageCost = 0;
+
+    document.querySelectorAll(`#testList input[type='checkbox']:checked`).forEach(chk => {
+        totalTestCost += parseFloat(chk.value.split("|")[1]) || 0;
     });
-    document.getElementById("totalAmount").value = total;
-    recalculateTotal();
+
+    document.querySelectorAll(`#packageList input[type='checkbox']:checked`).forEach(chk => {
+        totalPackageCost += parseFloat(chk.value.split("|")[1]) || 0;
+    });
+
+    let totalAmount = totalTestCost + totalPackageCost;
+    document.getElementById("totalAmount").value = totalAmount.toFixed(2);
+
+    let discountPercent = parseFloat(document.getElementById("discountList").value) || 0;
+    let techCharge = parseFloat(document.getElementById("techCharge").value) || 0;
+
+    // (((Total Amount - Package Cost) - Discount%) + Package Cost) + Technician Charge
+    let discounted = (totalAmount - totalPackageCost) * (1 - discountPercent / 100);
+    let totalPayable = discounted + totalPackageCost + techCharge;
+
+    document.getElementById("totalToPay").value = totalPayable.toFixed(2);
 }
 
 /** Report Filter **/
