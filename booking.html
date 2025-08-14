@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -45,7 +44,9 @@
                 <th>Paid</th>
             </tr>
         </thead>
-        <tbody id="historyBody"></tbody>
+        <tbody id="historyBody">
+            <!-- Will be populated dynamically in searchCustomer() -->
+        </tbody>
     </table>
     </div>
 </div>
@@ -118,7 +119,7 @@ window.onload = function() {
             timeSelect.add(opt);
         }
     }
-}
+};
 
 function calcAge() {
     let dob = document.getElementById("dob").value;
@@ -142,38 +143,47 @@ function recalculateTotal() {
     document.getElementById("totalToPay").value = totalToPay.toFixed(2);
 }
 
-function checkPhleboAvailability() {
-    let phlebo = document.getElementById("phleboList").value;
-    let date = document.getElementById("prefDate").value;
-    let time = document.getElementById("prefTime").value;
-    if (phlebo && date && time) {
-        // Placeholder: replace with Google Sheet check
-        let booked = false;
-        if (booked) {
-            alert("Preferred time not available");
-        }
-    }
-}
-
+// Override searchCustomer to inject Edit/Cancel/Paid buttons
 function searchCustomer() {
     let num = document.getElementById("custNumber").value;
     if (num.length !== 10) {
         alert("Enter a valid 10-digit Customer Number");
         return;
     }
-    document.getElementById("history").style.display = 'block';
+
+    fetch(`${API_URL}?action=searchBookings&customerNumber=${encodeURIComponent(num)}`)
+        .then(res => res.json())
+        .then(bookings => {
+            const body = document.getElementById("historyBody");
+            body.innerHTML = "";
+            if (bookings.length === 0) {
+                alert("No booking history for this number");
+                return;
+            }
+            document.getElementById("history").style.display = 'block';
+            bookings.forEach(b => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${b.customerNumber}</td>
+                    <td>${b.name}</td>
+                    <td>${b.dateTime}</td>
+                    <td>${b.phlebo}</td>
+                    <td>${b.agent}</td>
+                    <td><button class="small-btn edit" onclick="editBooking('${b.bookingId}')">E</button></td>
+                    <td><button class="small-btn cancel" onclick="updateStatus('${b.bookingId}','Cancel')">X</button></td>
+                    <td><button class="small-btn paid" onclick="updateStatus('${b.bookingId}','Paid')">P</button></td>
+                `;
+                body.appendChild(tr);
+            });
+        });
 }
 
 function showBookingForm() {
     document.getElementById("bookingForm").style.display = 'block';
 }
 
-function filterTests(query) {
-    // Placeholder for filtering test list
-}
-function filterPackages(query) {
-    // Placeholder for filtering package list
-}
+function filterTests(query) { /* Filtering logic here */ }
+function filterPackages(query) { /* Filtering logic here */ }
 </script>
 
 </body>
