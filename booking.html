@@ -374,11 +374,58 @@ function showBookingForm() {
 }
 
 function createBooking() {
+    // Reset all borders first
+    document.querySelectorAll("#bookingForm input, #bookingForm select, #bookingForm textarea")
+        .forEach(el => el.style.border = "");
+
+    let isValid = true;
+
+    function markInvalid(id) {
+        document.getElementById(id).style.border = "2px solid red";
+        isValid = false;
+    }
+
+    let custNumber = document.getElementById("custNumber").value.trim();
+    if (custNumber.length !== 10 || !/^\d+$/.test(custNumber)) markInvalid("custNumber");
+
+    if (!document.getElementById("custName").value.trim()) markInvalid("custName");
+    if (!document.getElementById("age").value.trim()) markInvalid("age");
+    if (!document.getElementById("gender").value) markInvalid("gender");
+    if (!document.getElementById("address").value.trim()) markInvalid("address");
+    if (!document.getElementById("location").value.trim()) markInvalid("location");
+    if (!document.getElementById("city").value) markInvalid("city");
+    if (!document.getElementById("phleboList").value) markInvalid("phleboList");
+
+    let pincode = document.getElementById("pincode").value.trim();
+    if (pincode.length !== 6 || !/^\d+$/.test(pincode)) markInvalid("pincode");
+
+    if (!document.getElementById("prefDate").value) markInvalid("prefDate");
+    if (!document.getElementById("prefTime").value) markInvalid("prefTime");
+
+    let tests = getSelectedTests();
+    let packages = getSelectedPackages();
+    if (!tests && !packages) {
+        // Highlight both test and package sections
+        document.querySelector("#testList")?.style.setProperty("border", "2px solid red", "important");
+        document.querySelector("#packageList")?.style.setProperty("border", "2px solid red", "important");
+        isValid = false;
+    }
+
+    if (!document.getElementById("discountList").value) markInvalid("discountList");
+    if (!document.getElementById("techCharge").value.trim()) markInvalid("techCharge");
+
+    // Stop if invalid
+    if (!isValid) {
+        alert("Please fill all required fields.");
+        return;
+    }
+
+    // Proceed with save/update
     let actionType = document.getElementById("bookingId").value ? "updateBooking" : "saveBooking";
     let params = new URLSearchParams({
         action: actionType,
         bookingId: document.getElementById("bookingId").value,
-        customerNumber: document.getElementById("custNumber").value.trim(),
+        customerNumber: custNumber,
         mainCustomerName: document.getElementById("custName").value.trim(),
         dob: document.getElementById("dob").value,
         age: document.getElementById("age").value.trim(),
@@ -387,11 +434,11 @@ function createBooking() {
         location: document.getElementById("location").value.trim(),
         city: document.getElementById("city").value,
         phleboName: document.getElementById("phleboList").value,
-        pincode: document.getElementById("pincode").value,
+        pincode: pincode,
         preferredDate: document.getElementById("prefDate").value,
         preferredTime: document.getElementById("prefTime").value,
-        tests: getSelectedTests(),
-        packages: getSelectedPackages(),
+        tests: tests,
+        packages: packages,
         totalAmount: document.getElementById("totalAmount").value,
         discount: document.getElementById("discountList").value,
         techCharge: document.getElementById("techCharge").value,
@@ -409,7 +456,6 @@ function createBooking() {
             }
         });
 }
-
 function addSubBooking() {
     let custNum = document.getElementById("custNumber").value;
     document.querySelectorAll("#bookingForm input, #bookingForm select, #bookingForm textarea").forEach(el => {
