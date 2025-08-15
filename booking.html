@@ -392,7 +392,6 @@ function createBooking() {
         .forEach(el => el.style.border = "");
 
     let isValid = true;
-
     function markInvalid(id) {
         document.getElementById(id).style.border = "2px solid red";
         isValid = false;
@@ -400,7 +399,6 @@ function createBooking() {
 
     let custNumber = document.getElementById("custNumber").value.trim();
     if (custNumber.length !== 10 || !/^\d+$/.test(custNumber)) markInvalid("custNumber");
-
     if (!document.getElementById("custName").value.trim()) markInvalid("custName");
     if (!document.getElementById("age").value.trim()) markInvalid("age");
     if (!document.getElementById("gender").value) markInvalid("gender");
@@ -411,14 +409,12 @@ function createBooking() {
 
     let pincode = document.getElementById("pincode").value.trim();
     if (pincode.length !== 6 || !/^\d+$/.test(pincode)) markInvalid("pincode");
-
     if (!document.getElementById("prefDate").value) markInvalid("prefDate");
     if (!document.getElementById("prefTime").value) markInvalid("prefTime");
 
     let tests = getSelectedTests();
     let packages = getSelectedPackages();
     if (!tests && !packages) {
-        // Highlight both test and package sections
         document.querySelector("#testList")?.style.setProperty("border", "2px solid red", "important");
         document.querySelector("#packageList")?.style.setProperty("border", "2px solid red", "important");
         isValid = false;
@@ -427,17 +423,14 @@ function createBooking() {
     if (!document.getElementById("discountList").value) markInvalid("discountList");
     if (!document.getElementById("techCharge").value.trim()) markInvalid("techCharge");
 
-    // Stop if invalid
     if (!isValid) {
         alert("Please fill all required fields.");
         return;
     }
 
-    // Proceed with save/update
-    let actionType = document.getElementById("bookingId").value ? "updateBooking" : "saveBooking";
+    // Prepare params for Google Sheet
     let params = new URLSearchParams({
-        action: actionType,
-        bookingId: document.getElementById("bookingId").value,
+        action: "saveBooking",
         customerNumber: custNumber,
         mainCustomerName: document.getElementById("custName").value.trim(),
         dob: document.getElementById("dob").value,
@@ -463,22 +456,43 @@ function createBooking() {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                // ✅ Show main booking preview table
-                let previewBody = document.getElementById("mainBookingPreviewBody");
-                previewBody.innerHTML = `
-                    <tr>
-                        <td>${document.getElementById("custName").value.trim()}</td>
-                        <td>${document.getElementById("prefDate").value} ${document.getElementById("prefTime").value}</td>
-                        <td>₹${document.getElementById("totalToPay").value}</td>
-                    </tr>
-                `;
-                document.getElementById("mainBookingPreview").style.display = "block";
+                alert("Main booking saved successfully!");
 
-                alert((actionType === "updateBooking" ? "Booking updated!" : "Booking saved!") + " ID: " + data.bookingId);
+                // Collapse form into summary
+                let custName = document.getElementById("custName").value.trim();
+                let date = document.getElementById("prefDate").value;
+                let time = document.getElementById("prefTime").value;
+                let cost = document.getElementById("totalToPay").value;
+
+                document.getElementById("bookingForm").style.display = "none";
+
+                let summaryHTML = `
+                    <div class="booking-summary" style="background:#eef; padding:10px; margin-bottom:10px; border-radius:5px;">
+                        <strong>Main Booking:</strong> ${custName} | ${date} ${time} | ₹${cost}
+                        <button onclick="showSubBookingForm()">+ Add Sub Booking</button>
+                    </div>
+                `;
+
+                let summaryContainer = document.getElementById("summaryContainer");
+                if (!summaryContainer) {
+                    summaryContainer = document.createElement("div");
+                    summaryContainer.id = "summaryContainer";
+                    document.querySelector(".container").prepend(summaryContainer);
+                }
+                summaryContainer.innerHTML = summaryHTML;
+
             } else {
                 alert("Failed to save booking.");
             }
         });
+}
+
+function showSubBookingForm() {
+    // Show booking form again but freeze shared fields
+    document.getElementById("bookingForm").style.display = "block";
+
+    ["address", "location", "city", "pincode", "prefDate", "prefTime", "phleboList"]
+        .forEach(id => document.getElementById(id).setAttribute("readonly", true));
 }
 function addSubBooking() {
     let custNum = document.getElementById("custNumber").value.trim();
