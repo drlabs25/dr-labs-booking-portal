@@ -97,7 +97,20 @@
             <tbody id="selectedTestsBody"></tbody>
         </table>
     </div>
-
+<!-- Main Booking Preview Table -->
+<div id="mainBookingPreview" style="display:none; float:right; width:35%; margin-top:20px;">
+    <h3>Main Booking</h3>
+    <table border="1" style="width:100%;">
+        <thead>
+            <tr>
+                <th>Customer Name</th>
+                <th>Preferred Date & Time</th>
+                <th>Total Cost</th>
+            </tr>
+        </thead>
+        <tbody id="mainBookingPreviewBody"></tbody>
+    </table>
+</div>
     <!-- Package selection -->
     <label>Packages</label>
     <input type="text" placeholder="Search Package" oninput="loadPackages(this.value)">
@@ -450,6 +463,17 @@ function createBooking() {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
+                // ✅ Show main booking preview table
+                let previewBody = document.getElementById("mainBookingPreviewBody");
+                previewBody.innerHTML = `
+                    <tr>
+                        <td>${document.getElementById("custName").value.trim()}</td>
+                        <td>${document.getElementById("prefDate").value} ${document.getElementById("prefTime").value}</td>
+                        <td>₹${document.getElementById("totalToPay").value}</td>
+                    </tr>
+                `;
+                document.getElementById("mainBookingPreview").style.display = "block";
+
                 alert((actionType === "updateBooking" ? "Booking updated!" : "Booking saved!") + " ID: " + data.bookingId);
             } else {
                 alert("Failed to save booking.");
