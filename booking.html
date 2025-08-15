@@ -39,7 +39,13 @@
     <button onclick="searchCustomer()">Search</button>
     <button id="createBookingBtn" onclick="validateAndShowBookingForm()" disabled>Create Booking</button>
 </div>
-    <div id="summaryContainer"></div>
+
+<!-- Booking Form (hidden by default) -->
+<div id="bookingForm" style="display:none;">
+    <h3>New Booking</h3>
+    <!-- your form fields here -->
+</div>
+
 
 <!-- Booking History -->
 <div id="history" style="display:none;">
@@ -311,11 +317,14 @@ function recalculateTotal() {
 }
 
 function searchCustomer() {
-    let num = document.getElementById("custNumber").value;
-    if (num.length !== 10) {
-        alert("Enter a valid 10-digit Customer Number");
+    let custNumber = document.getElementById("custNumber").value.trim();
+    if (custNumber.length !== 10 || !/^\d+$/.test(custNumber)) {
+        alert("Please enter a valid 10-digit number");
         return;
     }
+    // After successful search
+    document.getElementById("createBookingBtn").disabled = false;
+}
     fetch(`${API_URL}?action=searchBookings&customerNumber=${encodeURIComponent(num)}`)
         .then(res => res.json())
         .then(bookings => {
@@ -643,13 +652,16 @@ function checkPhleboAvailability() {
 }
 <script>
     function validateAndShowBookingForm() {
-        let custNumber = document.getElementById("custNumber").value.trim();
-        if (custNumber.length !== 10 || !/^\d+$/.test(custNumber)) {
-            alert("Please enter a valid 10-digit Customer Number before creating a booking.");
-            return;
-        }
-        document.getElementById("bookingForm").style.display = "block";
+    let custNumber = document.getElementById("custNumber").value.trim();
+    if (custNumber.length !== 10 || !/^\d+$/.test(custNumber)) {
+        alert("Please enter a valid 10-digit Customer Number before creating a booking.");
+        return;
     }
+
+    // Show booking form
+    document.getElementById("bookingForm").style.display = "block";
+    window.scrollTo({ top: document.getElementById("bookingForm").offsetTop, behavior: 'smooth' });
+}
 </script>
 </body>
 </html>
