@@ -277,6 +277,7 @@ function recalculateTotal() {
     document.getElementById("totalToPay").value = totalToPay.toFixed(2);
 }
 
+// ✅ Update: Row background color based on status
 function searchCustomer() {
     let num = document.getElementById("custNumber").value;
     if (num.length !== 10) {
@@ -295,6 +296,17 @@ function searchCustomer() {
             document.getElementById("history").style.display = 'block';
             bookings.forEach(b => {
                 const tr = document.createElement("tr");
+
+                // Set background color based on status
+                if (b.status && b.status.toLowerCase() === "paid") {
+                    tr.style.backgroundColor = "lightgreen";
+                } else if (b.status && b.status.toLowerCase() === "cancel") {
+                    tr.style.backgroundColor = "lightcoral";
+                    tr.style.color = "white";
+                } else if (b.status && b.status.toLowerCase() === "confirm") {
+                    tr.style.backgroundColor = "lightblue";
+                }
+
                 tr.innerHTML = `
                     <td>${b.customerNumber}</td>
                     <td>${b.name}</td>
@@ -309,6 +321,40 @@ function searchCustomer() {
                 `;
                 body.appendChild(tr);
             });
+        });
+}
+
+// ✅ Update: Instant color change when status updates
+function updateStatus(bookingId, status) {
+    if (!confirm(`Are you sure you want to mark this booking as ${status}?`)) return;
+
+    fetch(`${API_URL}?action=updateStatus&bookingId=${bookingId}&status=${status}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert(`Booking marked as ${status}`);
+
+                let row = [...document.querySelectorAll("#historyBody tr")]
+                    .find(tr => tr.innerHTML.includes(bookingId));
+
+                if (row) {
+                    let statusCell = row.querySelector("td:nth-child(7)");
+                    if (statusCell) statusCell.textContent = status;
+
+                    if (status.toLowerCase() === "paid") {
+                        row.style.backgroundColor = "lightgreen";
+                        row.style.color = "";
+                    } else if (status.toLowerCase() === "cancel") {
+                        row.style.backgroundColor = "lightcoral";
+                        row.style.color = "white";
+                    } else if (status.toLowerCase() === "confirm") {
+                        row.style.backgroundColor = "lightblue";
+                        row.style.color = "";
+                    }
+                }
+            } else {
+                alert("Failed to update status.");
+            }
         });
 }
 
@@ -361,7 +407,6 @@ function addSubBooking() {
     document.getElementById("custNumber").value = custNum;
 }
 
-// Updated: editBooking now calls getBookingDetails
 function editBooking(bookingId) {
     fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`)
         .then(res => res.json())
@@ -388,11 +433,9 @@ function editBooking(bookingId) {
             document.getElementById("techCharge").value = data.techCharge;
             document.getElementById("totalToPay").value = data.totalToPay;
 
-            // Reload tests
             document.getElementById("selectedTestsBody").innerHTML = "";
             (data.tests || []).forEach(t => addSelectedTest(t.code, t.name, t.cost));
 
-            // Reload packages
             document.getElementById("selectedPackagesBody").innerHTML = "";
             (data.packages || []).forEach(p => addSelectedPackage(p.code, p.name, p.cost));
 
