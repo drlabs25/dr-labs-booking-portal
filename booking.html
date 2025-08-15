@@ -194,10 +194,12 @@ function validateAndShowBookingForm() {
         return;
     }
 
-    // Show booking form
     document.getElementById("bookingForm").style.display = "block";
+    window.scrollTo({
+        top: document.getElementById("bookingForm").offsetTop,
+        behavior: 'smooth'
+    });
 }
-
 function showBookingForm() {
     document.getElementById("bookingForm").style.display = 'block';
     document.getElementById("history").style.display = 'none';
