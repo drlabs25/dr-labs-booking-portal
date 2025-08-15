@@ -337,7 +337,6 @@ function searchCustomer() {
 
             bookings.forEach(b => {
                 const tr = document.createElement("tr");
-
                 if (b.status && b.status.toLowerCase() === "paid") {
                     tr.style.backgroundColor = "lightgreen";
                 } else if (b.status && b.status.toLowerCase() === "cancel") {
@@ -362,10 +361,9 @@ function searchCustomer() {
                 body.appendChild(tr);
             });
         })
-        .catch(err => {
-            console.error("Error fetching booking history:", err);
-        });
+        .catch(err => console.error("Error fetching bookings:", err));
 }
+
 // ✅ Updated: Instant color change when status updates
 function updateStatus(bookingId, status) {
     if (!confirm(`Are you sure you want to mark this booking as ${status}?`)) return;
