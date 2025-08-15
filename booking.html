@@ -12,6 +12,19 @@
 .paid { background: green; color: white; }
 .flex { display: flex; gap: 10px; flex-wrap: wrap; }
 .flex input, .flex select { flex: 1; }
+    .booking-summary {
+    background: #eef;
+    padding: 10px;
+    margin: 15px 0; /* spacing around */
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+}
+.booking-summary strong {
+    margin-right: 8px;
+}
 </style>
 </head>
 <body>
@@ -26,6 +39,7 @@
     <button onclick="searchCustomer()">Search</button>
     <button id="createBookingBtn" onclick="validateAndShowBookingForm()" disabled>Create Booking</button>
 </div>
+    <div id="summaryContainer"></div>
 
 <!-- Booking History -->
 <div id="history" style="display:none;">
@@ -456,8 +470,24 @@ function createBooking() {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                alert("Main booking saved successfully!");
+    // Minimize booking form
+    document.getElementById("bookingForm").style.display = "none";
 
+    // Show summary at top
+    document.getElementById("summaryContainer").innerHTML = `
+        <div class="booking-summary">
+            <div>
+                <strong>${document.getElementById("custName").value}</strong> |
+                ${document.getElementById("prefDate").value} ${document.getElementById("prefTime").value} |
+                ₹${document.getElementById("totalToPay").value}
+            </div>
+            <button onclick="showSubBookingForm()">+ Add Sub Booking</button>
+        </div>
+    `;
+
+} else {
+    alert("Failed to save booking.");
+}
                 // Collapse form into summary
                 let custName = document.getElementById("custName").value.trim();
                 let date = document.getElementById("prefDate").value;
@@ -467,12 +497,13 @@ function createBooking() {
                 document.getElementById("bookingForm").style.display = "none";
 
                 let summaryHTML = `
-                    <div class="booking-summary" style="background:#eef; padding:10px; margin-bottom:10px; border-radius:5px;">
-                        <strong>Main Booking:</strong> ${custName} | ${date} ${time} | ₹${cost}
-                        <button onclick="showSubBookingForm()">+ Add Sub Booking</button>
-                    </div>
-                `;
-
+    <div class="booking-summary">
+        <div>
+            <strong>Main Booking:</strong> ${custName} | ${date} ${time} | ₹${cost}
+        </div>
+        <button onclick="showSubBookingForm()">+ Add Sub Booking</button>
+    </div>
+`;
                 let summaryContainer = document.getElementById("summaryContainer");
                 if (!summaryContainer) {
                     summaryContainer = document.createElement("div");
