@@ -166,9 +166,17 @@ function validateAndShowBookingForm() {
         alert("Please enter valid Number");
         return;
     }
+    // Reset form (except customer number)
+    document.querySelectorAll("#bookingForm input, #bookingForm select, #bookingForm textarea").forEach(el => {
+        if (el.id !== "custNumber") el.value = "";
+    });
     showBookingForm();
 }
 
+function showBookingForm() {
+    document.getElementById("bookingForm").style.display = 'block';
+    document.getElementById("history").style.display = 'none';
+}
 function loadTests(query) {
     query = (query || "").trim();
     if (query.length < 2) {
