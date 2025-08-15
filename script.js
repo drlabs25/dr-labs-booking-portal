@@ -143,6 +143,7 @@ function searchCustomer() {
                     <td>${b.dateTime}</td>
                     <td>${b.phlebo}</td>
                     <td>${b.agent}</td>
+                    <td>${b.status}</td>
                     <td><button class="small-btn edit" onclick="editBooking('${b.bookingId}')">E</button></td>
                     <td><button class="small-btn cancel" onclick="updateStatus('${b.bookingId}','Cancel')">X</button></td>
                     <td><button class="small-btn paid" onclick="updateStatus('${b.bookingId}','Paid')">P</button></td>
