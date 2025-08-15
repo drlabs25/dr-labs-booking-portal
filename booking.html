@@ -460,26 +460,30 @@ function createBooking() {
     });
 
     fetch(`${API_URL}?${params.toString()}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                // ✅ Show main booking preview table
-                let previewBody = document.getElementById("mainBookingPreviewBody");
-                previewBody.innerHTML = `
-                    <tr>
-                        <td>${document.getElementById("custName").value.trim()}</td>
-                        <td>${document.getElementById("prefDate").value} ${document.getElementById("prefTime").value}</td>
-                        <td>₹${document.getElementById("totalToPay").value}</td>
-                    </tr>
-                `;
-                document.getElementById("mainBookingPreview").style.display = "block";
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            // Save bookingId for later confirmation
+            document.getElementById("bookingId").value = data.bookingId;
 
-                alert((actionType === "updateBooking" ? "Booking updated!" : "Booking saved!") + " ID: " + data.bookingId);
-            } else {
-                alert("Failed to save booking.");
-            }
-        });
-}
+            // ✅ Hide/minimize the booking form after submission
+            document.getElementById("bookingForm").style.display = "none";
+
+            // ✅ Keep preview table visible & active
+            document.getElementById("mainBookingPreview").style.display = "block";
+            document.getElementById("mainBookingPreviewBody").innerHTML = `
+                <tr>
+                    <td>${document.getElementById("custName").value.trim()}</td>
+                    <td>${document.getElementById("prefDate").value} ${document.getElementById("prefTime").value}</td>
+                    <td>₹${document.getElementById("totalToPay").value}</td>
+                </tr>
+            `;
+
+            alert((actionType === "updateBooking" ? "Booking updated!" : "Booking saved!") + " ID: " + data.bookingId);
+        } else {
+            alert("Failed to save booking.");
+        }
+    });
 function addSubBooking() {
     let custNum = document.getElementById("custNumber").value.trim();
     if (custNum.length !== 10) {
