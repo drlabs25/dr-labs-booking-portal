@@ -141,7 +141,7 @@
     <input type="number" id="techCharge" placeholder="Technician Charge" oninput="recalculateTotal()">
     <input type="number" id="totalToPay" placeholder="Total Amount to be Paid" readonly>
 
-    <button onclick="createBooking()">Submit</button>
+    <button onclick="()">Submit</button>
     <button onclick="addSubBooking(document.getElementById('bookingId').value)">Sub Booking</button>
     <button onclick="confirmBooking()">Confirm Booking</button>
 </div>
@@ -173,19 +173,16 @@ function validateCustomerNumber(input) {
     document.getElementById("createBookingBtn").disabled = (input.value.length !== 10);
 }
 
-    function validateAndShowBookingForm() {
-    let num = document.getElementById("custNumber").value.trim();
+function validateAndShowBookingForm() {
+    let num = document.getElementById("custNumber").value;
     if (num.length !== 10) {
-        alert("Please enter valid 10-digit number");
+        alert("Please enter valid Number");
         return;
     }
-
-    // Reset form fields except customer number
+    // Reset form (except customer number)
     document.querySelectorAll("#bookingForm input, #bookingForm select, #bookingForm textarea").forEach(el => {
         if (el.id !== "custNumber") el.value = "";
     });
-
-    // Show the booking form
     showBookingForm();
 }
 
@@ -395,7 +392,6 @@ function createBooking() {
         .forEach(el => el.style.border = "");
 
     let isValid = true;
-
     function markInvalid(id) {
         document.getElementById(id).style.border = "2px solid red";
         isValid = false;
@@ -421,7 +417,6 @@ function createBooking() {
     let tests = getSelectedTests();
     let packages = getSelectedPackages();
     if (!tests && !packages) {
-        // Highlight both test and package sections
         document.querySelector("#testList")?.style.setProperty("border", "2px solid red", "important");
         document.querySelector("#packageList")?.style.setProperty("border", "2px solid red", "important");
         isValid = false;
@@ -430,13 +425,12 @@ function createBooking() {
     if (!document.getElementById("discountList").value) markInvalid("discountList");
     if (!document.getElementById("techCharge").value.trim()) markInvalid("techCharge");
 
-    // Stop if invalid
     if (!isValid) {
         alert("Please fill all required fields.");
         return;
     }
 
-        // Proceed with save/update
+    // Save/update booking
     let actionType = document.getElementById("bookingId").value ? "updateBooking" : "saveBooking";
     let params = new URLSearchParams({
         action: actionType,
@@ -466,15 +460,13 @@ function createBooking() {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                alert((actionType === "updateBooking" ? "Booking updated!" : "Booking saved!") + " ID: " + data.bookingId);
-
-                // ✅ Save bookingId for confirmBooking
+                // Store bookingId for confirmation
                 document.getElementById("bookingId").value = data.bookingId;
 
-                // ✅ Hide the booking form
+                // Hide the booking form after save
                 document.getElementById("bookingForm").style.display = "none";
 
-                // ✅ Keep preview table visible and active
+                // Keep preview table visible & active for edits
                 document.getElementById("mainBookingPreview").style.display = "block";
                 document.getElementById("mainBookingPreviewBody").innerHTML = `
                     <tr>
@@ -483,10 +475,13 @@ function createBooking() {
                         <td>₹${document.getElementById("totalToPay").value}</td>
                     </tr>
                 `;
+
+                alert((actionType === "updateBooking" ? "Booking updated!" : "Booking saved!") + " ID: " + data.bookingId);
             } else {
                 alert("Failed to save booking.");
             }
         });
+}
 function addSubBooking() {
     let custNum = document.getElementById("custNumber").value.trim();
     if (custNum.length !== 10) {
@@ -602,6 +597,23 @@ function checkPhleboAvailability() {
         .then(data => {
             if (!data.available) {
                 alert("Preferred time not available for this technician. Please choose another time.");
+            }
+        });
+}
+    function confirmBooking() {
+    // Disable all inputs/buttons inside the preview table
+    document.querySelectorAll("#mainBookingPreview input, #mainBookingPreview button, #mainBookingPreview select, #mainBookingPreview textarea")
+        .forEach(el => el.disabled = true);
+
+    alert("Booking confirmed!");
+
+    // Optional: Update Google Sheet status
+    let bookingId = document.getElementById("bookingId").value;
+    fetch(`${API_URL}?action=confirmBooking&bookingId=${encodeURIComponent(bookingId)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) {
+                alert("Failed to confirm booking in Google Sheet.");
             }
         });
 }
