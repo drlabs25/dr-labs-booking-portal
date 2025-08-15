@@ -141,7 +141,7 @@
     <input type="number" id="techCharge" placeholder="Technician Charge" oninput="recalculateTotal()">
     <input type="number" id="totalToPay" placeholder="Total Amount to be Paid" readonly>
 
-    <button onclick="()">Submit</button>
+    <button onclick="createBooking()">Submit</button>
     <button onclick="addSubBooking(document.getElementById('bookingId').value)">Sub Booking</button>
     <button onclick="confirmBooking()">Confirm Booking</button>
 </div>
@@ -392,6 +392,7 @@ function createBooking() {
         .forEach(el => el.style.border = "");
 
     let isValid = true;
+
     function markInvalid(id) {
         document.getElementById(id).style.border = "2px solid red";
         isValid = false;
@@ -417,6 +418,7 @@ function createBooking() {
     let tests = getSelectedTests();
     let packages = getSelectedPackages();
     if (!tests && !packages) {
+        // Highlight both test and package sections
         document.querySelector("#testList")?.style.setProperty("border", "2px solid red", "important");
         document.querySelector("#packageList")?.style.setProperty("border", "2px solid red", "important");
         isValid = false;
@@ -425,12 +427,13 @@ function createBooking() {
     if (!document.getElementById("discountList").value) markInvalid("discountList");
     if (!document.getElementById("techCharge").value.trim()) markInvalid("techCharge");
 
+    // Stop if invalid
     if (!isValid) {
         alert("Please fill all required fields.");
         return;
     }
 
-    // Save/update booking
+    // Proceed with save/update
     let actionType = document.getElementById("bookingId").value ? "updateBooking" : "saveBooking";
     let params = new URLSearchParams({
         action: actionType,
@@ -460,21 +463,16 @@ function createBooking() {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                // Store bookingId for confirmation
-                document.getElementById("bookingId").value = data.bookingId;
-
-                // Hide the booking form after save
-                document.getElementById("bookingForm").style.display = "none";
-
-                // Keep preview table visible & active for edits
-                document.getElementById("mainBookingPreview").style.display = "block";
-                document.getElementById("mainBookingPreviewBody").innerHTML = `
+                // ✅ Show main booking preview table
+                let previewBody = document.getElementById("mainBookingPreviewBody");
+                previewBody.innerHTML = `
                     <tr>
                         <td>${document.getElementById("custName").value.trim()}</td>
                         <td>${document.getElementById("prefDate").value} ${document.getElementById("prefTime").value}</td>
                         <td>₹${document.getElementById("totalToPay").value}</td>
                     </tr>
                 `;
+                document.getElementById("mainBookingPreview").style.display = "block";
 
                 alert((actionType === "updateBooking" ? "Booking updated!" : "Booking saved!") + " ID: " + data.bookingId);
             } else {
@@ -597,23 +595,6 @@ function checkPhleboAvailability() {
         .then(data => {
             if (!data.available) {
                 alert("Preferred time not available for this technician. Please choose another time.");
-            }
-        });
-}
-    function confirmBooking() {
-    // Disable all inputs/buttons inside the preview table
-    document.querySelectorAll("#mainBookingPreview input, #mainBookingPreview button, #mainBookingPreview select, #mainBookingPreview textarea")
-        .forEach(el => el.disabled = true);
-
-    alert("Booking confirmed!");
-
-    // Optional: Update Google Sheet status
-    let bookingId = document.getElementById("bookingId").value;
-    fetch(`${API_URL}?action=confirmBooking&bookingId=${encodeURIComponent(bookingId)}`)
-        .then(res => res.json())
-        .then(data => {
-            if (!data.success) {
-                alert("Failed to confirm booking in Google Sheet.");
             }
         });
 }
