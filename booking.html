@@ -313,15 +313,27 @@ function recalculateTotal() {
 }
 
 function searchCustomer() {
-    let custNumber = document.getElementById("custNumber").value.trim();
-    if (custNumber.length !== 10 || !/^\d+$/.test(custNumber)) {
+    let num = document.getElementById("custNumber").value.trim();
+    if (num.length !== 10 || !/^\d+$/.test(num)) {
         alert("Please enter a valid 10-digit number");
         return;
     }
-    // After successful search
+
     document.getElementById("createBookingBtn").disabled = false;
-}
+
     fetch(`${API_URL}?action=searchBookings&customerNumber=${encodeURIComponent(num)}`)
+        .then(res => res.json())
+        .then(bookings => {
+            const body = document.getElementById("historyBody");
+            body.innerHTML = "";
+            if (bookings.length === 0) {
+                alert("No booking history for this number");
+                return;
+            }
+            document.getElementById("history").style.display = 'block';
+            // render table rows...
+        });
+}
         .then(res => res.json())
         .then(bookings => {
             const body = document.getElementById("historyBody");
@@ -653,8 +665,6 @@ function checkPhleboAvailability() {
         alert("Please enter a valid 10-digit Customer Number before creating a booking.");
         return;
     }
-
-    // Show booking form
     document.getElementById("bookingForm").style.display = "block";
     window.scrollTo({ top: document.getElementById("bookingForm").offsetTop, behavior: 'smooth' });
 }
