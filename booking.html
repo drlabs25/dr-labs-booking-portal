@@ -326,23 +326,15 @@ function searchCustomer() {
         .then(bookings => {
             const body = document.getElementById("historyBody");
             body.innerHTML = "";
+
             if (bookings.length === 0) {
                 alert("No booking history for this number");
+                document.getElementById("history").style.display = 'none';
                 return;
             }
+
             document.getElementById("history").style.display = 'block';
-            // render table rows...
-        });
-}
-        .then(res => res.json())
-        .then(bookings => {
-            const body = document.getElementById("historyBody");
-            body.innerHTML = "";
-            if (bookings.length === 0) {
-                alert("No booking history for this number");
-                return;
-            }
-            document.getElementById("history").style.display = 'block';
+
             bookings.forEach(b => {
                 const tr = document.createElement("tr");
 
@@ -360,8 +352,8 @@ function searchCustomer() {
                     <td>${b.name}</td>
                     <td>${b.dateTime}</td>
                     <td>${b.phlebo}</td>
-                    <td>${b.agent}</td>
                     <td>${b.createdDateTime}</td>
+                    <td>${b.agent}</td>
                     <td>${b.status || ''}</td>
                     <td><button class="small-btn edit" onclick="editBooking('${b.bookingId}')">E</button></td>
                     <td><button class="small-btn cancel" onclick="updateStatus('${b.bookingId}','Cancel')">X</button></td>
@@ -369,9 +361,11 @@ function searchCustomer() {
                 `;
                 body.appendChild(tr);
             });
+        })
+        .catch(err => {
+            console.error("Error fetching booking history:", err);
         });
 }
-
 // ✅ Updated: Instant color change when status updates
 function updateStatus(bookingId, status) {
     if (!confirm(`Are you sure you want to mark this booking as ${status}?`)) return;
@@ -658,16 +652,6 @@ function checkPhleboAvailability() {
             }
         });
 }
-<script>
-    function validateAndShowBookingForm() {
-    let custNumber = document.getElementById("custNumber").value.trim();
-    if (custNumber.length !== 10 || !/^\d+$/.test(custNumber)) {
-        alert("Please enter a valid 10-digit Customer Number before creating a booking.");
-        return;
-    }
-    document.getElementById("bookingForm").style.display = "block";
-    window.scrollTo({ top: document.getElementById("bookingForm").offsetTop, behavior: 'smooth' });
-}
-</script>
+
 </body>
 </html>
