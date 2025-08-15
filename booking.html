@@ -277,7 +277,6 @@ function recalculateTotal() {
     document.getElementById("totalToPay").value = totalToPay.toFixed(2);
 }
 
-// ✅ Update: Row background color based on status
 function searchCustomer() {
     let num = document.getElementById("custNumber").value;
     if (num.length !== 10) {
@@ -297,7 +296,6 @@ function searchCustomer() {
             bookings.forEach(b => {
                 const tr = document.createElement("tr");
 
-                // Set background color based on status
                 if (b.status && b.status.toLowerCase() === "paid") {
                     tr.style.backgroundColor = "lightgreen";
                 } else if (b.status && b.status.toLowerCase() === "cancel") {
@@ -324,13 +322,14 @@ function searchCustomer() {
         });
 }
 
-// ✅ Update: Instant color change when status updates
+// ✅ Updated: Instant color change when status updates
 function updateStatus(bookingId, status) {
     if (!confirm(`Are you sure you want to mark this booking as ${status}?`)) return;
 
-    fetch(`${API_URL}?action=updateStatus&bookingId=${bookingId}&status=${status}`)
+    fetch(`${API_URL}?action=updateBookingStatus&bookingId=${encodeURIComponent(bookingId)}&status=${encodeURIComponent(status)}&t=${Date.now()}`)
         .then(res => res.json())
         .then(data => {
+            console.log("Update Status Response:", data);
             if (data.success) {
                 alert(`Booking marked as ${status}`);
 
@@ -353,8 +352,12 @@ function updateStatus(bookingId, status) {
                     }
                 }
             } else {
-                alert("Failed to update status.");
+                alert("Failed to update status: " + (data.message || "Unknown error"));
             }
+        })
+        .catch(err => {
+            console.error("Error updating status:", err);
+            alert("Error updating status. Check console for details.");
         });
 }
 
@@ -433,13 +436,53 @@ function editBooking(bookingId) {
             document.getElementById("techCharge").value = data.techCharge;
             document.getElementById("totalToPay").value = data.totalToPay;
 
-            document.getElementById("selectedTestsBody").innerHTML = "";
-            (data.tests || []).forEach(t => addSelectedTest(t.code, t.name, t.cost));
-
-            document.getElementById("selectedPackagesBody").innerHTML = "";
-            (data.packages || []).forEach(p => addSelectedPackage(p.code, p.name, p.cost));
-
             showBookingForm();
+        });
+}
+
+function getSelectedTests() {
+    let tests = [];
+    document.querySelectorAll(".selected-test").forEach(item => {
+        tests.push(item.value);
+    });
+    return tests.join(",");
+}
+
+function getSelectedPackages() {
+    let packages = [];
+    document.querySelectorAll(".selected-package").forEach(item => {
+        packages.push(item.value);
+    });
+    return packages.join(",");
+}
+
+function loadPhlebos() {
+    fetch(`${API_URL}?action=getPhlebos`)
+        .then(res => res.json())
+        .then(phlebos => {
+            let phleboSelect = document.getElementById("phleboList");
+            phlebos.forEach(phlebo => {
+                let opt = document.createElement("option");
+                opt.value = phlebo.name;
+                opt.textContent = phlebo.name;
+                phleboSelect.appendChild(opt);
+            });
+        });
+}
+
+function checkPhleboAvailability() {
+    let phlebo = document.getElementById("phleboList").value;
+    let date = document.getElementById("prefDate").value;
+    let time = document.getElementById("prefTime").value;
+
+    if (!phlebo || !date || !time) return;
+
+    fetch(`${API_URL}?action=checkAvailability&phlebo=${encodeURIComponent(phlebo)}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (!data.available) {
+                alert("Preferred time not available for this technician. Please choose another time.");
+            }
         });
 }
 </script>
