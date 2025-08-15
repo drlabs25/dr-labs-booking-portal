@@ -12,6 +12,19 @@
 .paid { background: green; color: white; }
 .flex { display: flex; gap: 10px; flex-wrap: wrap; }
 .flex input, .flex select { flex: 1; }
+    .booking-summary {
+    background: #eef;
+    padding: 10px;
+    margin: 15px 0; /* spacing around */
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+}
+.booking-summary strong {
+    margin-right: 8px;
+}
 </style>
 </head>
 <body>
@@ -27,6 +40,7 @@
     <button id="createBookingBtn" onclick="validateAndShowBookingForm()" disabled>Create Booking</button>
 </div>
 
+<!-- Booking Form (hidden by default) -->
 <!-- Booking History -->
 <div id="history" style="display:none;">
     <h3>Booking History</h3>
@@ -174,18 +188,18 @@ function validateCustomerNumber(input) {
 }
 
 function validateAndShowBookingForm() {
-    let num = document.getElementById("custNumber").value;
-    if (num.length !== 10) {
-        alert("Please enter valid Number");
+    let custNumber = document.getElementById("custNumber").value.trim();
+    if (custNumber.length !== 10 || !/^\d+$/.test(custNumber)) {
+        alert("Please enter a valid 10-digit Customer Number before creating a booking.");
         return;
     }
-    // Reset form (except customer number)
-    document.querySelectorAll("#bookingForm input, #bookingForm select, #bookingForm textarea").forEach(el => {
-        if (el.id !== "custNumber") el.value = "";
-    });
-    showBookingForm();
-}
 
+    document.getElementById("bookingForm").style.display = "block";
+    window.scrollTo({
+        top: document.getElementById("bookingForm").offsetTop,
+        behavior: 'smooth'
+    });
+}
 function showBookingForm() {
     document.getElementById("bookingForm").style.display = 'block';
     document.getElementById("history").style.display = 'none';
@@ -299,12 +313,27 @@ function recalculateTotal() {
 }
 
 function searchCustomer() {
-    let num = document.getElementById("custNumber").value;
-    if (num.length !== 10) {
-        alert("Enter a valid 10-digit Customer Number");
+    let num = document.getElementById("custNumber").value.trim();
+    if (num.length !== 10 || !/^\d+$/.test(num)) {
+        alert("Please enter a valid 10-digit number");
         return;
     }
+
+    document.getElementById("createBookingBtn").disabled = false;
+
     fetch(`${API_URL}?action=searchBookings&customerNumber=${encodeURIComponent(num)}`)
+        .then(res => res.json())
+        .then(bookings => {
+            const body = document.getElementById("historyBody");
+            body.innerHTML = "";
+            if (bookings.length === 0) {
+                alert("No booking history for this number");
+                return;
+            }
+            document.getElementById("history").style.display = 'block';
+            // render table rows...
+        });
+}
         .then(res => res.json())
         .then(bookings => {
             const body = document.getElementById("historyBody");
@@ -392,7 +421,6 @@ function createBooking() {
         .forEach(el => el.style.border = "");
 
     let isValid = true;
-
     function markInvalid(id) {
         document.getElementById(id).style.border = "2px solid red";
         isValid = false;
@@ -400,7 +428,6 @@ function createBooking() {
 
     let custNumber = document.getElementById("custNumber").value.trim();
     if (custNumber.length !== 10 || !/^\d+$/.test(custNumber)) markInvalid("custNumber");
-
     if (!document.getElementById("custName").value.trim()) markInvalid("custName");
     if (!document.getElementById("age").value.trim()) markInvalid("age");
     if (!document.getElementById("gender").value) markInvalid("gender");
@@ -411,14 +438,12 @@ function createBooking() {
 
     let pincode = document.getElementById("pincode").value.trim();
     if (pincode.length !== 6 || !/^\d+$/.test(pincode)) markInvalid("pincode");
-
     if (!document.getElementById("prefDate").value) markInvalid("prefDate");
     if (!document.getElementById("prefTime").value) markInvalid("prefTime");
 
     let tests = getSelectedTests();
     let packages = getSelectedPackages();
     if (!tests && !packages) {
-        // Highlight both test and package sections
         document.querySelector("#testList")?.style.setProperty("border", "2px solid red", "important");
         document.querySelector("#packageList")?.style.setProperty("border", "2px solid red", "important");
         isValid = false;
@@ -427,17 +452,14 @@ function createBooking() {
     if (!document.getElementById("discountList").value) markInvalid("discountList");
     if (!document.getElementById("techCharge").value.trim()) markInvalid("techCharge");
 
-    // Stop if invalid
     if (!isValid) {
         alert("Please fill all required fields.");
         return;
     }
 
-    // Proceed with save/update
-    let actionType = document.getElementById("bookingId").value ? "updateBooking" : "saveBooking";
+    // Prepare params for Google Sheet
     let params = new URLSearchParams({
-        action: actionType,
-        bookingId: document.getElementById("bookingId").value,
+        action: "saveBooking",
         customerNumber: custNumber,
         mainCustomerName: document.getElementById("custName").value.trim(),
         dob: document.getElementById("dob").value,
@@ -463,22 +485,60 @@ function createBooking() {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                // ✅ Show main booking preview table
-                let previewBody = document.getElementById("mainBookingPreviewBody");
-                previewBody.innerHTML = `
-                    <tr>
-                        <td>${document.getElementById("custName").value.trim()}</td>
-                        <td>${document.getElementById("prefDate").value} ${document.getElementById("prefTime").value}</td>
-                        <td>₹${document.getElementById("totalToPay").value}</td>
-                    </tr>
-                `;
-                document.getElementById("mainBookingPreview").style.display = "block";
+    // Minimize booking form
+    document.getElementById("bookingForm").style.display = "none";
 
-                alert((actionType === "updateBooking" ? "Booking updated!" : "Booking saved!") + " ID: " + data.bookingId);
+    // Show summary at top
+    document.getElementById("summaryContainer").innerHTML = `
+        <div class="booking-summary">
+            <div>
+                <strong>${document.getElementById("custName").value}</strong> |
+                ${document.getElementById("prefDate").value} ${document.getElementById("prefTime").value} |
+                ₹${document.getElementById("totalToPay").value}
+            </div>
+            <button onclick="showSubBookingForm()">+ Add Sub Booking</button>
+        </div>
+    `;
+
+} else {
+    alert("Failed to save booking.");
+}
+                // Collapse form into summary
+                let custName = document.getElementById("custName").value.trim();
+                let date = document.getElementById("prefDate").value;
+                let time = document.getElementById("prefTime").value;
+                let cost = document.getElementById("totalToPay").value;
+
+                document.getElementById("bookingForm").style.display = "none";
+
+                let summaryHTML = `
+    <div class="booking-summary">
+        <div>
+            <strong>Main Booking:</strong> ${custName} | ${date} ${time} | ₹${cost}
+        </div>
+        <button onclick="showSubBookingForm()">+ Add Sub Booking</button>
+    </div>
+`;
+                let summaryContainer = document.getElementById("summaryContainer");
+                if (!summaryContainer) {
+                    summaryContainer = document.createElement("div");
+                    summaryContainer.id = "summaryContainer";
+                    document.querySelector(".container").prepend(summaryContainer);
+                }
+                summaryContainer.innerHTML = summaryHTML;
+
             } else {
                 alert("Failed to save booking.");
             }
         });
+}
+
+function showSubBookingForm() {
+    // Show booking form again but freeze shared fields
+    document.getElementById("bookingForm").style.display = "block";
+
+    ["address", "location", "city", "pincode", "prefDate", "prefTime", "phleboList"]
+        .forEach(id => document.getElementById(id).setAttribute("readonly", true));
 }
 function addSubBooking() {
     let custNum = document.getElementById("custNumber").value.trim();
@@ -597,6 +657,16 @@ function checkPhleboAvailability() {
                 alert("Preferred time not available for this technician. Please choose another time.");
             }
         });
+}
+<script>
+    function validateAndShowBookingForm() {
+    let custNumber = document.getElementById("custNumber").value.trim();
+    if (custNumber.length !== 10 || !/^\d+$/.test(custNumber)) {
+        alert("Please enter a valid 10-digit Customer Number before creating a booking.");
+        return;
+    }
+    document.getElementById("bookingForm").style.display = "block";
+    window.scrollTo({ top: document.getElementById("bookingForm").offsetTop, behavior: 'smooth' });
 }
 </script>
 </body>
