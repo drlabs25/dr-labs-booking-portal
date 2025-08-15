@@ -456,9 +456,14 @@ function createBooking() {
             }
         });
 }
-function addSubBooking(mainBookingId) {
-    // Fetch main booking details from Google Sheet
-    fetch(`${API_URL}?action=getBookingDetails&bookingId=${mainBookingId}`)
+function addSubBooking() {
+    let custNum = document.getElementById("custNumber").value.trim();
+    if (custNum.length !== 10) {
+        alert("Enter a valid 10-digit Customer Number before creating sub-booking.");
+        return;
+    }
+
+    fetch(`${API_URL}?action=getMainBooking&customerNumber=${encodeURIComponent(custNum)}`)
         .then(res => res.json())
         .then(data => {
             if (!data || data.success === false) {
@@ -466,8 +471,7 @@ function addSubBooking(mainBookingId) {
                 return;
             }
 
-            // Populate & freeze specific fields
-            document.getElementById("custNumber").value = data.customerNumber;
+            // Fill frozen fields from main booking
             document.getElementById("address").value = data.address;
             document.getElementById("location").value = data.location;
             document.getElementById("city").value = data.city;
@@ -476,29 +480,22 @@ function addSubBooking(mainBookingId) {
             document.getElementById("prefDate").value = data.preferredDate;
             document.getElementById("prefTime").value = data.preferredTime;
 
-            // Freeze them
-            ["custNumber", "address", "location", "city", "phleboList", "pincode", "prefDate", "prefTime"].forEach(id => {
-                document.getElementById(id).setAttribute("readonly", true);
-                document.getElementById(id).setAttribute("disabled", true);
+            // Make frozen fields read-only
+            ["address", "location", "city", "phleboList", "pincode", "prefDate", "prefTime"]
+                .forEach(id => document.getElementById(id).setAttribute("disabled", true));
+
+            // Clear other fields
+            document.querySelectorAll("#bookingForm input, #bookingForm select, #bookingForm textarea").forEach(el => {
+                if (!["custNumber", "address", "location", "city", "phleboList", "pincode", "prefDate", "prefTime"].includes(el.id)) {
+                    el.value = "";
+                }
             });
 
-            // Clear other editable fields for sub-booking
-            document.getElementById("bookingId").value = ""; // Ensure it's new
-            document.getElementById("custName").value = "";
-            document.getElementById("dob").value = "";
-            document.getElementById("age").value = "";
-            document.getElementById("gender").value = "Male";
-            document.getElementById("totalAmount").value = "";
-            document.getElementById("discountList").value = "0";
-            document.getElementById("techCharge").value = "";
-            document.getElementById("totalToPay").value = "";
-
-            // Clear selected tests & packages
-            document.getElementById("selectedTestsBody").innerHTML = "";
-            document.getElementById("selectedPackagesBody").innerHTML = "";
-
-            // Show booking form
-            showBookingForm();
+            document.getElementById("bookingForm").style.display = "block";
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Error fetching main booking details.");
         });
 }
 function editBooking(bookingId) {
