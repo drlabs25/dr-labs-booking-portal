@@ -173,16 +173,19 @@ function validateCustomerNumber(input) {
     document.getElementById("createBookingBtn").disabled = (input.value.length !== 10);
 }
 
-function validateAndShowBookingForm() {
-    let num = document.getElementById("custNumber").value;
+    function validateAndShowBookingForm() {
+    let num = document.getElementById("custNumber").value.trim();
     if (num.length !== 10) {
-        alert("Please enter valid Number");
+        alert("Please enter valid 10-digit number");
         return;
     }
-    // Reset form (except customer number)
+
+    // Reset form fields except customer number
     document.querySelectorAll("#bookingForm input, #bookingForm select, #bookingForm textarea").forEach(el => {
         if (el.id !== "custNumber") el.value = "";
     });
+
+    // Show the booking form
     showBookingForm();
 }
 
