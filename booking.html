@@ -643,6 +643,15 @@ function checkPhleboAvailability() {
             }
         });
 }
+<script>
+    function validateAndShowBookingForm() {
+        let custNumber = document.getElementById("custNumber").value.trim();
+        if (custNumber.length !== 10 || !/^\d+$/.test(custNumber)) {
+            alert("Please enter a valid 10-digit Customer Number before creating a booking.");
+            return;
+        }
+        document.getElementById("bookingForm").style.display = "block";
+    }
 </script>
 </body>
 </html>
