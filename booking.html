@@ -60,10 +60,13 @@
 
 <!-- Booking Form Fields -->
 <div id="bookingForm" style="display:none;">
+    <!-- Booking Form Section -->
+<div id="bookingForm" style="display:none;">
     <h3>New Booking</h3>
+
     <!-- Hidden bookingId for edit mode -->
     <input type="hidden" id="bookingId">
-    
+
     <input type="text" id="custName" placeholder="Main Customer Name" required>
     <input type="date" id="dob" placeholder="Date of Birth" onchange="calcAge()">
     <input type="number" id="age" placeholder="Age" required>
@@ -105,6 +108,43 @@
         </table>
     </div>
 
+    <!-- Package selection -->
+    <label>Packages</label>
+    <input type="text" placeholder="Search Package" oninput="loadPackages(this.value)">
+    <div id="packageList"></div>
+    <div id="selectedPackages">
+        <table border="1" style="width:100%; margin-top:5px;">
+            <thead>
+                <tr>
+                    <th>Package Name</th>
+                    <th>Cost</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="selectedPackagesBody"></tbody>
+        </table>
+    </div>
+
+    <input type="number" id="totalAmount" placeholder="Total Amount" readonly>
+
+    <select id="discountList" onchange="recalculateTotal()">
+        <option value="0">No Discount</option>
+        <option value="5">5%</option>
+        <option value="10">10%</option>
+        <option value="15">15%</option>
+        <option value="20">20%</option>
+    </select>
+
+    <input type="number" id="techCharge" placeholder="Technician Charge" oninput="recalculateTotal()">
+    <input type="number" id="totalToPay" placeholder="Total Amount to be Paid" readonly>
+
+    <!-- Hidden field for booking type -->
+    <input type="hidden" id="bookingType" name="bookingType" value="Main">
+
+    <button onclick="createBooking()">Submit</button>
+    <button onclick="addSubBooking(document.getElementById('bookingId').value)">Sub Booking</button>
+    <button onclick="confirmBooking()">Confirm Booking</button>
+</div>
     <!-- Package selection -->
     <label>Packages</label>
     <input type="text" placeholder="Search Package" oninput="loadPackages(this.value)">
@@ -503,6 +543,9 @@ function addSubBooking() {
                     el.value = "";
                 }
             });
+
+            // ✅ Mark as Sub Booking
+            document.getElementById("bookingType").value = "Sub";
 
             document.getElementById("bookingForm").style.display = "block";
         })
