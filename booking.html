@@ -22,9 +22,82 @@
 
 <!-- Search Section -->
 <!-- Booking Form Section -->
+<!-- Booking Form Section -->
 <div id="bookingForm" style="display:none;">
-    <!-- your booking form fields -->
+    <h3>New Booking</h3>
 
+    <!-- Hidden bookingId for edit mode -->
+    <input type="hidden" id="bookingId">
+
+    <input type="text" id="custName" placeholder="Main Customer Name" required>
+    <input type="date" id="dob" placeholder="Date of Birth" onchange="calcAge()">
+    <input type="number" id="age" placeholder="Age" required>
+    <select id="gender">
+        <option>Male</option>
+        <option>Female</option>
+    </select>
+    <textarea id="address" placeholder="Address" maxlength="500" required></textarea>
+    <input type="text" id="location" placeholder="Location" maxlength="100" required>
+    <select id="city">
+        <option>Chennai</option>
+        <option>Bangalore</option>
+        <option>Hyderabad</option>
+        <option>Mumbai</option>
+        <option>Delhi</option>
+        <option>Coimbatore</option>
+    </select>
+    <select id="phleboList" onchange="checkPhleboAvailability()">
+        <option value="">--Select Phlebo--</option>
+    </select>
+    <input type="number" id="pincode" placeholder="Pincode (6 digits)" maxlength="6" required>
+    <input type="date" id="prefDate" min="" onchange="checkPhleboAvailability()">
+    <select id="prefTime" onchange="checkPhleboAvailability()"></select>
+
+    <!-- Test selection -->
+    <label>Tests</label>
+    <input type="text" placeholder="Search Test" oninput="loadTests(this.value)">
+    <div id="testList"></div>
+    <div id="selectedTests">
+        <table border="1" style="width:100%; margin-top:5px;">
+            <thead>
+                <tr>
+                    <th>Test Name</th>
+                    <th>Cost</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="selectedTestsBody"></tbody>
+        </table>
+    </div>
+
+    <!-- Package selection -->
+    <label>Packages</label>
+    <input type="text" placeholder="Search Package" oninput="loadPackages(this.value)">
+    <div id="packageList"></div>
+    <div id="selectedPackages">
+        <table border="1" style="width:100%; margin-top:5px;">
+            <thead>
+                <tr>
+                    <th>Package Name</th>
+                    <th>Cost</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="selectedPackagesBody"></tbody>
+        </table>
+    </div>
+
+    <input type="number" id="totalAmount" placeholder="Total Amount" readonly>
+
+    <select id="discountList" onchange="recalculateTotal()">
+        <option value="0">No Discount</option>
+        <option value="5">5%</option>
+        <option value="10">10%</option>
+        <option value="15">15%</option>
+        <option value="20">20%</option>
+    </select>
+
+    <input type="number" id="techCharge" placeholder="Technician Charge" oninput="recalculateTotal()">
     <input type="number" id="totalToPay" placeholder="Total Amount to be Paid" readonly>
 
     <!-- Hidden field for booking type -->
