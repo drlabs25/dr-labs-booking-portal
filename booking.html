@@ -433,7 +433,7 @@ function createBooking() {
         return;
     }
 
-    // Proceed with save/update
+        // Proceed with save/update
     let actionType = document.getElementById("bookingId").value ? "updateBooking" : "saveBooking";
     let params = new URLSearchParams({
         action: actionType,
@@ -463,23 +463,27 @@ function createBooking() {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                // ✅ Show main booking preview table
-                let previewBody = document.getElementById("mainBookingPreviewBody");
-                previewBody.innerHTML = `
+                alert((actionType === "updateBooking" ? "Booking updated!" : "Booking saved!") + " ID: " + data.bookingId);
+
+                // ✅ Save bookingId for confirmBooking
+                document.getElementById("bookingId").value = data.bookingId;
+
+                // ✅ Hide the booking form
+                document.getElementById("bookingForm").style.display = "none";
+
+                // ✅ Keep preview table visible and active
+                document.getElementById("mainBookingPreview").style.display = "block";
+                document.getElementById("mainBookingPreviewBody").innerHTML = `
                     <tr>
                         <td>${document.getElementById("custName").value.trim()}</td>
                         <td>${document.getElementById("prefDate").value} ${document.getElementById("prefTime").value}</td>
                         <td>₹${document.getElementById("totalToPay").value}</td>
                     </tr>
                 `;
-                document.getElementById("mainBookingPreview").style.display = "block";
-
-                alert((actionType === "updateBooking" ? "Booking updated!" : "Booking saved!") + " ID: " + data.bookingId);
             } else {
                 alert("Failed to save booking.");
             }
         });
-}
 function addSubBooking() {
     let custNum = document.getElementById("custNumber").value.trim();
     if (custNum.length !== 10) {
