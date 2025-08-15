@@ -188,16 +188,14 @@ function validateCustomerNumber(input) {
 }
 
 function validateAndShowBookingForm() {
-    let num = document.getElementById("custNumber").value;
-    if (num.length !== 10) {
-        alert("Please enter valid Number");
+    let custNumber = document.getElementById("custNumber").value.trim();
+    if (custNumber.length !== 10 || !/^\d+$/.test(custNumber)) {
+        alert("Please enter a valid 10-digit Customer Number before creating a booking.");
         return;
     }
-    // Reset form (except customer number)
-    document.querySelectorAll("#bookingForm input, #bookingForm select, #bookingForm textarea").forEach(el => {
-        if (el.id !== "custNumber") el.value = "";
-    });
-    showBookingForm();
+
+    // Show booking form
+    document.getElementById("bookingForm").style.display = "block";
 }
 
 function showBookingForm() {
