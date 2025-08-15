@@ -174,16 +174,24 @@ function validateCustomerNumber(input) {
 }
 
 function validateAndShowBookingForm() {
-    let num = document.getElementById("custNumber").value;
-    if (num.length !== 10) {
-        alert("Please enter valid Number");
+    let num = document.getElementById("custNumber").value.trim();
+
+    // Check for exactly 10 numeric digits
+    if (num.length !== 10 || !/^\d+$/.test(num)) {
+        alert("Please enter a valid 10-digit Customer Number");
         return;
     }
-    // Reset form (except customer number)
+
+    // Clear form inputs except the customer number
     document.querySelectorAll("#bookingForm input, #bookingForm select, #bookingForm textarea").forEach(el => {
         if (el.id !== "custNumber") el.value = "";
     });
-    showBookingForm();
+
+    // ✅ Show the booking form
+    document.getElementById("bookingForm").style.display = "block";
+
+    // Hide booking history if it’s visible
+    document.getElementById("history").style.display = "none";
 }
 
 function showBookingForm() {
