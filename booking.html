@@ -562,10 +562,11 @@ function checkPhleboAvailability() {
     let phlebo = document.getElementById("phleboList").value;
     let date = document.getElementById("prefDate").value;
     let time = document.getElementById("prefTime").value;
+    let bookingId = document.getElementById("bookingId").value; // added
 
     if (!phlebo || !date || !time) return;
 
-    fetch(`${API_URL}?action=checkAvailability&phlebo=${encodeURIComponent(phlebo)}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}`)
+    fetch(`${API_URL}?action=checkAvailability&phlebo=${encodeURIComponent(phlebo)}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&bookingId=${encodeURIComponent(bookingId)}`)
         .then(res => res.json())
         .then(data => {
             if (!data.available) {
