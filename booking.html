@@ -21,12 +21,19 @@
 <h2>Booking Form</h2>
 
 <!-- Search Section -->
-<div class="flex">
-    <input type="number" id="custNumber" placeholder="Customer Number (10 digits)" maxlength="10" oninput="validateCustomerNumber(this)">
-    <button onclick="searchCustomer()">Search</button>
-    <button id="createBookingBtn" onclick="validateAndShowBookingForm()" disabled>Create Booking</button>
-</div>
+<!-- Booking Form Section -->
+<div id="bookingForm" style="display:none;">
+    <!-- your booking form fields -->
 
+    <input type="number" id="totalToPay" placeholder="Total Amount to be Paid" readonly>
+
+    <!-- Hidden field for booking type -->
+    <input type="hidden" id="bookingType" name="bookingType" value="Main">
+
+    <button onclick="createBooking()">Submit</button>
+    <button onclick="addSubBooking(document.getElementById('bookingId').value)">Sub Booking</button>
+    <button onclick="confirmBooking()">Confirm Booking</button>
+</div>
 <!-- Booking History -->
 <div id="history" style="display:none;">
     <h3>Booking History</h3>
@@ -125,15 +132,17 @@
         <option value="20">20%</option>
     </select>
 
-    <input type="number" id="techCharge" placeholder="Technician Charge" oninput="recalculateTotal()">
-    <input type="number" id="totalToPay" placeholder="Total Amount to be Paid" readonly>
+<input type="number" id="techCharge" placeholder="Technician Charge" oninput="recalculateTotal()">
+<input type="number" id="totalToPay" placeholder="Total Amount to be Paid" readonly>
 
-    <button onclick="createBooking()">Submit</button>
-    <button onclick="addSubBooking(document.getElementById('bookingId').value)">Sub Booking</button>
-    <button onclick="confirmBooking()">Confirm Booking</button>
+<!-- Hidden field for booking type -->
+<input type="hidden" id="bookingType" name="bookingType" value="Main">
+
+<button onclick="createBooking()">Submit</button>
+<button onclick="addSubBooking(document.getElementById('bookingId').value)">Sub Booking</button>
+<button onclick="confirmBooking()">Confirm Booking</button>
 </div>
 </div>
-
 <script>
 window.onload = function() {
     let today = new Date().toISOString().split("T")[0];
@@ -421,31 +430,35 @@ function createBooking() {
     }
 
     // Proceed with save/update
-    let actionType = document.getElementById("bookingId").value ? "updateBooking" : "saveBooking";
-    let params = new URLSearchParams({
-        action: actionType,
-        bookingId: document.getElementById("bookingId").value,
-        customerNumber: custNumber,
-        mainCustomerName: document.getElementById("custName").value.trim(),
-        dob: document.getElementById("dob").value,
-        age: document.getElementById("age").value.trim(),
-        gender: document.getElementById("gender").value,
-        address: document.getElementById("address").value.trim(),
-        location: document.getElementById("location").value.trim(),
-        city: document.getElementById("city").value,
-        phleboName: document.getElementById("phleboList").value,
-        pincode: pincode,
-        preferredDate: document.getElementById("prefDate").value,
-        preferredTime: document.getElementById("prefTime").value,
-        tests: tests,
-        packages: packages,
-        totalAmount: document.getElementById("totalAmount").value,
-        discount: document.getElementById("discountList").value,
-        techCharge: document.getElementById("techCharge").value,
-        totalToPay: document.getElementById("totalToPay").value,
-        agentName: "Agent Name Here"
-    });
+let actionType = document.getElementById("bookingId").value ? "updateBooking" : "saveBooking";
 
+// ✅ Add this line — set default to "Main" unless you’re creating a sub-booking
+let bookingType = document.getElementById("bookingType") ? document.getElementById("bookingType").value : "Main";
+
+let params = new URLSearchParams({
+    action: actionType,
+    bookingId: document.getElementById("bookingId").value,
+    customerNumber: custNumber,
+    mainCustomerName: document.getElementById("custName").value.trim(),
+    dob: document.getElementById("dob").value,
+    age: document.getElementById("age").value.trim(),
+    gender: document.getElementById("gender").value,
+    address: document.getElementById("address").value.trim(),
+    location: document.getElementById("location").value.trim(),
+    city: document.getElementById("city").value,
+    phleboName: document.getElementById("phleboList").value,
+    pincode: pincode,
+    preferredDate: document.getElementById("prefDate").value,
+    preferredTime: document.getElementById("prefTime").value,
+    tests: tests,
+    packages: packages,
+    totalAmount: document.getElementById("totalAmount").value,
+    discount: document.getElementById("discountList").value,
+    techCharge: document.getElementById("techCharge").value,
+    totalToPay: document.getElementById("totalToPay").value,
+    agentName: "Agent Name Here",
+    bookingType: bookingType // ✅ added here
+});
     fetch(`${API_URL}?${params.toString()}`)
         .then(res => res.json())
         .then(data => {
