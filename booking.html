@@ -568,36 +568,35 @@ function confirmBooking() {
         return;
     }
 
-    const customerNumber = mainBookingData ? mainBookingData.custNumber : null;
-    if (!customerNumber) {
-        alert("Missing customer number!");
+    // ✅ Take customer number from the form
+    const customerNumber = document.getElementById("custNumber").value.trim();
+
+    if (!/^\d{10}$/.test(customerNumber)) {
+        alert("Missing or invalid customer number!");
         return;
     }
 
-    // 🔹 Call backend to update status
+    // 🔹 Call backend
     fetch(`${API_URL}?action=confirmBooking&customerNumber=${encodeURIComponent(customerNumber)}`)
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                // ✅ Clear both search + form numbers
-                const searchCust = document.getElementById("searchCustNumber");
-                const formCust = document.getElementById("custNumber");
-                if (searchCust) searchCust.value = "";
-                if (formCust) formCust.value = "";
-
-                // ✅ Hide Add More button
-                const addMoreBtn = document.getElementById("addMoreBtn");
-                if (addMoreBtn) addMoreBtn.style.display = "none";
-
-                // ✅ Reset booking flow back to Main
-                window.bookingType = "Main";
-                window.parentBookingId = null;
-                mainBookingData = null;
-
-                // ✅ Keep the booking preview visible (optional)
-                document.getElementById("mainBookingPreview").style.display = "block";
-
                 alert("All bookings confirmed successfully!");
+
+                // ✅ Clear both search + form numbers
+                document.getElementById("searchCustNumber").value = "";
+                document.getElementById("custNumber").value = "";
+
+                // ✅ Hide Add More + Confirm buttons
+                document.getElementById("addMoreBtn").style.display = "none";
+                document.getElementById("confirmBtn").style.display = "none";
+
+                // ✅ Reset booking state
+                bookingList = [];
+                subBookingCounter = 0;
+
+                // ✅ Hide booking form
+                document.getElementById("bookingForm").style.display = "none";
             } else {
                 alert("Failed to confirm bookings");
             }
