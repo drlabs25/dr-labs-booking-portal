@@ -142,8 +142,8 @@
     <input type="number" id="totalToPay" placeholder="Total Amount to be Paid" readonly>
 
     <button onclick="createBooking()">Submit</button>
-    <button onclick="addSubBooking(document.getElementById('bookingId').value)">Sub Booking</button>
     <button onclick="confirmBooking()">Confirm Booking</button>
+    <button type="button" id="addMoreBtn" style="display:none;" onclick="addSubBooking()">Add More</button>
 </div>
 </div>
 
@@ -426,7 +426,6 @@ function createBooking() {
     let tests = getSelectedTests();
     let packages = getSelectedPackages();
     if (!tests && !packages) {
-        // Highlight both test and package sections
         document.querySelector("#testList")?.style.setProperty("border", "2px solid red", "important");
         document.querySelector("#packageList")?.style.setProperty("border", "2px solid red", "important");
         isValid = false;
@@ -435,7 +434,6 @@ function createBooking() {
     if (!document.getElementById("discountList").value) markInvalid("discountList");
     if (!document.getElementById("techCharge").value.trim()) markInvalid("techCharge");
 
-    // Stop if invalid
     if (!isValid) {
         alert("Please fill all required fields.");
         return;
@@ -468,71 +466,32 @@ function createBooking() {
     });
 
     fetch(`${API_URL}?${params.toString()}`)
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            // Save bookingId for later confirmation
-            document.getElementById("bookingId").value = data.bookingId;
-
-            // ✅ Hide/minimize the booking form after submission
-            document.getElementById("bookingForm").style.display = "none";
-
-            // ✅ Keep preview table visible & active
-            document.getElementById("mainBookingPreview").style.display = "block";
-            document.getElementById("mainBookingPreviewBody").innerHTML = `
-                <tr>
-                    <td>${document.getElementById("custName").value.trim()}</td>
-                    <td>${document.getElementById("prefDate").value} ${document.getElementById("prefTime").value}</td>
-                    <td>₹${document.getElementById("totalToPay").value}</td>
-                </tr>
-            `;
-
-            alert((actionType === "updateBooking" ? "Booking updated!" : "Booking saved!") + " ID: " + data.bookingId);
-        } else {
-            alert("Failed to save booking.");
-        }
-    });
-    }
-function addSubBooking() {
-    let custNum = document.getElementById("custNumber").value.trim();
-    if (custNum.length !== 10) {
-        alert("Enter a valid 10-digit Customer Number before creating sub-booking.");
-        return;
-    }
-
-    fetch(`${API_URL}?action=getMainBooking&customerNumber=${encodeURIComponent(custNum)}`)
         .then(res => res.json())
         .then(data => {
-            if (!data || data.success === false) {
-                alert("Main booking not found");
-                return;
+            if (data.success) {
+                // ✅ Save booking ID, show preview table
+                document.getElementById("bookingId").value = data.bookingId;
+                document.getElementById("bookingForm").style.display = "none";
+                document.getElementById("mainBookingPreview").style.display = "block";
+                document.getElementById("mainBookingPreviewBody").innerHTML = `
+                    <tr>
+                        <td>${document.getElementById("custName").value.trim()}</td>
+                        <td>${document.getElementById("prefDate").value} ${document.getElementById("prefTime").value}</td>
+                        <td>₹${document.getElementById("totalToPay").value}</td>
+                    </tr>
+                `;
+
+                // ✅ Show Add More button
+                document.getElementById("addMoreBtn").style.display = "inline-block";
+
+                alert("Booking saved! ID: " + data.bookingId);
+            } else {
+                alert("Failed to save booking.");
             }
-
-            // Fill frozen fields from main booking
-            document.getElementById("address").value = data.address;
-            document.getElementById("location").value = data.location;
-            document.getElementById("city").value = data.city;
-            document.getElementById("phleboList").value = data.phleboName;
-            document.getElementById("pincode").value = data.pincode;
-            document.getElementById("prefDate").value = data.preferredDate;
-            document.getElementById("prefTime").value = data.preferredTime;
-
-            // Make frozen fields read-only
-            ["address", "location", "city", "phleboList", "pincode", "prefDate", "prefTime"]
-                .forEach(id => document.getElementById(id).setAttribute("disabled", true));
-
-            // Clear other fields
-            document.querySelectorAll("#bookingForm input, #bookingForm select, #bookingForm textarea").forEach(el => {
-                if (!["custNumber", "address", "location", "city", "phleboList", "pincode", "prefDate", "prefTime"].includes(el.id)) {
-                    el.value = "";
-                }
-            });
-
-            document.getElementById("bookingForm").style.display = "block";
         })
         .catch(err => {
-            console.error(err);
-            alert("Error fetching main booking details.");
+            console.error("Booking save error:", err);
+            alert("Something went wrong while saving booking!");
         });
 }
 function editBooking(bookingId) {
