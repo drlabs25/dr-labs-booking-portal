@@ -19,10 +19,11 @@ function adminLogin() {
     fetch(`${API_URL}?action=login&role=Admin&username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}`)
         .then(res => res.json())
         .then(data => {
-            if (data.success) {
-                sessionStorage.setItem("adminName", data.agentName);
-                window.location.href = "admin-dashboard.html";
-            } else {
+           if (data.success) {
+    localStorage.setItem("agentName", data.agentName); // ✅ store real name
+    window.location.href = "booking.html";
+}
+ else {
                 alert(data.message || "Login failed");
             }
         });
@@ -488,10 +489,8 @@ function confirmBooking() {
         });
 }
 function showHeaderInfo(agentName) {
-    // Show agent name
     document.getElementById("agentNameLabel").textContent = "Agent: " + agentName;
 
-    // Show today’s date + time
     const now = new Date();
     const dateTimeString = now.toLocaleString("en-IN", {
         day: "2-digit",
@@ -514,6 +513,6 @@ window.onload = function () {
     if (document.getElementById("phleboList")) loadPhlebos();
 
     // ✅ NEW: Show agent info
-    const agent = localStorage.getItem("agentName") || "Unknown";
+   const agent = localStorage.getItem("agentName") || "Unknown";
     showHeaderInfo(agent);
 };
