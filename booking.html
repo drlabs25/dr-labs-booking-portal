@@ -57,7 +57,15 @@
     <!-- Hidden bookingId for edit mode -->
     <input type="hidden" id="bookingId">
     <!-- ✅ Customer Number belongs here -->
-    <input type="number" id="custNumber" maxlength="10" placeholder="Enter 10-digit number" required>
+    <input 
+  type="text" 
+  id="custNumber" 
+  placeholder="Enter 10-digit number" 
+  maxlength="10" 
+  inputmode="numeric" 
+  pattern="\d{10}" 
+  required
+>
     <input type="text" id="custName" placeholder="Main Customer Name" required>
     <input type="date" id="dob" placeholder="Date of Birth" onchange="calcAge()">
     <input type="number" id="age" placeholder="Age" required>
