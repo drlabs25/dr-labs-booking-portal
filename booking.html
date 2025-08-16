@@ -668,33 +668,67 @@ function checkPhleboAvailability() {
     // Hide Add More button until next booking saved
     document.getElementById("addMoreBtn").style.display = "none";
 }
-   function addSubBooking() {
-    // ✅ Clear all form fields
-    document.querySelectorAll("#bookingForm input, #bookingForm select, #bookingForm textarea")
-        .forEach(el => {
-            if (el.type === "hidden") return; // keep bookingId hidden as-is
-            if (el.tagName.toLowerCase() === "select") {
-                el.selectedIndex = 0;
-            } else {
-                el.value = "";
+  function addSubBooking() {
+    let custNumber = document.getElementById("custNumber").value.trim();
+    if (!custNumber) {
+        alert("Customer number missing!");
+        return;
+    }
+
+    // Call backend to fetch latest main booking
+    fetch(`${API_URL}?action=getMainBooking&customerNumber=${custNumber}`)
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) {
+                alert("No main booking found to copy details.");
+                return;
             }
+
+            // Clear all fields except customer number
+            document.querySelectorAll("#bookingForm input, #bookingForm select, #bookingForm textarea")
+                .forEach(el => {
+                    if (el.id === "custNumber" || el.type === "hidden") return;
+                    if (el.tagName.toLowerCase() === "select") {
+                        el.selectedIndex = 0;
+                    } else {
+                        el.value = "";
+                    }
+                });
+
+            // ✅ Reset dynamic sections (tests/packages)
+            document.getElementById("selectedTestsBody").innerHTML = "";
+            document.getElementById("selectedPackagesBody").innerHTML = "";
+
+            // ✅ Reset totals
+            document.getElementById("totalAmount").value = "";
+            document.getElementById("techCharge").value = "";
+            document.getElementById("totalToPay").value = "";
+            document.getElementById("discountList").value = "0";
+
+            // ✅ Pre-fill from main booking
+            document.getElementById("custNumber").value = custNumber;
+            document.getElementById("address").value = data.address;
+            document.getElementById("location").value = data.location;
+            document.getElementById("city").value = data.city;
+            document.getElementById("phleboList").value = data.phleboName;
+            document.getElementById("pincode").value = data.pincode;
+
+            // ✅ Freeze those fields
+            ["custNumber","address","location","city","phleboList","pincode"].forEach(id => {
+                document.getElementById(id).readOnly = true;
+                document.getElementById(id).style.backgroundColor = "#f0f0f0"; // greyed out look
+            });
+
+            // ✅ Show booking form again
+            document.getElementById("bookingForm").style.display = "block";
+
+            // ✅ Keep Add More button visible
+            document.getElementById("addMoreBtn").style.display = "inline-block";
+        })
+        .catch(err => {
+            console.error("Error fetching main booking:", err);
+            alert("Could not fetch main booking details.");
         });
-
-    // ✅ Reset dynamic sections (tests/packages)
-    document.getElementById("selectedTestsBody").innerHTML = "";
-    document.getElementById("selectedPackagesBody").innerHTML = "";
-
-    // ✅ Reset totals
-    document.getElementById("totalAmount").value = "";
-    document.getElementById("techCharge").value = "";
-    document.getElementById("totalToPay").value = "";
-    document.getElementById("discountList").value = "0";
-
-    // ✅ Show booking form again
-    document.getElementById("bookingForm").style.display = "block";
-
-    // Keep Add More button visible
-    document.getElementById("addMoreBtn").style.display = "inline-block";
 }
 </script>
 </body>
