@@ -373,6 +373,12 @@ function confirmBooking() {
         form.style.display = "none";
     }
 
+    // Clear customer number field
+    const custNumber = document.getElementById("custNumber");
+    if (custNumber) {
+        custNumber.value = "";
+    }
+
     // Keep the table visible
     const preview = document.getElementById("mainBookingPreview");
     if (preview) {
