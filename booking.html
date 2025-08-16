@@ -56,7 +56,7 @@
     <h3>New Booking</h3>
     <!-- Hidden bookingId for edit mode -->
     <input type="hidden" id="bookingId">
-    <input type="hidden" id="parentBookingId" value="">    
+    
     <input type="text" id="custName" placeholder="Main Customer Name" required>
     <input type="date" id="dob" placeholder="Date of Birth" onchange="calcAge()">
     <input type="number" id="age" placeholder="Age" required>
@@ -141,7 +141,7 @@
     <input type="number" id="techCharge" placeholder="Technician Charge" oninput="recalculateTotal()">
     <input type="number" id="totalToPay" placeholder="Total Amount to be Paid" readonly>
 
-    <button type="button" onclick="createBooking()">Submit Booking</button>
+    <button onclick="createBooking()">Submit</button>
     <button onclick="addSubBooking(document.getElementById('bookingId').value)">Sub Booking</button>
     <button onclick="confirmBooking()">Confirm Booking</button>
 </div>
@@ -195,14 +195,8 @@ function validateAndShowBookingForm() {
 }
 
 function showBookingForm() {
-    let custNumber = document.getElementById("custNumber").value.trim();
-
-    if (custNumber.length === 10 && /^\d+$/.test(custNumber)) {
-        // ✅ Show booking form if number valid
-        document.getElementById("bookingForm").style.display = "block";
-    } else {
-        alert("Please enter a valid 10-digit customer number first.");
-    }
+    document.getElementById("bookingForm").style.display = 'block';
+    document.getElementById("history").style.display = 'none';
 }
 function loadTests(query) {
     query = (query || "").trim();
@@ -449,81 +443,71 @@ function createBooking() {
 
     // Proceed with save/update
     let actionType = document.getElementById("bookingId").value ? "updateBooking" : "saveBooking";
-    let params = new URLSearchParams();
-    params.append("action", "saveBooking");
-    params.append("custNumber", document.getElementById("custNumber").value.trim());
-    params.append("custName", document.getElementById("custName").value.trim());
-    params.append("dob", document.getElementById("dob").value);
-    params.append("age", document.getElementById("age").value.trim());
-    params.append("gender", document.getElementById("gender").value);
-    params.append("address", document.getElementById("address").value.trim());
-    params.append("location", document.getElementById("location").value.trim());
-    params.append("city", document.getElementById("city").value);
-    params.append("phlebo", document.getElementById("phleboList").value);
-    params.append("pincode", document.getElementById("pincode").value.trim());
-    params.append("prefDate", document.getElementById("prefDate").value);
-    params.append("prefTime", document.getElementById("prefTime").value);
-    params.append("tests", getSelectedTests());
-    params.append("packages", getSelectedPackages());
-    params.append("totalAmount", document.getElementById("totalAmount").value.trim());
-    params.append("discount", document.getElementById("discountList").value);
-    params.append("techCharge", document.getElementById("techCharge").value.trim());
-    params.append("totalToPay", document.getElementById("totalToPay").value.trim());
-
-    // NEW: Add parentBookingId for sub bookings
-    let parentId = document.getElementById("parentBookingId")?.value || "";
-    params.append("parentBookingId", parentId);
+    let params = new URLSearchParams({
+        action: actionType,
+        bookingId: document.getElementById("bookingId").value,
+        customerNumber: custNumber,
+        mainCustomerName: document.getElementById("custName").value.trim(),
+        dob: document.getElementById("dob").value,
+        age: document.getElementById("age").value.trim(),
+        gender: document.getElementById("gender").value,
+        address: document.getElementById("address").value.trim(),
+        location: document.getElementById("location").value.trim(),
+        city: document.getElementById("city").value,
+        phleboName: document.getElementById("phleboList").value,
+        pincode: pincode,
+        preferredDate: document.getElementById("prefDate").value,
+        preferredTime: document.getElementById("prefTime").value,
+        tests: tests,
+        packages: packages,
+        totalAmount: document.getElementById("totalAmount").value,
+        discount: document.getElementById("discountList").value,
+        techCharge: document.getElementById("techCharge").value,
+        totalToPay: document.getElementById("totalToPay").value,
+        agentName: "Agent Name Here"
+    });
 
     fetch(`${API_URL}?${params.toString()}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                // Save bookingId for sub bookings reference
-                if (!parentId) {
-                    // First booking → set as parent
-                    document.getElementById("parentBookingId").value = data.bookingId;
-                }
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            // Save bookingId for later confirmation
+            document.getElementById("bookingId").value = data.bookingId;
 
-                // Show in preview
-                let row = document.createElement("tr");
-                row.innerHTML = `
+            // ✅ Hide/minimize the booking form after submission
+            document.getElementById("bookingForm").style.display = "none";
+
+            // ✅ Keep preview table visible & active
+            document.getElementById("mainBookingPreview").style.display = "block";
+            document.getElementById("mainBookingPreviewBody").innerHTML = `
+                <tr>
                     <td>${document.getElementById("custName").value.trim()}</td>
                     <td>${document.getElementById("prefDate").value} ${document.getElementById("prefTime").value}</td>
                     <td>₹${document.getElementById("totalToPay").value}</td>
-                `;
-                document.getElementById("mainBookingPreviewBody").appendChild(row);
+                </tr>
+            `;
 
-                // Hide booking form after submit
-                document.getElementById("bookingForm").style.display = "none";
-
-                alert("Booking saved! ID: " + data.bookingId);
-            } else {
-                alert("Failed to save booking.");
-            }
-        });
-}
-function addSubBooking(parentBookingId) {
-    if (!parentBookingId) {
-        alert("Please create main booking first.");
+            alert((actionType === "updateBooking" ? "Booking updated!" : "Booking saved!") + " ID: " + data.bookingId);
+        } else {
+            alert("Failed to save booking.");
+        }
+    });
+    }
+function addSubBooking() {
+    let custNum = document.getElementById("custNumber").value.trim();
+    if (custNum.length !== 10) {
+        alert("Enter a valid 10-digit Customer Number before creating sub-booking.");
         return;
     }
 
-    // Reset editable fields
-    ["custName","dob","age","gender","tests","packages","totalAmount","discountList","techCharge","totalToPay"].forEach(id=>{
-        if (document.getElementById(id)) document.getElementById(id).value = "";
-    });
+    fetch(`${API_URL}?action=getMainBooking&customerNumber=${encodeURIComponent(custNum)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (!data || data.success === false) {
+                alert("Main booking not found");
+                return;
+            }
 
-    // Freeze fields from main booking (address, city, phlebo, etc.)
-    ["address","location","city","phleboList","pincode","prefDate","prefTime"].forEach(id=>{
-        document.getElementById(id).setAttribute("disabled", true);
-    });
-
-    // Assign parent booking reference
-    document.getElementById("bookingId").value = parentBookingId;
-
-    // Show the form again
-    document.getElementById("bookingForm").style.display = "block";
-}
             // Fill frozen fields from main booking
             document.getElementById("address").value = data.address;
             document.getElementById("location").value = data.location;
