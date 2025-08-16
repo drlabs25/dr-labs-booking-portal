@@ -502,6 +502,7 @@ function createBooking() {
         console.error("Booking save error:", err);
         alert("Something went wrong while saving booking!");
     });
+}
 function editBooking(bookingId) {
     fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`)
         .then(res => res.json())
