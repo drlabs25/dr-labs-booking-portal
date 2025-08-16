@@ -591,12 +591,34 @@ function confirmBooking() {
                 document.getElementById("addMoreBtn").style.display = "none";
                 document.getElementById("confirmBtn").style.display = "none";
 
-                // ✅ Reset booking state
-                bookingList = [];
-                subBookingCounter = 0;
+                // ✅ Clear booking preview
+                document.getElementById("mainBookingPreviewBody").innerHTML = "";
+                document.getElementById("mainBookingPreview").style.display = "none";
 
                 // ✅ Hide booking form
                 document.getElementById("bookingForm").style.display = "none";
+
+                // ✅ Reset booking state
+                bookingList = [];
+                subBookingCounter = 0;
+                mainBookingData = null;
+
+                // ✅ Reset button back to Main Booking mode
+                const createBtn = document.getElementById("createBookingBtn");
+                if (createBtn) {
+                    createBtn.textContent = "Create Booking";
+                    createBtn.onclick = showBookingForm;
+                }
+
+                // ✅ Unfreeze all fields for fresh Main Booking
+                ["custNumber","address","location","city","phleboList","pincode","prefDate","prefTime"].forEach(id => {
+                    let el = document.getElementById(id);
+                    if (!el) return;
+                    el.readOnly = false;
+                    el.disabled = false;
+                    el.style.backgroundColor = ""; // reset styling
+                });
+
             } else {
                 alert("Failed to confirm bookings");
             }
