@@ -359,6 +359,29 @@ function addSubBooking() {
 function showBookingForm() {
     document.getElementById("bookingForm").style.display = "block";
 }
+/** Confirm Booking **/
+function confirmBooking() {
+    // Disable Add More button
+    const addMoreBtn = document.getElementById("addMoreBtn");
+    if (addMoreBtn) {
+        addMoreBtn.disabled = true;
+    }
+
+    // Hide the booking form if still open
+    const form = document.getElementById("bookingForm");
+    if (form) {
+        form.style.display = "none";
+    }
+
+    // Keep the table visible
+    const preview = document.getElementById("mainBookingPreview");
+    if (preview) {
+        preview.style.display = "block";
+    }
+
+    // Show confirmation message
+    alert("✅ All bookings have been confirmed!");
+}
 
 window.onload = function() {
     let prefDate = document.getElementById("prefDate");
