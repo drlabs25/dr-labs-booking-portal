@@ -4,6 +4,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbw4sBOSu5WL_Cep7M1B9qYg
 /** Navigation **/
 function goBack() { history.back(); }
 function goHome() { window.location.href = 'index.html'; }
+
 // 🔹 Booking tracking
 let bookingList = [];
 let subBookingCounter = 0;
@@ -81,12 +82,8 @@ function loadPackages(searchTerm = "") {
 }
 
 // Search filters
-function filterTests(query) {
-    loadTests(query);
-}
-function filterPackages(query) {
-    loadPackages(query);
-}
+function filterTests(query) { loadTests(query); }
+function filterPackages(query) { loadPackages(query); }
 
 /** Load Phlebos **/
 function loadPhlebos() {
@@ -197,7 +194,6 @@ function createBooking() {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            // ✅ Instead of reload, push to table
             let label;
             if (bookingList.length === 0) {
                 label = "Main Booking";
@@ -317,7 +313,7 @@ function editBooking(bookingId) {
                 alert("Booking not found");
                 return;
             }
-            showBookingForm(); // ✅ Added helper
+            showBookingForm();
             document.getElementById("custNumber").value = data.customerNumber;
             document.getElementById("custName").value = data.mainCustomerName;
             document.getElementById("dob").value = data.dob;
@@ -338,10 +334,9 @@ function editBooking(bookingId) {
 }
 
 function addSubBooking() {
-    // ✅ Clear all form fields
     document.querySelectorAll("#bookingForm input, #bookingForm select, #bookingForm textarea")
         .forEach(el => {
-            if (el.type === "hidden") return; // keep bookingId hidden as-is
+            if (el.type === "hidden") return;
             if (el.tagName.toLowerCase() === "select") {
                 el.selectedIndex = 0;
             } else {
@@ -349,24 +344,18 @@ function addSubBooking() {
             }
         });
 
-    // ✅ Reset dynamic sections (tests/packages)
     document.getElementById("selectedTestsBody").innerHTML = "";
     document.getElementById("selectedPackagesBody").innerHTML = "";
 
-    // ✅ Reset totals
     document.getElementById("totalAmount").value = "";
     document.getElementById("techCharge").value = "";
     document.getElementById("totalToPay").value = "";
     document.getElementById("discountList").value = "0";
 
-    // ✅ Show booking form again
     document.getElementById("bookingForm").style.display = "block";
-
-    // Keep Add More button visible
     document.getElementById("addMoreBtn").style.display = "inline-block";
 }
 
-// ✅ Added missing helper
 function showBookingForm() {
     document.getElementById("bookingForm").style.display = "block";
 }
