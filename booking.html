@@ -706,19 +706,27 @@ function checkPhleboAvailability() {
             document.getElementById("discountList").value = "0";
 
             // ✅ Pre-fill from main booking
-            document.getElementById("custNumber").value = custNumber;
-            document.getElementById("address").value = data.address;
-            document.getElementById("location").value = data.location;
-            document.getElementById("city").value = data.city;
-            document.getElementById("phleboList").value = data.phleboName;
-            document.getElementById("pincode").value = data.pincode;
+document.getElementById("custNumber").value   = custNumber;
+document.getElementById("address").value      = data.address;
+document.getElementById("location").value     = data.location;
+document.getElementById("city").value         = data.city;
+document.getElementById("phleboList").value   = data.phleboName;
+document.getElementById("pincode").value      = data.pincode;
+document.getElementById("prefDate").value     = data.preferredDate;
+document.getElementById("prefTime").value     = data.preferredTime;
 
-            // ✅ Freeze those fields
-            ["custNumber","address","location","city","phleboList","pincode"].forEach(id => {
-                document.getElementById(id).readOnly = true;
-                document.getElementById(id).style.backgroundColor = "#f0f0f0"; // greyed out look
-            });
+           // ✅ Freeze those fields
+["custNumber","address","location","city","phleboList","pincode","prefDate","prefTime"].forEach(id => {
+    let el = document.getElementById(id);
+    if (!el) return;
 
+    if (el.tagName.toLowerCase() === "select" || el.type === "date" || el.type === "time") {
+        el.disabled = true;  // disable select/date/time inputs
+    } else {
+        el.readOnly = true;  // keep readonly for text/textarea
+    }
+    el.style.backgroundColor = "#f0f0f0"; // grey look
+});
             // ✅ Show booking form again
             document.getElementById("bookingForm").style.display = "block";
 
