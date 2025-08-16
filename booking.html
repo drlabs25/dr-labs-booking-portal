@@ -551,18 +551,14 @@ function renderBookingTable() {
 
 // Confirm booking and redirect
 function confirmBooking() {
-    alert("All bookings confirmed!");
+    // Disable Add More button
+    document.getElementById("addMoreBtn").disabled = true;
 
-    // Clear frontend state
-    bookingList = [];
-    subBookingCounter = 0;
-    document.getElementById("mainBookingPreviewBody").innerHTML = "";
-    document.getElementById("mainBookingPreview").style.display = "none";
-    document.getElementById("addMoreBtn").style.display = "none";
-    document.getElementById("confirmBtn").style.display = "none";
+    // Optionally hide booking form if it’s still visible
+    document.getElementById("bookingForm").style.display = "none";
 
-    // Redirect to login page
-    window.location.href = "agent-login.html";
+    // Confirmation message
+    alert("All bookings have been confirmed!");
 }
 function editBooking(bookingId) {
     fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`)
