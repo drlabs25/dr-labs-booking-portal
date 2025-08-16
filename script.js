@@ -157,10 +157,14 @@ function searchCustomer() {
 /** Save Booking with mandatory field check **/
 function createBooking() {
     let custNumber = document.getElementById("custNumber").value.trim();
-if (!/^\d{10}$/.test(custNumber)) {
-    alert("Enter valid 10-digit customer number");
-    return;
-}
+
+    // Debug check
+    console.log("custNumber:", custNumber, "length:", custNumber.length);
+
+    if (!/^\d{10}$/.test(custNumber)) {
+        alert("Enter valid 10-digit customer number");
+        return;
+    }
     if (!document.getElementById("custName").value.trim()) return alert("Enter customer name");
     if (!document.getElementById("age").value) return alert("Enter age");
     if (!document.getElementById("gender").value) return alert("Select gender");
