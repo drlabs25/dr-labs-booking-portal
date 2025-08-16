@@ -81,10 +81,10 @@ function loadPackages(searchTerm = "") {
 function filterTests(query) {
     loadTests(query);
 }
-
 function filterPackages(query) {
     loadPackages(query);
 }
+
 /** Load Phlebos **/
 function loadPhlebos() {
     fetch(`${API_URL}?action=getPhlebos`)
@@ -195,7 +195,10 @@ function createBooking() {
         .then(data => {
             if (data.success) {
                 alert(`Booking saved! ID: ${data.bookingId}`);
-                location.reload();
+                // ✅ No reload — instead show preview + Add More
+                document.getElementById("bookingForm").style.display = "none";
+                document.getElementById("mainBookingPreview").style.display = "block";
+                document.getElementById("addMoreBtn").style.display = "inline-block";
             } else {
                 alert("Booking failed");
             }
@@ -281,7 +284,7 @@ function editBooking(bookingId) {
                 alert("Booking not found");
                 return;
             }
-            showBookingForm();
+            showBookingForm(); // ✅ Added helper
             document.getElementById("custNumber").value = data.customerNumber;
             document.getElementById("custName").value = data.mainCustomerName;
             document.getElementById("dob").value = data.dob;
@@ -328,6 +331,11 @@ function addSubBooking() {
 
     // Keep Add More button visible
     document.getElementById("addMoreBtn").style.display = "inline-block";
+}
+
+// ✅ Added missing helper
+function showBookingForm() {
+    document.getElementById("bookingForm").style.display = "block";
 }
 
 window.onload = function() {
