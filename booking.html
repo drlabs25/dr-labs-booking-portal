@@ -25,7 +25,6 @@
     <input type="number" id="custNumber" placeholder="Customer Number (10 digits)" maxlength="10" oninput="validateCustomerNumber(this)">
     <button onclick="searchCustomer()">Search</button>
     <button id="createBookingBtn" onclick="validateAndShowBookingForm()" disabled>Create Booking</button>
-    <div id="bookingSummaryContainer"></div>
 </div>
 
 <!-- Booking History -->
@@ -471,31 +470,29 @@ function createBooking() {
     fetch(`${API_URL}?${params.toString()}`)
     .then(res => res.json())
     .then(data => {
-       if (data.success) {
-    // ✅ Hide the booking form
-    document.getElementById("bookingForm").style.display = "none";
+        if (data.success) {
+            // Save bookingId for later confirmation
+            document.getElementById("bookingId").value = data.bookingId;
 
-    // ✅ Insert small summary table into fixed container
-    let summaryContainer = document.getElementById("bookingSummaryContainer");
-    summaryContainer.innerHTML = `
-        <table border="1" style="margin-top:10px; width:100%; background:#eef;">
-            <tr>
-                <th>Customer Name</th>
-                <th>Preferred Date & Time</th>
-                <th>Total Cost</th>
-            </tr>
-            <tr>
-                <td>${document.getElementById("custName").value.trim()}</td>
-                <td>${document.getElementById("prefDate").value} ${document.getElementById("prefTime").value}</td>
-                <td>₹${document.getElementById("totalToPay").value}</td>
-            </tr>
-        </table>
-    `;
+            // ✅ Hide/minimize the booking form after submission
+            document.getElementById("bookingForm").style.display = "none";
 
-    alert("Booking saved successfully! ID: " + data.bookingId);
-} else {
-    alert("Failed to save booking.");
-}
+            // ✅ Keep preview table visible & active
+            document.getElementById("mainBookingPreview").style.display = "block";
+            document.getElementById("mainBookingPreviewBody").innerHTML = `
+                <tr>
+                    <td>${document.getElementById("custName").value.trim()}</td>
+                    <td>${document.getElementById("prefDate").value} ${document.getElementById("prefTime").value}</td>
+                    <td>₹${document.getElementById("totalToPay").value}</td>
+                </tr>
+            `;
+
+            alert((actionType === "updateBooking" ? "Booking updated!" : "Booking saved!") + " ID: " + data.bookingId);
+        } else {
+            alert("Failed to save booking.");
+        }
+    });
+    }
 function addSubBooking() {
     let custNum = document.getElementById("custNumber").value.trim();
     if (custNum.length !== 10) {
