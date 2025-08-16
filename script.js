@@ -401,22 +401,22 @@ function confirmBooking() {
         return;
     }
 
-    // ✅ Clear ALL Customer Number inputs (both search + booking form if exist)
-    document.querySelectorAll("#custNumber").forEach(el => {
-        el.value = "";
-    });
+    // ✅ Clear both search + form numbers
+    const searchCust = document.getElementById("searchCustNumber");
+    const formCust = document.getElementById("custNumber");
+    if (searchCust) searchCust.value = "";
+    if (formCust) formCust.value = "";
 
-    // ✅ Hide Add More button completely after confirmation
+    // ✅ Hide Add More button
     const addMoreBtn = document.getElementById("addMoreBtn");
-    if (addMoreBtn) {
-        addMoreBtn.style.display = "none";
-    }
+    if (addMoreBtn) addMoreBtn.style.display = "none";
 
-    // ✅ Keep the table preview visible
     document.getElementById("mainBookingPreview").style.display = "block";
-
+ // ✅ Keep the table preview visible
+    document.getElementById("mainBookingPreview").style.display = "block";
     alert("All bookings confirmed successfully!");
 }
+
 window.onload = function() {
     let prefDate = document.getElementById("prefDate");
     if (prefDate) {
