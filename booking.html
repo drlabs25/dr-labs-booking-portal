@@ -23,7 +23,7 @@
 <!-- Search Section -->
 <!-- Search Section -->
 <div class="flex">
-    <input type="number" id="searchCustNumber" placeholder="Enter Customer Number">
+    <input type="text" id="searchCustNumber" placeholder="Enter 10-digit Customer Number" maxlength="10" inputmode="numeric" pattern="\d{10}">
     <button onclick="searchCustomer()">Search</button>
     <button onclick="showBookingForm()">Create Booking</button>
 </div>
@@ -69,13 +69,16 @@
     <input type="text" id="custName" placeholder="Main Customer Name" required>
     <input type="date" id="dob" placeholder="Date of Birth" onchange="calcAge()">
     <input type="number" id="age" placeholder="Age" required>
-    <select id="gender">
-        <option>Male</option>
-        <option>Female</option>
+    <select id="gender" required>
+    <option value="">--Select Gender--</option>
+    <option value="Male">Male</option>
+    <option value="Female">Female</option>
+
     </select>
     <textarea id="address" placeholder="Address" maxlength="500" required></textarea>
     <input type="text" id="location" placeholder="Location" maxlength="100" required>
     <select id="city">
+        <option value="">--Select City--</option>
         <option>Chennai</option>
         <option>Bangalore</option>
         <option>Hyderabad</option>
@@ -343,7 +346,7 @@ function recalculateTotal() {
 }
 
 function searchCustomer() {
-    let num = document.getElementById("custNumber").value;
+    let num = document.getElementById("searchCustNumber").value.trim();
     if (num.length !== 10) {
         alert("Enter a valid 10-digit Customer Number");
         return;
@@ -370,14 +373,14 @@ function searchCustomer() {
                     tr.style.backgroundColor = "lightblue";
                 }
 
-                tr.innerHTML = `
-                    <td>${b.customerNumber}</td>
-                    <td>${b.name}</td>
-                    <td>${b.dateTime}</td>
-                    <td>${b.phlebo}</td>
-                    <td>${b.agent}</td>
-                    <td>${b.createdDateTime}</td>
-                    <td>${b.status || ''}</td>
+               tr.innerHTML = `
+    <td>${b.customerNumber}</td>
+    <td>${b.name}</td>
+    <td>${b.dateTime}</td>
+    <td>${b.phlebo}</td>
+    <td>${b.createdDateTime}</td>
+    <td>${b.agent}</td>
+    <td>${b.status || ''}</td>
                     <td><button class="small-btn edit" onclick="editBooking('${b.bookingId}')">E</button></td>
                     <td><button class="small-btn cancel" onclick="updateStatus('${b.bookingId}','Cancel')">X</button></td>
                     <td><button class="small-btn paid" onclick="updateStatus('${b.bookingId}','Paid')">P</button></td>
