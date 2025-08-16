@@ -205,21 +205,22 @@ function createBooking() {
             let label;
            if (bookingList.length === 0) {
     label = "Main Booking";
-
-    // 🔹 Save main booking values
+    // Save main booking values
     mainBookingData = {
-        phlebo: params.phleboName,
-        prefDate: params.preferredDate,
-        prefTime: params.preferredTime,
+        custNumber: params.customerNumber,
         address: params.address,
         location: params.location,
+        city: params.city,
+        phlebo: params.phleboName,
         pincode: params.pincode,
-        city: params.city
+        prefDate: params.preferredDate,
+        prefTime: params.preferredTime
     };
 } else {
     subBookingCounter++;
     label = `Sub Booking ${subBookingCounter}`;
 }
+
             bookingList.push({
                 type: label,
                 name: params.mainCustomerName,
@@ -373,6 +374,9 @@ function addSubBooking() {
 
     // ✅ If main booking exists → lock fields
     if (mainBookingData) {
+        document.getElementById("custNumber").value = mainBookingData.custNumber;
+document.getElementById("custNumber").readOnly = true;
+
         document.getElementById("phleboList").value = mainBookingData.phlebo;
         document.getElementById("phleboList").disabled = true;
 
