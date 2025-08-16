@@ -714,7 +714,23 @@ document.getElementById("phleboList").value   = data.phleboName;
 document.getElementById("pincode").value      = data.pincode;
 document.getElementById("prefDate").value     = data.preferredDate;
 document.getElementById("prefTime").value     = data.preferredTime;
+            // ✅ Fix preferredDate (convert to YYYY-MM-DD for input type="date")
+if (data.preferredDate) {
+    let d = new Date(data.preferredDate);
+    let yyyy = d.getFullYear();
+    let mm = String(d.getMonth() + 1).padStart(2, "0");
+    let dd = String(d.getDate()).padStart(2, "0");
+    document.getElementById("preferredDate").value = `${yyyy}-${mm}-${dd}`;
+}
 
+// ✅ Fix preferredTime (input type="time" expects HH:MM in 24hr format)
+if (data.preferredTime) {
+    document.getElementById("preferredTime").value = data.preferredTime;
+}
+// ✅ Make these fields read-only in "Add More Booking"
+document.getElementById("phleboList").setAttribute("readonly", true);
+document.getElementById("preferredDate").setAttribute("readonly", true);
+document.getElementById("preferredTime").setAttribute("readonly", true);
            // ✅ Freeze those fields
 ["custNumber","address","location","city","phleboList","pincode","prefDate","prefTime"].forEach(id => {
     let el = document.getElementById(id);
