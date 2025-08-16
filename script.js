@@ -4,6 +4,9 @@ const API_URL = "https://script.google.com/macros/s/AKfycbw4sBOSu5WL_Cep7M1B9qYg
 /** Navigation **/
 function goBack() { history.back(); }
 function goHome() { window.location.href = 'index.html'; }
+// 🔹 Booking tracking
+let bookingList = [];
+let subBookingCounter = 0;
 
 /** Admin Login **/
 function adminLogin() {
@@ -191,18 +194,38 @@ function createBooking() {
 
     const query = new URLSearchParams(params).toString();
     fetch(`${API_URL}?${query}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                alert(`Booking saved! ID: ${data.bookingId}`);
-                // ✅ No reload — instead show preview + Add More
-                document.getElementById("bookingForm").style.display = "none";
-                document.getElementById("mainBookingPreview").style.display = "block";
-                document.getElementById("addMoreBtn").style.display = "inline-block";
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            // ✅ Instead of reload, push to table
+            let label;
+            if (bookingList.length === 0) {
+                label = "Main Booking";
             } else {
-                alert("Booking failed");
+                subBookingCounter++;
+                label = `Sub Booking ${subBookingCounter}`;
             }
-        });
+
+            bookingList.push({
+                type: label,
+                name: params.mainCustomerName,
+                datetime: `${params.preferredDate} ${params.preferredTime}`,
+                cost: params.totalToPay
+            });
+
+           function renderBookingTable() {
+    const body = document.getElementById("mainBookingPreviewBody");
+    body.innerHTML = "";
+    bookingList.forEach(b => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${b.type}: ${b.name}</td>
+            <td>${b.datetime}</td>
+            <td>${b.cost}</td>
+        `;
+        body.appendChild(tr);
+    });
+    document.getElementById("mainBookingPreview").style.display = "block";
 }
 
 function getSelectedCodes(containerId) {
