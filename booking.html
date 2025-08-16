@@ -563,18 +563,22 @@ function renderBookingTable() {
 }
 
 function confirmBooking() {
-    // Disable Add More button
+    if (bookingList.length === 0) {
+        alert("No bookings to confirm!");
+        return;
+    }
+
+    // ✅ Clear both search + form numbers
+    const searchCust = document.getElementById("searchCustNumber");
+    const formCust = document.getElementById("custNumber");
+    if (searchCust) searchCust.value = "";
+    if (formCust) formCust.value = "";
+
+    // ✅ Hide Add More button
     const addMoreBtn = document.getElementById("addMoreBtn");
-    if (addMoreBtn) addMoreBtn.disabled = true;
+    if (addMoreBtn) addMoreBtn.style.display = "none";
 
-    // Hide the booking form if it’s still open
-    document.getElementById("bookingForm").style.display = "none";
-
-    // Keep the bookings table visible
-    document.getElementById("mainBookingPreview").style.display = "block";
-
-    // Show a success message
-    alert("✅ All bookings have been confirmed!");
+       alert("All bookings confirmed successfully!");
 }
 function editBooking(bookingId) {
     fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`)
