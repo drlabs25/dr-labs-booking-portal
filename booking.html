@@ -444,11 +444,12 @@ function createBooking() {
         return;
     }
 
-    // Proceed with save/update
-    let actionType = document.getElementById("bookingId").value ? "updateBooking" : "saveBooking";
+    // ✅ Always generate NEW bookingId (avoid overwrite)
+    let newBookingId = "BKG_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+
     let params = new URLSearchParams({
-        action: actionType,
-        bookingId: document.getElementById("bookingId").value,
+        action: "saveBooking",   // always save new
+        bookingId: newBookingId,
         customerNumber: custNumber,
         mainCustomerName: document.getElementById("custName").value.trim(),
         dob: document.getElementById("dob").value,
@@ -470,19 +471,20 @@ function createBooking() {
         agentName: "Agent Name Here"
     });
 
-   fetch(`${API_URL}?${params.toString()}`)
+    fetch(`${API_URL}?${params.toString()}`)
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            // Save booking ID
-            document.getElementById("bookingId").value = data.bookingId;
+            // Save booking ID (just for reference if needed)
+            document.getElementById("bookingId").value = newBookingId;
 
             // Hide booking form
             document.getElementById("bookingForm").style.display = "none";
 
-            // Show preview table
+            // Show preview table and append row
             document.getElementById("mainBookingPreview").style.display = "block";
-            document.getElementById("mainBookingPreviewBody").innerHTML = `
+            let body = document.getElementById("mainBookingPreviewBody");
+            body.innerHTML += `
                 <tr>
                     <td>${document.getElementById("custName").value.trim()}</td>
                     <td>${document.getElementById("prefDate").value} ${document.getElementById("prefTime").value}</td>
@@ -490,10 +492,10 @@ function createBooking() {
                 </tr>
             `;
 
-            // ✅ Show Add More button only after submit
+            // ✅ Show Add More button after first submit
             document.getElementById("addMoreBtn").style.display = "inline-block";
 
-            alert("Booking saved! ID: " + data.bookingId);
+            alert("Booking saved! ID: " + newBookingId);
         } else {
             alert("Failed to save booking.");
         }
