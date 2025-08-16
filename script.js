@@ -6,6 +6,7 @@ function goBack() { history.back(); }
 function goHome() { window.location.href = 'index.html'; }
 
 // 🔹 Booking tracking
+let isSubBookingMode = false;   // Tracks whether user is adding sub booking
 let bookingList = [];
 let subBookingCounter = 0;
 let mainBookingData = null;
