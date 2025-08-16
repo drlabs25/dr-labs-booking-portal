@@ -21,11 +21,13 @@
 <h2>Booking Form</h2>
 
 <!-- Search Section -->
-<!-- Search Section -->
 <div class="flex">
-    <input type="text" id="searchCustNumber" placeholder="Enter 10-digit Customer Number" maxlength="10" inputmode="numeric" pattern="\d{10}">
-    <button onclick="searchCustomer()">Search</button>
-    <button onclick="showBookingForm()">Create Booking</button>
+    <input type="text" id="searchCustNumber" 
+           placeholder="Enter 10-digit Customer Number" 
+           maxlength="10" inputmode="numeric" pattern="\d{10}">
+    
+    <button type="button" onclick="searchCustomer()">Search</button>
+    <button type="button" onclick="showBookingForm()">Create Booking</button>
 </div>
 <!-- Booking History -->
 <div id="history" style="display:none;">
