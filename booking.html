@@ -22,9 +22,9 @@
 
 <!-- Search Section -->
 <div class="flex">
-    <input type="number" id="custNumber" placeholder="Customer Number (10 digits)" maxlength="10" oninput="validateCustomerNumber(this)">
-    <button onclick="searchCustomer()">Search</button>
-    <button id="createBookingBtn" onclick="showBookingForm()" disabled>Create Booking</button>
+    <input type="number" id="searchCustNumber" placeholder="Customer Number (10 digits)" maxlength="10" oninput="validateCustomerNumber(this)">
+<button onclick="searchCustomer()">Search</button>
+<button id="createBookingBtn" onclick="showBookingForm()" disabled>Create Booking</button>
     <button id="confirmBtn" style="display:none;" onclick="confirmBooking()">Confirm Booking</button>
 </div>
 <!-- Booking History -->
@@ -211,19 +211,22 @@ function validateAndShowBookingForm() {
 }
 
 function showBookingForm() {
-    let num = document.getElementById("custNumber").value.trim();
+    let num = document.getElementById("searchCustNumber").value.trim();
 
     if (num.length !== 10 || !/^\d+$/.test(num)) {
         alert("Please enter a valid 10-digit Customer Number");
         return;
     }
 
-    // Reset form (but don’t clear custNumber since it’s outside the form)
+    // Put number into the booking form’s custNumber field
+    document.getElementById("custNumber").value = num;
+    document.getElementById("custNumber").readOnly = true; // freeze it
+
+    // Reset other fields
     document.querySelectorAll("#bookingForm input, #bookingForm select, #bookingForm textarea").forEach(el => {
-        if (el.id !== "bookingId") el.value = "";
+        if (el.id !== "custNumber" && el.id !== "bookingId") el.value = "";
     });
 
-    // Reset dynamic fields
     document.getElementById("selectedTestsBody").innerHTML = "";
     document.getElementById("selectedPackagesBody").innerHTML = "";
     document.getElementById("totalAmount").value = "";
@@ -231,12 +234,11 @@ function showBookingForm() {
     document.getElementById("totalToPay").value = "";
     document.getElementById("discountList").value = "0";
 
-    // ✅ Show the form
+    // ✅ Finally show the form
     document.getElementById("bookingForm").style.display = "block";
-
-    // Hide history panel if visible
     document.getElementById("history").style.display = "none";
 }
+
 function loadTests(query) {
     query = (query || "").trim();
     if (query.length < 2) {
