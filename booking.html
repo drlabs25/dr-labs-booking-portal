@@ -470,7 +470,7 @@ function createBooking() {
         agentName: "Agent Name Here"
     });
 
-    fetch(`${API_URL}?${params.toString()}`)
+   fetch(`${API_URL}?${params.toString()}`)
     .then(res => res.json())
     .then(data => {
         if (data.success) {
@@ -497,12 +497,11 @@ function createBooking() {
         } else {
             alert("Failed to save booking.");
         }
+    })
+    .catch(err => {
+        console.error("Booking save error:", err);
+        alert("Something went wrong while saving booking!");
     });
-        .catch(err => {
-            console.error("Booking save error:", err);
-            alert("Something went wrong while saving booking!");
-        });
-}
 function editBooking(bookingId) {
     fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`)
         .then(res => res.json())
