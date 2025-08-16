@@ -570,6 +570,23 @@ function checkPhleboAvailability() {
             }
         });
 }
+    function addMoreBooking() {
+    // Reset the form
+    document.getElementById("bookingForm").reset();
+
+    // Clear hidden bookingId (new booking, not update)
+    document.getElementById("bookingId").value = "";
+
+    // Show the booking form again
+    document.getElementById("bookingForm").style.display = "block";
+
+    // Hide the preview until next save
+    document.getElementById("mainBookingPreview").style.display = "none";
+
+    // Hide Add More button until next booking saved
+    document.getElementById("addMoreBtn").style.display = "none";
+}
+
 </script>
 </body>
 </html>
