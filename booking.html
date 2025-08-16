@@ -705,33 +705,29 @@ function checkPhleboAvailability() {
             document.getElementById("totalToPay").value = "";
             document.getElementById("discountList").value = "0";
 
-            // ✅ Pre-fill from main booking
-document.getElementById("custNumber").value   = custNumber;
-document.getElementById("address").value      = data.address;
-document.getElementById("location").value     = data.location;
-document.getElementById("city").value         = data.city;
-document.getElementById("phleboList").value   = data.phleboName;
-document.getElementById("pincode").value      = data.pincode;
-document.getElementById("prefDate").value     = data.preferredDate;
-document.getElementById("prefTime").value     = data.preferredTime;
-            // ✅ Fix preferredDate (convert to YYYY-MM-DD for input type="date")
+           // ✅ Pre-fill from main booking
+document.getElementById("custNumber").value = custNumber;
+document.getElementById("address").value    = data.address;
+document.getElementById("location").value   = data.location;
+document.getElementById("city").value       = data.city;
+document.getElementById("phleboList").value = data.phleboName;
+document.getElementById("pincode").value    = data.pincode;
+
+// ✅ Fix preferredDate (convert to YYYY-MM-DD for input type="date")
 if (data.preferredDate) {
     let d = new Date(data.preferredDate);
     let yyyy = d.getFullYear();
     let mm = String(d.getMonth() + 1).padStart(2, "0");
     let dd = String(d.getDate()).padStart(2, "0");
-    document.getElementById("preferredDate").value = `${yyyy}-${mm}-${dd}`;
+    document.getElementById("prefDate").value = `${yyyy}-${mm}-${dd}`;
 }
 
 // ✅ Fix preferredTime (input type="time" expects HH:MM in 24hr format)
 if (data.preferredTime) {
-    document.getElementById("preferredTime").value = data.preferredTime;
+    document.getElementById("prefTime").value = data.preferredTime;
 }
-// ✅ Make these fields read-only in "Add More Booking"
-document.getElementById("phleboList").setAttribute("readonly", true);
-document.getElementById("preferredDate").setAttribute("readonly", true);
-document.getElementById("preferredTime").setAttribute("readonly", true);
-           // ✅ Freeze those fields
+
+// ✅ Freeze those fields
 ["custNumber","address","location","city","phleboList","pincode","prefDate","prefTime"].forEach(id => {
     let el = document.getElementById(id);
     if (!el) return;
@@ -739,9 +735,9 @@ document.getElementById("preferredTime").setAttribute("readonly", true);
     if (el.tagName.toLowerCase() === "select" || el.type === "date" || el.type === "time") {
         el.disabled = true;  // disable select/date/time inputs
     } else {
-        el.readOnly = true;  // keep readonly for text/textarea
+        el.readOnly = true;  // readonly for text/textarea
     }
-    el.style.backgroundColor = "#f0f0f0"; // grey look
+    el.style.backgroundColor = "#f0f0f0"; // greyed out
 });
             // ✅ Show booking form again
             document.getElementById("bookingForm").style.display = "block";
