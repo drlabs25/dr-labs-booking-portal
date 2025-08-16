@@ -156,7 +156,11 @@ function searchCustomer() {
 
 /** Save Booking with mandatory field check **/
 function createBooking() {
-    if (!document.getElementById("custNumber").value || document.getElementById("custNumber").value.length !== 10) return alert("Enter valid 10-digit customer number");
+    let custNumber = document.getElementById("custNumber").value.trim();
+if (!/^\d{10}$/.test(custNumber)) {
+    alert("Enter valid 10-digit customer number");
+    return;
+}
     if (!document.getElementById("custName").value.trim()) return alert("Enter customer name");
     if (!document.getElementById("age").value) return alert("Enter age");
     if (!document.getElementById("gender").value) return alert("Select gender");
@@ -189,7 +193,6 @@ function createBooking() {
         totalToPay: document.getElementById("totalToPay").value,
         agentName: sessionStorage.getItem("agentName") || ""
     };
-
     const query = new URLSearchParams(params).toString();
     fetch(`${API_URL}?${query}`)
     .then(res => res.json())
