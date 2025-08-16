@@ -359,36 +359,29 @@ function addSubBooking() {
 function showBookingForm() {
     document.getElementById("bookingForm").style.display = "block";
 }
-/** Confirm Booking **/
 function confirmBooking() {
-    // Disable Add More button
+    if (bookingList.length === 0) {
+        alert("No bookings to confirm!");
+        return;
+    }
+
+    // ✅ Clear mobile number input
+    const custNumber = document.getElementById("custNumber");
+    if (custNumber) custNumber.value = "";
+
+    // ✅ Disable Add More button
     const addMoreBtn = document.getElementById("addMoreBtn");
     if (addMoreBtn) {
-        addMoreBtn.disabled = true;
+        addMoreBtn.disabled = true;          // disables it
+        addMoreBtn.style.opacity = "0.5";    // visual feedback
+        addMoreBtn.style.cursor = "not-allowed";
     }
 
-    // Hide the booking form if still open
-    const form = document.getElementById("bookingForm");
-    if (form) {
-        form.style.display = "none";
-    }
+    // ✅ Keep the table preview visible
+    document.getElementById("mainBookingPreview").style.display = "block";
 
-    // Clear customer number field
-    const custNumber = document.getElementById("custNumber");
-    if (custNumber) {
-        custNumber.value = "";
-    }
-
-    // Keep the table visible
-    const preview = document.getElementById("mainBookingPreview");
-    if (preview) {
-        preview.style.display = "block";
-    }
-
-    // Show confirmation message
-    alert("✅ All bookings have been confirmed!");
+    alert("All bookings confirmed successfully!");
 }
-
 window.onload = function() {
     let prefDate = document.getElementById("prefDate");
     if (prefDate) {
