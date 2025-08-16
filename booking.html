@@ -25,6 +25,7 @@
     <input type="number" id="custNumber" placeholder="Customer Number (10 digits)" maxlength="10" oninput="validateCustomerNumber(this)">
     <button onclick="searchCustomer()">Search</button>
     <button id="createBookingBtn" onclick="validateAndShowBookingForm()" disabled>Create Booking</button>
+    <div id="bookingSummaryContainer"></div>
 </div>
 
 <!-- Booking History -->
@@ -470,19 +471,12 @@ function createBooking() {
     fetch(`${API_URL}?${params.toString()}`)
     .then(res => res.json())
     .then(data => {
-        if (data.success) {
+       if (data.success) {
     // ✅ Hide the booking form
     document.getElementById("bookingForm").style.display = "none";
 
-    // ✅ Create small summary table below Create Booking button
-    let summaryContainer = document.getElementById("bookingSummary");
-    if (!summaryContainer) {
-        // create container once
-        summaryContainer = document.createElement("div");
-        summaryContainer.id = "bookingSummary";
-        document.getElementById("createBookingBtn").insertAdjacentElement("afterend", summaryContainer);
-    }
-
+    // ✅ Insert small summary table into fixed container
+    let summaryContainer = document.getElementById("bookingSummaryContainer");
     summaryContainer.innerHTML = `
         <table border="1" style="margin-top:10px; width:100%; background:#eef;">
             <tr>
