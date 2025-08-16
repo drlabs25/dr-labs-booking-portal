@@ -54,26 +54,26 @@ function adminLogin() {
 
 /** Agent Login **/
 function agentLogin() {
-    const user = document.getElementById("agentUser").value;
-    const pass = document.getElementById("agentPass").value;
+    const user = document.getElementById("agentUser").value.trim();
+    const pass = document.getElementById("agentPass").value.trim();
 
-    fetch(`${API_URL}?action=login&username=${username}&password=${password}`)
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      // ✅ Save agentName in localStorage
-      localStorage.setItem("agentName", data.agentName || "");
-      
-      // redirect to booking page
-      window.location.href = "booking.html";
-    } else {
-      alert("Invalid login!");
-    }
-  })
-  .catch(err => {
-    console.error("Login error:", err);
-    alert("Error during login!");
-  });
+    fetch(`${API_URL}?action=login&role=Agent&username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                // ✅ Save agentName from backend
+                localStorage.setItem("agentName", data.agentName || user);
+
+                // Redirect to booking page
+                window.location.href = "booking.html";
+            } else {
+                alert(data.message || "Invalid login!");
+            }
+        })
+        .catch(err => {
+            console.error("Login error:", err);
+            alert("Error during login!");
+        });
 }
 
 /** Load Tests with live search from Google Sheet **/
