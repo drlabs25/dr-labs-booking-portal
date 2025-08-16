@@ -8,6 +8,7 @@ function goHome() { window.location.href = 'index.html'; }
 // 🔹 Booking tracking
 let bookingList = [];
 let subBookingCounter = 0;
+let mainBookingData = null;
 
 /** Admin Login **/
 function adminLogin() {
@@ -195,13 +196,23 @@ function createBooking() {
     .then(data => {
         if (data.success) {
             let label;
-            if (bookingList.length === 0) {
-                label = "Main Booking";
-            } else {
-                subBookingCounter++;
-                label = `Sub Booking ${subBookingCounter}`;
-            }
+           if (bookingList.length === 0) {
+    label = "Main Booking";
 
+    // 🔹 Save main booking values
+    mainBookingData = {
+        phlebo: params.phleboName,
+        prefDate: params.preferredDate,
+        prefTime: params.preferredTime,
+        address: params.address,
+        location: params.location,
+        pincode: params.pincode,
+        city: params.city
+    };
+} else {
+    subBookingCounter++;
+    label = `Sub Booking ${subBookingCounter}`;
+}
             bookingList.push({
                 type: label,
                 name: params.mainCustomerName,
@@ -342,15 +353,40 @@ function addSubBooking() {
             } else {
                 el.value = "";
             }
+            el.removeAttribute("readonly");
+            el.removeAttribute("disabled");
         });
 
     document.getElementById("selectedTestsBody").innerHTML = "";
     document.getElementById("selectedPackagesBody").innerHTML = "";
-
     document.getElementById("totalAmount").value = "";
     document.getElementById("techCharge").value = "";
     document.getElementById("totalToPay").value = "";
     document.getElementById("discountList").value = "0";
+
+    // ✅ If main booking exists → lock fields
+    if (mainBookingData) {
+        document.getElementById("phleboList").value = mainBookingData.phlebo;
+        document.getElementById("phleboList").disabled = true;
+
+        document.getElementById("prefDate").value = mainBookingData.prefDate;
+        document.getElementById("prefDate").readOnly = true;
+
+        document.getElementById("prefTime").value = mainBookingData.prefTime;
+        document.getElementById("prefTime").readOnly = true;
+
+        document.getElementById("address").value = mainBookingData.address;
+        document.getElementById("address").readOnly = true;
+
+        document.getElementById("location").value = mainBookingData.location;
+        document.getElementById("location").readOnly = true;
+
+        document.getElementById("pincode").value = mainBookingData.pincode;
+        document.getElementById("pincode").readOnly = true;
+
+        document.getElementById("city").value = mainBookingData.city;
+        document.getElementById("city").disabled = true;
+    }
 
     document.getElementById("bookingForm").style.display = "block";
     document.getElementById("addMoreBtn").style.display = "inline-block";
