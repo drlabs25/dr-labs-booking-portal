@@ -471,29 +471,33 @@ function createBooking() {
     });
 
     fetch(`${API_URL}?${params.toString()}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                // ✅ Save booking ID, show preview table
-                document.getElementById("bookingId").value = data.bookingId;
-                document.getElementById("bookingForm").style.display = "none";
-                document.getElementById("mainBookingPreview").style.display = "block";
-                document.getElementById("mainBookingPreviewBody").innerHTML = `
-                    <tr>
-                        <td>${document.getElementById("custName").value.trim()}</td>
-                        <td>${document.getElementById("prefDate").value} ${document.getElementById("prefTime").value}</td>
-                        <td>₹${document.getElementById("totalToPay").value}</td>
-                    </tr>
-                `;
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            // Save booking ID
+            document.getElementById("bookingId").value = data.bookingId;
 
-                // ✅ Show Add More button
-                document.getElementById("addMoreBtn").style.display = "inline-block";
+            // Hide booking form
+            document.getElementById("bookingForm").style.display = "none";
 
-                alert("Booking saved! ID: " + data.bookingId);
-            } else {
-                alert("Failed to save booking.");
-            }
-        })
+            // Show preview table
+            document.getElementById("mainBookingPreview").style.display = "block";
+            document.getElementById("mainBookingPreviewBody").innerHTML = `
+                <tr>
+                    <td>${document.getElementById("custName").value.trim()}</td>
+                    <td>${document.getElementById("prefDate").value} ${document.getElementById("prefTime").value}</td>
+                    <td>₹${document.getElementById("totalToPay").value}</td>
+                </tr>
+            `;
+
+            // ✅ Show Add More button only after submit
+            document.getElementById("addMoreBtn").style.display = "inline-block";
+
+            alert("Booking saved! ID: " + data.bookingId);
+        } else {
+            alert("Failed to save booking.");
+        }
+    });
         .catch(err => {
             console.error("Booking save error:", err);
             alert("Something went wrong while saving booking!");
