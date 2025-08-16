@@ -1,3 +1,26 @@
+// ✅ Runs on Booking.html load
+window.addEventListener("DOMContentLoaded", function () {
+  // Show agent name from localStorage
+  const agentName = localStorage.getItem("agentName") || "Unknown Agent";
+  document.getElementById("agentNameLabel").innerText = "Agent: " + agentName;
+
+  // Update date/time every second
+  function updateDateTime() {
+    const now = new Date();
+    const formatted = now.toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true
+    });
+    document.getElementById("dateTimeLabel").innerText = formatted;
+  }
+  updateDateTime();
+  setInterval(updateDateTime, 1000);
+});
 // 🔹 Replace this with your actual Google Apps Script Web App URL
 const API_URL = "https://script.google.com/macros/s/AKfycbw4sBOSu5WL_Cep7M1B9qYgfvBSQ0iuuCfbrRQDG6y4qPl6fJfap-4LLaX_wMqvg3ZV8A/exec";
 
@@ -34,16 +57,23 @@ function agentLogin() {
     const user = document.getElementById("agentUser").value;
     const pass = document.getElementById("agentPass").value;
 
-    fetch(`${API_URL}?action=login&role=Agent&username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                sessionStorage.setItem("agentName", data.agentName);
-                window.location.href = "booking.html";
-            } else {
-                alert(data.message || "Login failed");
-            }
-        });
+    fetch(`${API_URL}?action=login&username=${username}&password=${password}`)
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      // ✅ Save agentName in localStorage
+      localStorage.setItem("agentName", data.agentName || "");
+      
+      // redirect to booking page
+      window.location.href = "booking.html";
+    } else {
+      alert("Invalid login!");
+    }
+  })
+  .catch(err => {
+    console.error("Login error:", err);
+    alert("Error during login!");
+  });
 }
 
 /** Load Tests with live search from Google Sheet **/
