@@ -213,7 +213,17 @@ function createBooking() {
                 cost: params.totalToPay
             });
 
-           function renderBookingTable() {
+            renderBookingTable();
+            document.getElementById("addMoreBtn").style.display = "inline-block";
+            addSubBooking();
+        } else {
+            alert("Booking failed");
+        }
+    });
+}
+
+// ✅ keep this OUTSIDE
+function renderBookingTable() {
     const body = document.getElementById("mainBookingPreviewBody");
     body.innerHTML = "";
     bookingList.forEach(b => {
