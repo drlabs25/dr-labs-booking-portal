@@ -400,6 +400,17 @@ function addSubBooking() {
 }
 
 function showBookingForm() {
+    let custNumber = document.getElementById("custNumber").value.trim();
+
+    // Debug log (remove after testing)
+    console.log("custNumber:", custNumber, "length:", custNumber.length);
+
+    if (!/^\d{10}$/.test(custNumber)) {
+        alert("Enter a valid 10-digit Customer Number");
+        return;
+    }
+
+    // ✅ Passed validation → show booking form
     document.getElementById("bookingForm").style.display = "block";
 }
 function confirmBooking() {
