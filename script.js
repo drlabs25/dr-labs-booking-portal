@@ -427,16 +427,15 @@ function confirmBooking() {
         return;
     }
 
-    // ✅ Try mainBookingData first, else take from form field
-    let customerNumber = mainBookingData && mainBookingData.custNumber
-        ? mainBookingData.custNumber
-        : document.getElementById("custNumber").value.trim();
+    // ✅ Take customer number from the form
+    const customerNumber = document.getElementById("custNumber").value.trim();
 
     if (!/^\d{10}$/.test(customerNumber)) {
         alert("Missing or invalid customer number!");
         return;
     }
 
+    // 🔹 Call backend
     fetch(`${API_URL}?action=confirmBooking&customerNumber=${encodeURIComponent(customerNumber)}`)
         .then(res => res.json())
         .then(data => {
@@ -444,30 +443,41 @@ function confirmBooking() {
                 alert("All bookings confirmed successfully!");
 
                 // ✅ Clear both search + form numbers
-                const searchCust = document.getElementById("searchCustNumber");
-                const formCust = document.getElementById("custNumber");
-                if (searchCust) searchCust.value = "";
-                if (formCust) formCust.value = "";
+                document.getElementById("searchCustNumber").value = "";
+                document.getElementById("custNumber").value = "";
 
-                // ✅ Hide Add More button
-                const addMoreBtn = document.getElementById("addMoreBtn");
-                if (addMoreBtn) addMoreBtn.style.display = "none";
+                // ✅ Hide Add More + Confirm buttons
+                document.getElementById("addMoreBtn").style.display = "none";
+                document.getElementById("confirmBtn").style.display = "none";
 
-                // ✅ Reset button text back to "Create Booking"
-                const createBtn = document.getElementById("createBookingBtn");
-                if (createBtn) {
-                    createBtn.textContent = "Create Booking";
-                    createBtn.onclick = createBooking;
-                }
+                // ✅ Clear booking preview
+                document.getElementById("mainBookingPreviewBody").innerHTML = "";
+                document.getElementById("mainBookingPreview").style.display = "none";
 
-                // ✅ Reset state
+                // ✅ Hide booking form
+                document.getElementById("bookingForm").style.display = "none";
+
+                // ✅ Reset booking state
                 bookingList = [];
                 subBookingCounter = 0;
                 mainBookingData = null;
 
-                // ✅ Clear form + hide it
-                clearBookingForm();
-                document.getElementById("bookingForm").style.display = "none";
+                // ✅ Reset button back to Main Booking mode
+                const createBtn = document.getElementById("createBookingBtn");
+                if (createBtn) {
+                    createBtn.textContent = "Create Booking";
+                    createBtn.onclick = showBookingForm;
+                }
+
+                // ✅ Unfreeze all fields for fresh Main Booking
+                ["custNumber","address","location","city","phleboList","pincode","prefDate","prefTime"].forEach(id => {
+                    let el = document.getElementById(id);
+                    if (!el) return;
+                    el.readOnly = false;
+                    el.disabled = false;
+                    el.style.backgroundColor = ""; // reset styling
+                });
+
             } else {
                 alert("Failed to confirm bookings");
             }
