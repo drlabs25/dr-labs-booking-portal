@@ -450,6 +450,10 @@ function confirmBooking() {
                 // ✅ Keep the booking preview visible
                 document.getElementById("mainBookingPreview").style.display = "block";
 
+                // ✅ Reset booking flow back to Main
+                window.bookingType = "Main";
+                window.parentBookingId = null;
+
                 alert("All bookings confirmed successfully!");
             } else {
                 alert("Failed to confirm bookings");
