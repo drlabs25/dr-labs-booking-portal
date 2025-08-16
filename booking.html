@@ -6,28 +6,37 @@
 <link rel="stylesheet" href="style.css">
 <script src="script.js"></script>
 <style>
+<style>
 .small-btn { padding: 5px 10px; font-size: 12px; border-radius: 50%; border: none; cursor: pointer; }
 .cancel { background: red; color: white; }
 .edit { background: orange; color: white; }
 .paid { background: green; color: white; }
 .flex { display: flex; gap: 10px; flex-wrap: wrap; }
 .flex input, .flex select { flex: 1; }
-   #homeBtn {
+
+/* Container for top-left buttons */
+#topLeftBtns {
     position: fixed;
     top: 10px;
     left: 20px;
-    padding: 4px 8px;      /* smaller padding */
-    font-size: 11px;       /* smaller font */
-    border-radius: 4px;    /* slightly rounded */
-    border: 1px solid #007bff;
-    background: #e6f0ff;   /* light blue background */
-    color: #007bff;        /* blue text */
-    cursor: pointer;
+    display: flex;
+    gap: 6px;   /* space between buttons */
     z-index: 999;
 }
 
-#homeBtn:hover {
-    background: #cce0ff;   /* a bit darker when hover */
+/* Style for both Back & Home buttons */
+#topLeftBtns button {
+    padding: 4px 8px;      
+    font-size: 11px;       
+    border-radius: 4px;    
+    border: 1px solid #007bff;
+    background: #e6f0ff;   
+    color: #007bff;        
+    cursor: pointer;
+}
+
+#topLeftBtns button:hover {
+    background: #cce0ff;   /* hover effect */
 }
 </style>
 </head>
@@ -39,8 +48,10 @@
   </div>
 </header>
 
-<button class="nav-btn back" onclick="goBack()">Back</button>
-<button id="homeBtn" onclick="goHome()">🏠 Home</button>
+<div id="topLeftBtns">
+  <button id="backBtn" onclick="goBack()">⬅ Back</button>
+  <button id="homeBtn" onclick="goHome()">🏠 Home</button>
+</div>
 <div class="container">
 <h2>Booking Form</h2>
 
