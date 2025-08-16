@@ -487,11 +487,33 @@ function confirmBooking() {
             alert("Error confirming bookings. Please try again.");
         });
 }
-window.onload = function() {
+function showHeaderInfo(agentName) {
+    // Show agent name
+    document.getElementById("agentNameLabel").textContent = "Agent: " + agentName;
+
+    // Show today’s date + time
+    const now = new Date();
+    const dateTimeString = now.toLocaleString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+    });
+    document.getElementById("dateTimeLabel").textContent = dateTimeString;
+}
+
+window.onload = function () {
+    // Existing code for prefDate & phleboList…
     let prefDate = document.getElementById("prefDate");
     if (prefDate) {
         let today = new Date().toISOString().split("T")[0];
         prefDate.min = today;
     }
     if (document.getElementById("phleboList")) loadPhlebos();
+
+    // ✅ NEW: Show agent info
+    const agent = localStorage.getItem("agentName") || "Unknown";
+    showHeaderInfo(agent);
 };
