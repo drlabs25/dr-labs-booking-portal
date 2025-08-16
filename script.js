@@ -365,16 +365,18 @@ function confirmBooking() {
         return;
     }
 
-    // ✅ Clear mobile number input
+    // ✅ Clear mobile number input (Customer Number at top)
     const custNumber = document.getElementById("custNumber");
-    if (custNumber) custNumber.value = "";
+    if (custNumber) {
+        custNumber.value = "";
+        console.log("Customer number cleared");
+    }
 
-    // ✅ Disable Add More button
+    // ✅ Hide Add More button completely after confirmation
     const addMoreBtn = document.getElementById("addMoreBtn");
     if (addMoreBtn) {
-        addMoreBtn.disabled = true;          // disables it
-        addMoreBtn.style.opacity = "0.5";    // visual feedback
-        addMoreBtn.style.cursor = "not-allowed";
+        addMoreBtn.style.display = "none";   // hide instead of disable
+        console.log("Add More button hidden");
     }
 
     // ✅ Keep the table preview visible
