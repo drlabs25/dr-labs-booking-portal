@@ -302,11 +302,32 @@ function editBooking(bookingId) {
 }
 
 function addSubBooking() {
-    let custNum = document.getElementById("custNumber").value;
-    document.querySelectorAll("#bookingForm input, #bookingForm select, #bookingForm textarea").forEach(el => {
-        if (el.id !== "custNumber") el.value = "";
-    });
-    document.getElementById("custNumber").value = custNum;
+    // ✅ Clear all form fields
+    document.querySelectorAll("#bookingForm input, #bookingForm select, #bookingForm textarea")
+        .forEach(el => {
+            if (el.type === "hidden") return; // keep bookingId hidden as-is
+            if (el.tagName.toLowerCase() === "select") {
+                el.selectedIndex = 0;
+            } else {
+                el.value = "";
+            }
+        });
+
+    // ✅ Reset dynamic sections (tests/packages)
+    document.getElementById("selectedTestsBody").innerHTML = "";
+    document.getElementById("selectedPackagesBody").innerHTML = "";
+
+    // ✅ Reset totals
+    document.getElementById("totalAmount").value = "";
+    document.getElementById("techCharge").value = "";
+    document.getElementById("totalToPay").value = "";
+    document.getElementById("discountList").value = "0";
+
+    // ✅ Show booking form again
+    document.getElementById("bookingForm").style.display = "block";
+
+    // Keep Add More button visible
+    document.getElementById("addMoreBtn").style.display = "inline-block";
 }
 
 window.onload = function() {
