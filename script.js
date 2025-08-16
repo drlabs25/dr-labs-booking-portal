@@ -176,27 +176,30 @@ function createBooking() {
     if (!document.getElementById("prefTime").value) return alert("Select preferred time");
 
     const params = {
-        action: "saveBooking",
-        customerNumber: document.getElementById("custNumber").value,
-        mainCustomerName: document.getElementById("custName").value,
-        dob: document.getElementById("dob").value,
-        age: document.getElementById("age").value,
-        gender: document.getElementById("gender").value,
-        address: document.getElementById("address").value,
-        location: document.getElementById("location").value,
-        city: document.getElementById("city").value,
-        phleboName: document.getElementById("phleboList").value,
-        pincode: document.getElementById("pincode").value,
-        preferredDate: document.getElementById("prefDate").value,
-        preferredTime: document.getElementById("prefTime").value,
-        tests: getSelectedCodes("testList"),
-        packages: getSelectedCodes("packageList"),
-        totalAmount: document.getElementById("totalAmount").value,
-        discount: document.getElementById("discountList").value,
-        techCharge: document.getElementById("techCharge").value,
-        totalToPay: document.getElementById("totalToPay").value,
-        agentName: sessionStorage.getItem("agentName") || ""
-    };
+    action: "saveBooking",
+    customerNumber: document.getElementById("custNumber").value,
+    mainCustomerName: document.getElementById("custName").value,
+    dob: document.getElementById("dob").value,
+    age: document.getElementById("age").value,
+    gender: document.getElementById("gender").value,
+    address: document.getElementById("address").value,
+    location: document.getElementById("location").value,
+    city: document.getElementById("city").value,
+    phleboName: document.getElementById("phleboList").value,
+    pincode: document.getElementById("pincode").value,
+    preferredDate: document.getElementById("prefDate").value,
+    preferredTime: document.getElementById("prefTime").value,
+    tests: getSelectedCodes("testList"),
+    packages: getSelectedCodes("packageList"),
+    totalAmount: document.getElementById("totalAmount").value,
+    discount: document.getElementById("discountList").value,
+    techCharge: document.getElementById("techCharge").value,
+    totalToPay: document.getElementById("totalToPay").value,
+    agentName: sessionStorage.getItem("agentName") || "",
+
+    // 🔹 NEW
+    bookingType: (bookingList.length === 0) ? "Main" : "Sub"
+};
     const query = new URLSearchParams(params).toString();
     fetch(`${API_URL}?${query}`)
     .then(res => res.json())
