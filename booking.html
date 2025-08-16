@@ -141,7 +141,7 @@
     <input type="number" id="techCharge" placeholder="Technician Charge" oninput="recalculateTotal()">
     <input type="number" id="totalToPay" placeholder="Total Amount to be Paid" readonly>
 
-    <button onclick="createBooking()">Submit</button>
+    <button type="button" onclick="showBookingForm()">Create Booking</button>
     <button onclick="addSubBooking(document.getElementById('bookingId').value)">Sub Booking</button>
     <button onclick="confirmBooking()">Confirm Booking</button>
 </div>
@@ -195,8 +195,14 @@ function validateAndShowBookingForm() {
 }
 
 function showBookingForm() {
-    document.getElementById("bookingForm").style.display = 'block';
-    document.getElementById("history").style.display = 'none';
+    let custNumber = document.getElementById("custNumber").value.trim();
+
+    if (custNumber.length === 10 && /^\d+$/.test(custNumber)) {
+        // ✅ Show booking form if number valid
+        document.getElementById("bookingForm").style.display = "block";
+    } else {
+        alert("Please enter a valid 10-digit customer number first.");
+    }
 }
 function loadTests(query) {
     query = (query || "").trim();
