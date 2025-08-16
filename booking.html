@@ -97,20 +97,22 @@
             <tbody id="selectedTestsBody"></tbody>
         </table>
     </div>
-<!-- Main Booking Preview Table -->
-<div id="mainBookingPreview" style="display:none; float:right; width:35%; margin-top:20px;">
-    <h3>Main Booking</h3>
-    <table border="1" style="width:100%;">
-        <thead>
-            <tr>
-                <th>Customer Name</th>
-                <th>Preferred Date & Time</th>
-                <th>Total Cost</th>
-            </tr>
-        </thead>
-        <tbody id="mainBookingPreviewBody"></tbody>
-    </table>
-</div>
+
+    <!-- Main Booking Preview Table -->
+    <div id="mainBookingPreview" style="display:none; float:right; width:35%; margin-top:20px;">
+        <h3>Main Booking</h3>
+        <table border="1" style="width:100%;">
+            <thead>
+                <tr>
+                    <th>Customer Name</th>
+                    <th>Preferred Date & Time</th>
+                    <th>Total Cost</th>
+                </tr>
+            </thead>
+            <tbody id="mainBookingPreviewBody"></tbody>
+        </table>
+    </div>
+
     <!-- Package selection -->
     <label>Packages</label>
     <input type="text" placeholder="Search Package" oninput="loadPackages(this.value)">
@@ -141,11 +143,14 @@
     <input type="number" id="techCharge" placeholder="Technician Charge" oninput="recalculateTotal()">
     <input type="number" id="totalToPay" placeholder="Total Amount to be Paid" readonly>
 
-    <button onclick="createBooking()">Submit</button>
-    <button onclick="confirmBooking()">Confirm Booking</button>
-    <button type="button" id="addMoreBtn" style="display:none;" onclick="addSubBooking()">Add More</button>
+    <!-- ✅ Only one pair of buttons -->
+    <button type="button" onclick="createBooking()">Submit</button>
+    <button type="button" onclick="confirmBooking()">Confirm Booking</button>
 </div>
-</div>
+
+<!-- ✅ Add More button OUTSIDE bookingForm -->
+<button type="button" id="addMoreBtn" style="display:none; margin-top:10px;" onclick="addSubBooking()">Add More</button>
+
 
 <script>
 window.onload = function() {
@@ -586,6 +591,18 @@ function checkPhleboAvailability() {
     // Hide Add More button until next booking saved
     document.getElementById("addMoreBtn").style.display = "none";
 }
+    function addSubBooking() {
+    // Reset the form for new sub booking
+    document.getElementById("bookingForm").reset();
+    document.getElementById("bookingId").value = "";
+
+    // Show the form again
+    document.getElementById("bookingForm").style.display = "block";
+
+    // Hide Add More button until form is submitted again
+    document.getElementById("addMoreBtn").style.display = "none";
+}
+
 
 </script>
 </body>
