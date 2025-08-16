@@ -22,12 +22,10 @@
 
 <!-- Search Section -->
 <div class="flex">
-    <input type="text" id="searchCustNumber" 
-           placeholder="Enter 10-digit Customer Number" 
-           maxlength="10" inputmode="numeric" pattern="\d{10}">
-    
-    <button type="button" onclick="searchCustomer()">Search</button>
-    <button type="button" onclick="showBookingForm()">Create Booking</button>
+    <input type="number" id="custNumber" placeholder="Customer Number (10 digits)" maxlength="10" oninput="validateCustomerNumber(this)">
+    <button onclick="searchCustomer()">Search</button>
+    <button id="createBookingBtn" onclick="showBookingForm()" disabled>Create Booking</button>
+    <button id="confirmBtn" style="display:none;" onclick="confirmBooking()">Confirm Booking</button>
 </div>
 <!-- Booking History -->
 <div id="history" style="display:none;">
