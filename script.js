@@ -426,22 +426,40 @@ function confirmBooking() {
         return;
     }
 
-    // ✅ Clear both search + form numbers
-    const searchCust = document.getElementById("searchCustNumber");
-    const formCust = document.getElementById("custNumber");
-    if (searchCust) searchCust.value = "";
-    if (formCust) formCust.value = "";
+    const customerNumber = mainBookingData ? mainBookingData.custNumber : null;
+    if (!customerNumber) {
+        alert("Missing customer number!");
+        return;
+    }
 
-    // ✅ Hide Add More button
-    const addMoreBtn = document.getElementById("addMoreBtn");
-    if (addMoreBtn) addMoreBtn.style.display = "none";
+    // 🔹 Call backend to update status
+    fetch(`${API_URL}?action=confirmBooking&customerNumber=${encodeURIComponent(customerNumber)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                // ✅ Clear both search + form numbers
+                const searchCust = document.getElementById("searchCustNumber");
+                const formCust = document.getElementById("custNumber");
+                if (searchCust) searchCust.value = "";
+                if (formCust) formCust.value = "";
 
-    document.getElementById("mainBookingPreview").style.display = "block";
- // ✅ Keep the table preview visible
-    document.getElementById("mainBookingPreview").style.display = "block";
-    alert("All bookings confirmed successfully!");
+                // ✅ Hide Add More button
+                const addMoreBtn = document.getElementById("addMoreBtn");
+                if (addMoreBtn) addMoreBtn.style.display = "none";
+
+                // ✅ Keep the booking preview visible
+                document.getElementById("mainBookingPreview").style.display = "block";
+
+                alert("All bookings confirmed successfully!");
+            } else {
+                alert("Failed to confirm bookings");
+            }
+        })
+        .catch(err => {
+            console.error("Confirm booking error:", err);
+            alert("Error confirming bookings. Please try again.");
+        });
 }
-
 window.onload = function() {
     let prefDate = document.getElementById("prefDate");
     if (prefDate) {
