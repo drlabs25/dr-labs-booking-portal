@@ -549,16 +549,19 @@ function renderBookingTable() {
     document.getElementById("mainBookingPreview").style.display = "block";
 }
 
-// Confirm booking and redirect
 function confirmBooking() {
     // Disable Add More button
-    document.getElementById("addMoreBtn").disabled = true;
+    const addMoreBtn = document.getElementById("addMoreBtn");
+    if (addMoreBtn) addMoreBtn.disabled = true;
 
-    // Optionally hide booking form if it’s still visible
+    // Hide the booking form if it’s still open
     document.getElementById("bookingForm").style.display = "none";
 
-    // Confirmation message
-    alert("All bookings have been confirmed!");
+    // Keep the bookings table visible
+    document.getElementById("mainBookingPreview").style.display = "block";
+
+    // Show a success message
+    alert("✅ All bookings have been confirmed!");
 }
 function editBooking(bookingId) {
     fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`)
