@@ -25,6 +25,7 @@
     <input type="number" id="custNumber" placeholder="Customer Number (10 digits)" maxlength="10" oninput="validateCustomerNumber(this)">
     <button onclick="searchCustomer()">Search</button>
     <button id="createBookingBtn" onclick="validateAndShowBookingForm()" disabled>Create Booking</button>
+    <button id="confirmBtn" style="display:none;" onclick="confirmBooking()">Confirm Booking</button>
 </div>
 
 <!-- Booking History -->
@@ -145,7 +146,6 @@
 
     <!-- ✅ Only one pair of buttons -->
     <button type="button" onclick="createBooking()">Submit</button>
-    <button type="button" onclick="confirmBooking()">Confirm Booking</button>
 </div>
 
 <!-- ✅ Add More button OUTSIDE bookingForm -->
@@ -399,13 +399,16 @@ function showBookingForm() {
     document.getElementById("bookingForm").style.display = 'block';
 }
 
+// Global list to hold all bookings
+let bookingList = [];
+let subBookingCounter = 0;
+
 function createBooking() {
     // Reset all borders first
     document.querySelectorAll("#bookingForm input, #bookingForm select, #bookingForm textarea")
         .forEach(el => el.style.border = "");
 
     let isValid = true;
-
     function markInvalid(id) {
         document.getElementById(id).style.border = "2px solid red";
         isValid = false;
@@ -448,7 +451,7 @@ function createBooking() {
     let newBookingId = "BKG_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
 
     let params = new URLSearchParams({
-        action: "saveBooking",   // always save new
+        action: "saveBooking",
         bookingId: newBookingId,
         customerNumber: custNumber,
         mainCustomerName: document.getElementById("custName").value.trim(),
@@ -475,27 +478,36 @@ function createBooking() {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            // Save booking ID (just for reference if needed)
             document.getElementById("bookingId").value = newBookingId;
 
-            // Hide booking form
+            // Decide label (Main or Sub Booking)
+            let label;
+            if (bookingList.length === 0) {
+                label = "Main Booking";
+            } else {
+                subBookingCounter++;
+                label = `Sub Booking ${subBookingCounter}`;
+            }
+
+            // Push into bookingList
+            bookingList.push({
+                type: label,
+                name: document.getElementById("custName").value.trim(),
+                datetime: `${document.getElementById("prefDate").value} ${document.getElementById("prefTime").value}`,
+                cost: document.getElementById("totalToPay").value
+            });
+
+            // Render the table
+            renderBookingTable();
+
+            // Hide booking form after submit
             document.getElementById("bookingForm").style.display = "none";
 
-            // Show preview table and append row
-            document.getElementById("mainBookingPreview").style.display = "block";
-            let body = document.getElementById("mainBookingPreviewBody");
-            body.innerHTML += `
-                <tr>
-                    <td>${document.getElementById("custName").value.trim()}</td>
-                    <td>${document.getElementById("prefDate").value} ${document.getElementById("prefTime").value}</td>
-                    <td>₹${document.getElementById("totalToPay").value}</td>
-                </tr>
-            `;
-
-            // ✅ Show Add More button after first submit
+            // Show buttons
             document.getElementById("addMoreBtn").style.display = "inline-block";
+            document.getElementById("confirmBtn").style.display = "inline-block";
 
-            alert("Booking saved! ID: " + newBookingId);
+            alert(label + " saved! ID: " + newBookingId);
         } else {
             alert("Failed to save booking.");
         }
@@ -504,6 +516,38 @@ function createBooking() {
         console.error("Booking save error:", err);
         alert("Something went wrong while saving booking!");
     });
+}
+
+// Render all bookings into the table
+function renderBookingTable() {
+    const body = document.getElementById("mainBookingPreviewBody");
+    body.innerHTML = "";
+    bookingList.forEach(b => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${b.type}: ${b.name}</td>
+            <td>${b.datetime}</td>
+            <td>₹${b.cost}</td>
+        `;
+        body.appendChild(tr);
+    });
+    document.getElementById("mainBookingPreview").style.display = "block";
+}
+
+// Confirm booking and redirect
+function confirmBooking() {
+    alert("All bookings confirmed!");
+
+    // Clear frontend state
+    bookingList = [];
+    subBookingCounter = 0;
+    document.getElementById("mainBookingPreviewBody").innerHTML = "";
+    document.getElementById("mainBookingPreview").style.display = "none";
+    document.getElementById("addMoreBtn").style.display = "none";
+    document.getElementById("confirmBtn").style.display = "none";
+
+    // Redirect to login page
+    window.location.href = "agent-login.html";
 }
 function editBooking(bookingId) {
     fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`)
