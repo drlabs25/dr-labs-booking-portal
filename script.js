@@ -202,7 +202,6 @@ function searchCustomer() {
             });
         });
 }
-
 /** Save Booking with mandatory field check **/
 function createBooking() {
     let custNumber = document.getElementById("custNumber").value.trim();
