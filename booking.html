@@ -623,7 +623,7 @@ function createBooking() {
         discount: document.getElementById("discountList").value,
         techCharge: document.getElementById("techCharge").value,
         totalToPay: document.getElementById("totalToPay").value,
-        agentName: sessionStorage.getItem("agentName") || "Unknown Agent"
+        agentName: "Agent Name Here"
     });
 
     fetch(`${API_URL}?${params.toString()}`)
@@ -701,11 +701,11 @@ function confirmBooking() {
     }
 
     // 🔹 Call backend
-    fetch(`${API_URL}?action=confirmBooking&customerNumber=${encodeURIComponent(customerNumber)}&agentName=${encodeURIComponent(sessionStorage.getItem("agentName"))}`)
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      alert("Booking confirmed and Agent saved!");
+    fetch(`${API_URL}?action=confirmBooking&customerNumber=${encodeURIComponent(customerNumber)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert("All bookings confirmed successfully!");
 
                 // ✅ Clear both search + form numbers
                 document.getElementById("searchCustNumber").value = "";
