@@ -180,24 +180,25 @@ function searchCustomer() {
                     tr.style.backgroundColor = "lightblue";
                 }
 
-                tr.innerHTML = `
-                    <td>${b.customerNumber}</td>
-                    <td>${b.name}</td>
-                    <td>${b.dateTime}</td>
-                    <td>${b.phlebo}</td>
-                    <td>${b.createdDateTime}</td>
-                    <td>${b.agent}</td>
-                    <td>${b.status || ''}</td>
-                    <td>
-                        <button class="small-btn edit"
-                                onclick="if ('${b.status}'.toLowerCase() === 'confirm') editBooking('${b.bookingId}')"
-                                ${b.status && b.status.toLowerCase() === 'confirm' ? '' : 'disabled'}>
-                            E
-                        </button>
-                    </td>
-                    <td><button class="small-btn cancel" onclick="updateStatus('${b.bookingId}','Cancel')">X</button></td>
-                    <td><button class="small-btn paid" onclick="updateStatus('${b.bookingId}','Paid')">P</button></td>
-                `;
+               tr.innerHTML = `
+    <td>${b.bookingId}</td>
+    <td>${b.customerNumber}</td>
+    <td>${b.name}</td>
+    <td>${b.dateTime}</td>
+    <td>${b.phlebo}</td>
+    <td>${b.createdDateTime}</td>
+    <td>${b.agent}</td>
+    <td>${b.status || ''}</td>
+    <td>
+        <button class="small-btn edit"
+                onclick="if ('${b.status}'.toLowerCase() === 'confirm') editBooking('${b.bookingId}')"
+                ${b.status && b.status.toLowerCase() === 'confirm' ? '' : 'disabled'}>
+            E
+        </button>
+    </td>
+    <td><button class="small-btn cancel" onclick="updateStatus('${b.bookingId}','Cancel')">X</button></td>
+    <td><button class="small-btn paid" onclick="updateStatus('${b.bookingId}','Paid')">P</button></td>
+`;
                 body.appendChild(tr);
             });
         });
