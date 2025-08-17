@@ -701,11 +701,11 @@ function confirmBooking() {
     }
 
     // 🔹 Call backend
-    fetch(`${API_URL}?action=confirmBooking&customerNumber=${encodeURIComponent(customerNumber)}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                alert("All bookings confirmed successfully!");
+    fetch(`${API_URL}?action=confirmBooking&customerNumber=${encodeURIComponent(customerNumber)}&agentName=${encodeURIComponent(sessionStorage.getItem("agentName"))}`)
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      alert("Booking confirmed and Agent saved!");
 
                 // ✅ Clear both search + form numbers
                 document.getElementById("searchCustNumber").value = "";
