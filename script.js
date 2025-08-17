@@ -402,6 +402,17 @@ function editBooking(bookingId) {
             document.getElementById("discountList").value = data.discount;
             document.getElementById("techCharge").value = data.techCharge;
             document.getElementById("totalToPay").value = data.totalToPay;
+          // Hide submit, show update
+document.getElementById("submitBtn").style.display = "none";
+document.getElementById("updateBtn").style.display = "inline-block";
+
+// Store bookingId in hidden field for update
+document.getElementById("bookingForm").setAttribute("data-edit-id", bookingId);
+          // Reset buttons back to default
+document.getElementById("submitBtn").style.display = "inline-block";
+document.getElementById("updateBtn").style.display = "none";
+document.getElementById("bookingForm").removeAttribute("data-edit-id");
+
         });
 }
 
