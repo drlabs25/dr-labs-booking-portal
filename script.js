@@ -382,12 +382,12 @@ function editBooking(bookingId) {
   fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`)
     .then(res => res.json())
     .then(data => {
-      if (data.success === false) {
-        alert(data.message || "Booking not found");
+      if (!data.success) {
+        alert("Booking not found!");
         return;
       }
 
-      // Fill form fields
+      // ✅ Fill form fields
       document.getElementById("custNumber").value = data.customerNumber;
       document.getElementById("custName").value = data.mainCustomerName;
       document.getElementById("dob").value = data.dob;
@@ -396,7 +396,7 @@ function editBooking(bookingId) {
       document.getElementById("address").value = data.address;
       document.getElementById("location").value = data.location;
       document.getElementById("city").value = data.city;
-      document.getElementById("phleboName").value = data.phleboName;
+      document.getElementById("phlebo").value = data.phleboName;
       document.getElementById("pincode").value = data.pincode;
       document.getElementById("preferredDate").value = data.preferredDate;
       document.getElementById("preferredTime").value = data.preferredTime;
@@ -404,18 +404,22 @@ function editBooking(bookingId) {
       document.getElementById("packages").value = data.packages;
       document.getElementById("totalAmount").value = data.totalAmount;
 
-      // Switch buttons
+      // ✅ Store bookingId in hidden field
+      document.getElementById("bookingId").value = data.bookingId;
+
+      // ✅ Toggle buttons
       document.getElementById("submitBtn").style.display = "none";
       document.getElementById("updateBtn").style.display = "inline-block";
 
-      // Store bookingId for update
-      document.getElementById("updateBtn").setAttribute("data-id", bookingId);
+      // ✅ Show form if hidden
+      document.getElementById("bookingForm").style.display = "block";
     })
     .catch(err => {
-      console.error("Error loading booking:", err);
-      alert("Error loading booking!");
+      console.error("Error fetching booking details:", err);
+      alert("Error loading booking for edit!");
     });
 }
+
 
 
 function updateBooking() {
