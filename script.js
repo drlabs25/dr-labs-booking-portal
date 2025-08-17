@@ -227,8 +227,7 @@ function createBooking() {
     discount: document.getElementById("discountList").value,
     techCharge: document.getElementById("techCharge").value,
     totalToPay: document.getElementById("totalToPay").value,
-    agentName: sessionStorage.getItem("agentName") || "",
-
+    agentName: localStorage.getItem("agentName") || "",
     // 🔹 NEW
     bookingType: (bookingList.length === 0) ? "Main" : "Sub"
 };
