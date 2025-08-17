@@ -181,26 +181,24 @@ function searchCustomer() {
                 }
 
                tr.innerHTML = `
-    <td>${b.bookingId}</td>
-    <td>${b.customerNumber}</td>
-    <td>${b.name}</td>
-    <td>${b.dateTime}</td>
-    <td>${b.phlebo}</td>
-    <td>${b.createdDateTime}</td>
-    <td>${b.agent}</td>
-    <td>${b.status || ''}</td>
-    <td>
-        <button class="small-btn edit"
-                onclick="if ('${b.status}'.toLowerCase() === 'confirm') editBooking('${b.bookingId}')"
-                ${b.status && b.status.toLowerCase() === 'confirm' ? '' : 'disabled'}>
-            E
-        </button>
-    </td>
-    <td><button class="small-btn cancel" onclick="updateStatus('${b.bookingId}','Cancel')">X</button></td>
-    <td><button class="small-btn paid" onclick="updateStatus('${b.bookingId}','Paid')">P</button></td>
-`;
-                body.appendChild(tr);
-            });
+        <td>${b.bookingId}</td>
+        <td>${b.customerNumber}</td>
+        <td>${b.name}</td>
+        <td>${b.dateTime}</td>
+        <td>${b.phlebo}</td>
+        <td>${b.createdDateTime}</td>
+        <td>${b.agent}</td>
+        <td>${b.status || ''}</td>
+        <td><button class="small-btn edit" onclick="editBooking('${b.bookingId}')">E</button></td>
+        <td><button class="small-btn cancel" onclick="updateStatus('${b.bookingId}','Cancel')">X</button></td>
+        <td><button class="small-btn paid" onclick="updateStatus('${b.bookingId}','Paid')">P</button></td>
+    `;
+
+    body.appendChild(tr);
+
+    // ⬇️ Save in cache
+    bookingCache[b.bookingId] = b;
+});
         });
 }
 /** Save Booking with mandatory field check **/
@@ -436,49 +434,39 @@ function updateStatus(bookingId, status) {
 }
 
 function editBooking(bookingId) {
-    // store bookingId globally
+    const b = bookingCache[bookingId];
+    if (!b) {
+        alert("Booking details not found!");
+        return;
+    }
+
+    // Show the booking form
+    document.getElementById("bookingForm").style.display = "block";
+
+    // Fill form fields with existing data
+    document.getElementById("custNumber").value = b.customerNumber || "";
+    document.getElementById("custName").value = b.name || "";
+    document.getElementById("dob").value = b.dob || "";
+    document.getElementById("age").value = b.age || "";
+    document.getElementById("gender").value = b.gender || "";
+    document.getElementById("address").value = b.address || "";
+    document.getElementById("location").value = b.location || "";
+    document.getElementById("city").value = b.city || "";
+    document.getElementById("phleboList").value = b.phlebo || "";
+    document.getElementById("pincode").value = b.pincode || "";
+    document.getElementById("prefDate").value = b.preferredDate || "";
+    document.getElementById("prefTime").value = b.preferredTime || "";
+    document.getElementById("discountList").value = b.discount || "";
+    document.getElementById("totalAmount").value = b.totalAmount || "";
+    document.getElementById("techCharge").value = b.techCharge || "";
+    document.getElementById("totalToPay").value = b.totalToPay || "";
+
+    // Toggle buttons
+    document.getElementById("submitBtn").style.display = "none";
+    document.getElementById("updateBtn").style.display = "inline-block";
+
+    // Store ID for update
     window.currentBookingId = bookingId;
-
-    // Find booking details from history table (or request fresh from backend)
-    fetch(`${API_URL}?action=getBookingById&bookingId=${encodeURIComponent(bookingId)}`)
-        .then(res => res.json())
-        .then(b => {
-            if (!b) {
-                alert("Booking details not found!");
-                return;
-            }
-
-            // Show the booking form
-            document.getElementById("bookingForm").style.display = "block";
-
-            // Fill form fields with existing data
-            document.getElementById("custNumber").value = b.customerNumber || "";
-            document.getElementById("custName").value = b.name || "";
-            document.getElementById("dob").value = b.dob || "";
-            document.getElementById("age").value = b.age || "";
-            document.getElementById("gender").value = b.gender || "";
-            document.getElementById("address").value = b.address || "";
-            document.getElementById("location").value = b.location || "";
-            document.getElementById("city").value = b.city || "";
-            document.getElementById("phleboList").value = b.phlebo || "";
-            document.getElementById("pincode").value = b.pincode || "";
-            document.getElementById("prefDate").value = b.preferredDate || "";
-            document.getElementById("prefTime").value = b.preferredTime || "";
-            document.getElementById("discountList").value = b.discount || "";
-            document.getElementById("totalAmount").value = b.totalAmount || "";
-            document.getElementById("techCharge").value = b.techCharge || "";
-            document.getElementById("totalToPay").value = b.totalToPay || "";
-
-            // TODO: if tests/packages are multi-select, you may need helper to mark selected
-
-            // Toggle buttons: hide Submit, show Update
-            document.getElementById("submitBtn").style.display = "none";
-            document.getElementById("updateBtn").style.display = "inline-block";
-        })
-        .catch(err => {
-            console.error("Edit error:", err);
-            alert("Error fetching booking details!");
-        });
 }
 
 function addSubBooking() {
