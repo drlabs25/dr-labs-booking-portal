@@ -153,12 +153,12 @@ function checkPhleboAvailability() {
 
 /** Search Booking History **/
 function searchCustomer() {
-    let num = document.getElementById("searchCustNumber").value.trim();
-    if (num.length !== 10) {
-        alert("Enter a valid 10-digit Customer Number");
+    const number = document.getElementById("custNumber").value;
+    if (number.length !== 10) {
+        alert("Enter a valid 10-digit number");
         return;
     }
-    fetch(`${API_URL}?action=searchBookings&customerNumber=${encodeURIComponent(num)}`)
+    fetch(`${API_URL}?action=searchBookings&customerNumber=${encodeURIComponent(number)}`)
         .then(res => res.json())
         .then(bookings => {
             const body = document.getElementById("historyBody");
@@ -167,40 +167,22 @@ function searchCustomer() {
                 alert("No booking history for this number");
                 return;
             }
-            document.getElementById("history").style.display = 'block';
+            document.getElementById("history").style.display = "block";
             bookings.forEach(b => {
                 const tr = document.createElement("tr");
+               let status = (b.status || "").trim().toLowerCase();
+let actionButtons = "";
 
-                if (b.status && b.status.toLowerCase() === "paid") {
-                    tr.style.backgroundColor = "lightgreen";
-                } else if (b.status && b.status.toLowerCase() === "cancel") {
-                    tr.style.backgroundColor = "lightcoral";
-                    tr.style.color = "white";
-                } else if (b.status && b.status.toLowerCase() === "confirm") {
-                    tr.style.backgroundColor = "lightblue";
-                }
-
-              let actionButtons = "";
-
-// If status is Confirm → allow edit, cancel, paid
-if (b.status && b.status.toLowerCase() === "confirm") {
+if (status === "confirm") {
     actionButtons += `<td><button class="small-btn edit" onclick="editBooking('${b.bookingId}')">E</button></td>`;
     actionButtons += `<td><button class="small-btn cancel" onclick="updateStatus('${b.bookingId}','Cancel')">X</button></td>`;
     actionButtons += `<td><button class="small-btn paid" onclick="updateStatus('${b.bookingId}','Paid')">P</button></td>`;
 }
-// If status is Paid → lock everything
-else if (b.status && b.status.toLowerCase() === "paid") {
+else if (status === "paid" || status === "cancel") {
     actionButtons += `<td><button class="small-btn edit" disabled>E</button></td>`;
     actionButtons += `<td><button class="small-btn cancel" disabled>X</button></td>`;
     actionButtons += `<td><button class="small-btn paid" disabled>P</button></td>`;
 }
-// If status is Cancel → lock everything
-else if (b.status && b.status.toLowerCase() === "cancel") {
-    actionButtons += `<td><button class="small-btn edit" disabled>E</button></td>`;
-    actionButtons += `<td><button class="small-btn cancel" disabled>X</button></td>`;
-    actionButtons += `<td><button class="small-btn paid" disabled>P</button></td>`;
-}
-// If no status yet → allow all
 else {
     actionButtons += `<td><button class="small-btn edit" onclick="editBooking('${b.bookingId}')">E</button></td>`;
     actionButtons += `<td><button class="small-btn cancel" onclick="updateStatus('${b.bookingId}','Cancel')">X</button></td>`;
@@ -218,14 +200,11 @@ tr.innerHTML = `
     <td>${b.status || ''}</td>
     ${actionButtons}
 `;
-
-    body.appendChild(tr);
-
-    // ⬇️ Save in cache
-    bookingCache[b.bookingId] = b;
-});
+                body.appendChild(tr);
+            });
         });
 }
+
 /** Save Booking with mandatory field check **/
 function createBooking() {
     let custNumber = document.getElementById("custNumber").value.trim();
@@ -310,66 +289,6 @@ function createBooking() {
         }
     });
 }
-
-function updateBooking() {
-    if (!window.currentBookingId) {
-        alert("No booking selected for update!");
-        return;
-    }
-
-    // Collect form data (same fields you use in createBooking)
-    const bookingData = {
-        bookingId: window.currentBookingId,  // already stored when Edit was clicked
-        custNumber: document.getElementById("custNumber").value.trim(),
-        custName: document.getElementById("custName").value.trim(),
-        dob: document.getElementById("dob").value,
-        age: document.getElementById("age").value.trim(),
-        gender: document.getElementById("gender").value,
-        address: document.getElementById("address").value.trim(),
-        location: document.getElementById("location").value.trim(),
-        city: document.getElementById("city").value.trim(),
-        phlebo: document.getElementById("phlebo").value,
-        pincode: document.getElementById("pincode").value.trim(),
-        preferredDate: document.getElementById("preferredDate").value,
-        preferredTime: document.getElementById("preferredTime").value,
-        tests: document.getElementById("tests").value.trim(),
-        packages: document.getElementById("packages").value.trim(),
-        totalAmount: document.getElementById("totalAmount").value,
-        discount: document.getElementById("discount").value,
-        techCharge: document.getElementById("techCharge").value,
-        totalToPay: document.getElementById("totalToPay").value,
-        agentName: localStorage.getItem("agentName") || ""
-    };
-
-    // Call backend to update
-    fetch(`${API_URL}?action=updateBooking`, {
-        method: "POST",
-        body: JSON.stringify(bookingData)
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            alert("Booking updated successfully!");
-
-            // Reset buttons back to normal
-            document.getElementById("submitBtn").style.display = "inline-block";
-            document.getElementById("updateBtn").style.display = "none";
-
-            // Clear currentBookingId
-            window.currentBookingId = null;
-
-            // Optionally refresh history
-            searchCustomer();
-        } else {
-            alert(data.message || "Failed to update booking.");
-        }
-    })
-    .catch(err => {
-        console.error("Update error:", err);
-        alert("Error while updating booking.");
-    });
-}
-
 
 // ✅ keep this OUTSIDE
 function renderBookingTable() {
@@ -459,39 +378,31 @@ function updateStatus(bookingId, status) {
 }
 
 function editBooking(bookingId) {
-    const b = bookingCache[bookingId];
-    if (!b) {
-        alert("Booking details not found!");
-        return;
-    }
-
-    // Show the booking form
-    document.getElementById("bookingForm").style.display = "block";
-
-    // Fill form fields with existing data
-    document.getElementById("custNumber").value = b.customerNumber || "";
-    document.getElementById("custName").value = b.name || "";
-    document.getElementById("dob").value = b.dob || "";
-    document.getElementById("age").value = b.age || "";
-    document.getElementById("gender").value = b.gender || "";
-    document.getElementById("address").value = b.address || "";
-    document.getElementById("location").value = b.location || "";
-    document.getElementById("city").value = b.city || "";
-    document.getElementById("phleboList").value = b.phlebo || "";
-    document.getElementById("pincode").value = b.pincode || "";
-    document.getElementById("prefDate").value = b.preferredDate || "";
-    document.getElementById("prefTime").value = b.preferredTime || "";
-    document.getElementById("discountList").value = b.discount || "";
-    document.getElementById("totalAmount").value = b.totalAmount || "";
-    document.getElementById("techCharge").value = b.techCharge || "";
-    document.getElementById("totalToPay").value = b.totalToPay || "";
-
-    // Toggle buttons
-    document.getElementById("submitBtn").style.display = "none";
-    document.getElementById("updateBtn").style.display = "inline-block";
-
-    // Store ID for update
-    window.currentBookingId = bookingId;
+    fetch(`${API_URL}?action=getBookingDetails&bookingId=${encodeURIComponent(bookingId)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success === false) {
+                alert("Booking not found");
+                return;
+            }
+            showBookingForm();
+            document.getElementById("custNumber").value = data.customerNumber;
+            document.getElementById("custName").value = data.mainCustomerName;
+            document.getElementById("dob").value = data.dob;
+            document.getElementById("age").value = data.age;
+            document.getElementById("gender").value = data.gender;
+            document.getElementById("address").value = data.address;
+            document.getElementById("location").value = data.location;
+            document.getElementById("city").value = data.city;
+            document.getElementById("phleboList").value = data.phleboName;
+            document.getElementById("pincode").value = data.pincode;
+            document.getElementById("prefDate").value = data.preferredDate;
+            document.getElementById("prefTime").value = data.preferredTime;
+            document.getElementById("totalAmount").value = data.totalAmount;
+            document.getElementById("discountList").value = data.discount;
+            document.getElementById("techCharge").value = data.techCharge;
+            document.getElementById("totalToPay").value = data.totalToPay;
+        });
 }
 
 function addSubBooking() {
