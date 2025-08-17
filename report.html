@@ -23,22 +23,23 @@ th { background: #eef; }
 
     <!-- Filters -->
     <div class="flex">
-        <input type="date" id="createdFrom">
-        <input type="date" id="createdTo">
+       <!-- Filters -->
+<input type="date" id="createdFrom">
+<input type="date" id="createdTo">
 
-        <select id="phleboName">
-            <option value="">-- Select Phlebo --</option>
-        </select>
+<select id="phleboFilter">
+  <option value="">-- Select Phlebo --</option>
+</select>
 
-        <select id="agentName">
-            <option value="">-- Select Agent --</option>
-        </select>
+<select id="agentFilter">
+  <option value="">-- Select Agent --</option>
+</select>
 
-        <select id="location">
-            <option value="">-- Select Location --</option>
-        </select>
+<select id="locationFilter">
+  <option value="">-- Select Location --</option>
+</select>
 
-        <button onclick="filterReport()">Search</button>
+<button onclick="filterReport()">Search</button>
     </div>
     <hr>
 
