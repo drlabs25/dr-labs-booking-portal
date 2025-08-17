@@ -153,12 +153,12 @@ function checkPhleboAvailability() {
 
 /** Search Booking History **/
 function searchCustomer() {
-    const number = document.getElementById("custNumber").value;
-    if (number.length !== 10) {
-        alert("Enter a valid 10-digit number");
+    let num = document.getElementById("searchCustNumber").value.trim();
+    if (num.length !== 10) {
+        alert("Enter a valid 10-digit Customer Number");
         return;
     }
-    fetch(`${API_URL}?action=searchBookings&customerNumber=${encodeURIComponent(number)}`)
+    fetch(`${API_URL}?action=searchBookings&customerNumber=${encodeURIComponent(num)}`)
         .then(res => res.json())
         .then(bookings => {
             const body = document.getElementById("historyBody");
@@ -167,53 +167,41 @@ function searchCustomer() {
                 alert("No booking history for this number");
                 return;
             }
-            document.getElementById("history").style.display = "block";
+            document.getElementById("history").style.display = 'block';
             bookings.forEach(b => {
-    const tr = document.createElement("tr");
+                const tr = document.createElement("tr");
 
-    // ✅ safeguard all values
-    let bookingId = b.bookingId ? b.bookingId : "";
-    let customerNumber = b.customerNumber || "";
-    let name = b.name || "";
-    let dateTime = b.dateTime || "";
-    let phlebo = b.phlebo || "";
-    let createdDateTime = b.createdDateTime || "";
-    let agent = b.agent || "";
-    let status = b.status ? b.status.toLowerCase() : "";
+                if (b.status && b.status.toLowerCase() === "paid") {
+                    tr.style.backgroundColor = "lightgreen";
+                } else if (b.status && b.status.toLowerCase() === "cancel") {
+                    tr.style.backgroundColor = "lightcoral";
+                    tr.style.color = "white";
+                } else if (b.status && b.status.toLowerCase() === "confirm") {
+                    tr.style.backgroundColor = "lightblue";
+                }
 
-    // ✅ row background based on status
-    if (status === "paid") {
-        tr.style.backgroundColor = "lightgreen";
-    } else if (status === "cancel") {
-        tr.style.backgroundColor = "lightcoral";
-        tr.style.color = "white";
-    } else if (status === "confirm") {
-        tr.style.backgroundColor = "lightblue";
-    }
-
-    // ✅ Edit button only works if Confirm
-    let editBtn = "";
-    if (status === "confirm") {
-        editBtn = `<button class="small-btn edit" onclick="editBooking('${bookingId}')">E</button>`;
-    } else {
-        editBtn = `<button class="small-btn edit" disabled>E</button>`;
-    }
-
-    tr.innerHTML = `
-        <td>${customerNumber}</td>
-        <td>${name}</td>
-        <td>${dateTime}</td>
-        <td>${phlebo}</td>
-        <td>${createdDateTime}</td>
-        <td>${agent}</td>
-        <td>${status}</td>
-        <td>${editBtn}</td>
-        <td><button class="small-btn cancel" onclick="updateStatus('${bookingId}','Cancel')">X</button></td>
-        <td><button class="small-btn paid" onclick="updateStatus('${bookingId}','Paid')">P</button></td>
-    `;
-    body.appendChild(tr);
-});
-
+                tr.innerHTML = `
+                    <td>${b.customerNumber}</td>
+                    <td>${b.name}</td>
+                    <td>${b.dateTime}</td>
+                    <td>${b.phlebo}</td>
+                    <td>${b.createdDateTime}</td>
+                    <td>${b.agent}</td>
+                    <td>${b.status || ''}</td>
+                    <td>
+                        <button class="small-btn edit"
+                                onclick="if ('${b.status}'.toLowerCase() === 'confirm') editBooking('${b.bookingId}')"
+                                ${b.status && b.status.toLowerCase() === 'confirm' ? '' : 'disabled'}>
+                            E
+                        </button>
+                    </td>
+                    <td><button class="small-btn cancel" onclick="updateStatus('${b.bookingId}','Cancel')">X</button></td>
+                    <td><button class="small-btn paid" onclick="updateStatus('${b.bookingId}','Paid')">P</button></td>
+                `;
+                body.appendChild(tr);
+            });
+        });
+}
 
 /** Save Booking with mandatory field check **/
 function createBooking() {
