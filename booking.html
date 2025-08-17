@@ -623,7 +623,7 @@ function createBooking() {
         discount: document.getElementById("discountList").value,
         techCharge: document.getElementById("techCharge").value,
         totalToPay: document.getElementById("totalToPay").value,
-        agentName: sessionStorage.getItem("agentName",data.agentName)"
+        agentName: sessionStorage.getItem("agentName") || "Unknown Agent"
     });
 
     fetch(`${API_URL}?${params.toString()}`)
