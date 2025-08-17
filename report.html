@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -6,35 +5,83 @@
 <title>Report</title>
 <link rel="stylesheet" href="style.css">
 <script src="script.js"></script>
+<style>
+.container { padding:20px; }
+.table-container { max-height:400px; overflow:auto; margin-top:15px; }
+table { border-collapse: collapse; width: 100%; }
+th, td { border: 1px solid #ccc; padding: 6px; text-align: left; font-size: 13px; }
+th { background: #eef; }
+.flex { display:flex; gap:10px; flex-wrap:wrap; margin-bottom: 10px; }
+</style>
 </head>
 <body>
 <button class="nav-btn back" onclick="goBack()">Back</button>
 <button class="nav-btn home" onclick="goHome()">Home</button>
+
 <div class="container">
-<h2>Report</h2>
-<input type="date">
-<input type="date">
-<input type="text" placeholder="Phlebo Name">
-<input type="text" placeholder="Agent Name">
-<input type="text" placeholder="Location">
-<button onclick="filterReport()">Search</button>
-<hr>
-<div class="table-container">
-<table>
-<thead>
-<tr>
-<th>Agent Name</th>
-<th>No. of Bookings</th>
-<th>No. of Cancelled</th>
-<th>No. of Paid</th>
-<th>Total Confirmed</th>
-</tr>
-</thead>
-<tbody>
-<tr><td>Sample Agent</td><td>10</td><td>2</td><td>5</td><td>8</td></tr>
-</tbody>
-</table>
+    <h2>Report</h2>
+
+    <!-- Filters -->
+    <div class="flex">
+        <input type="date" id="createdFrom">
+        <input type="date" id="createdTo">
+        <input type="text" id="phleboName" placeholder="Phlebo Name">
+        <input type="text" id="agentName" placeholder="Agent Name">
+        <input type="text" id="location" placeholder="Location">
+        <button onclick="filterReport()">Search</button>
+    </div>
+    <hr>
+
+    <!-- Report Table -->
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Agent Name</th>
+                    <th>No. of Bookings</th>
+                    <th>No. of Cancelled</th>
+                    <th>No. of Paid</th>
+                    <th>Total Confirmed</th>
+                </tr>
+            </thead>
+            <tbody id="reportBody">
+                <!-- Rows will load dynamically -->
+            </tbody>
+        </table>
+    </div>
 </div>
-</div>
+
+<script>
+function filterReport() {
+    const createdFrom = document.getElementById("createdFrom").value;
+    const createdTo   = document.getElementById("createdTo").value;
+    const phlebo      = document.getElementById("phleboName").value;
+    const agent       = document.getElementById("agentName").value;
+    const location    = document.getElementById("location").value;
+
+    // Replace API_URL with your Apps Script endpoint
+    fetch(`${API_URL}?action=getReportSummary&createdFrom=${createdFrom}&createdTo=${createdTo}&phlebo=${phlebo}&agent=${agent}&location=${location}`)
+        .then(res => res.json())
+        .then(data => {
+            const body = document.getElementById("reportBody");
+            body.innerHTML = "";
+            if (!data || data.length === 0) {
+                body.innerHTML = `<tr><td colspan="5">No records found</td></tr>`;
+                return;
+            }
+            data.forEach(row => {
+                body.innerHTML += `
+                    <tr>
+                        <td>${row.agentName}</td>
+                        <td>${row.totalBookings}</td>
+                        <td>${row.cancelled}</td>
+                        <td>${row.paid}</td>
+                        <td>${row.confirmed}</td>
+                    </tr>`;
+            });
+        })
+        .catch(err => alert("Error loading report: " + err));
+}
+</script>
 </body>
 </html>
