@@ -180,19 +180,44 @@ function searchCustomer() {
                     tr.style.backgroundColor = "lightblue";
                 }
 
-               tr.innerHTML = `
-        <td>${b.bookingId}</td>
-        <td>${b.customerNumber}</td>
-        <td>${b.name}</td>
-        <td>${b.dateTime}</td>
-        <td>${b.phlebo}</td>
-        <td>${b.createdDateTime}</td>
-        <td>${b.agent}</td>
-        <td>${b.status || ''}</td>
-        <td><button class="small-btn edit" onclick="editBooking('${b.bookingId}')">E</button></td>
-        <td><button class="small-btn cancel" onclick="updateStatus('${b.bookingId}','Cancel')">X</button></td>
-        <td><button class="small-btn paid" onclick="updateStatus('${b.bookingId}','Paid')">P</button></td>
-    `;
+              let actionButtons = "";
+
+// If status is Confirm → allow edit, cancel, paid
+if (b.status && b.status.toLowerCase() === "confirm") {
+    actionButtons += `<td><button class="small-btn edit" onclick="editBooking('${b.bookingId}')">E</button></td>`;
+    actionButtons += `<td><button class="small-btn cancel" onclick="updateStatus('${b.bookingId}','Cancel')">X</button></td>`;
+    actionButtons += `<td><button class="small-btn paid" onclick="updateStatus('${b.bookingId}','Paid')">P</button></td>`;
+}
+// If status is Paid → lock everything
+else if (b.status && b.status.toLowerCase() === "paid") {
+    actionButtons += `<td><button class="small-btn edit" disabled>E</button></td>`;
+    actionButtons += `<td><button class="small-btn cancel" disabled>X</button></td>`;
+    actionButtons += `<td><button class="small-btn paid" disabled>P</button></td>`;
+}
+// If status is Cancel → lock everything
+else if (b.status && b.status.toLowerCase() === "cancel") {
+    actionButtons += `<td><button class="small-btn edit" disabled>E</button></td>`;
+    actionButtons += `<td><button class="small-btn cancel" disabled>X</button></td>`;
+    actionButtons += `<td><button class="small-btn paid" disabled>P</button></td>`;
+}
+// If no status yet → allow all
+else {
+    actionButtons += `<td><button class="small-btn edit" onclick="editBooking('${b.bookingId}')">E</button></td>`;
+    actionButtons += `<td><button class="small-btn cancel" onclick="updateStatus('${b.bookingId}','Cancel')">X</button></td>`;
+    actionButtons += `<td><button class="small-btn paid" onclick="updateStatus('${b.bookingId}','Paid')">P</button></td>`;
+}
+
+tr.innerHTML = `
+    <td>${b.bookingId}</td>
+    <td>${b.customerNumber}</td>
+    <td>${b.name}</td>
+    <td>${b.dateTime}</td>
+    <td>${b.phlebo}</td>
+    <td>${b.createdDateTime}</td>
+    <td>${b.agent}</td>
+    <td>${b.status || ''}</td>
+    ${actionButtons}
+`;
 
     body.appendChild(tr);
 
