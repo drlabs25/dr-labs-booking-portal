@@ -169,22 +169,51 @@ function searchCustomer() {
             }
             document.getElementById("history").style.display = "block";
             bookings.forEach(b => {
-                const tr = document.createElement("tr");
-                tr.innerHTML = `
-                    <td>${b.customerNumber}</td>
-                    <td>${b.name}</td>
-                    <td>${b.dateTime}</td>
-                    <td>${b.phlebo}</td>
-                    <td>${b.agent}</td>
-                    <td>${b.status}</td>
-                    <td><button class="small-btn edit" onclick="editBooking('${b.bookingId}')">E</button></td>
-                    <td><button class="small-btn cancel" onclick="updateStatus('${b.bookingId}','Cancel')">X</button></td>
-                    <td><button class="small-btn paid" onclick="updateStatus('${b.bookingId}','Paid')">P</button></td>
-                `;
-                body.appendChild(tr);
-            });
-        });
-}
+    const tr = document.createElement("tr");
+
+    // ✅ safeguard all values
+    let bookingId = b.bookingId ? b.bookingId : "";
+    let customerNumber = b.customerNumber || "";
+    let name = b.name || "";
+    let dateTime = b.dateTime || "";
+    let phlebo = b.phlebo || "";
+    let createdDateTime = b.createdDateTime || "";
+    let agent = b.agent || "";
+    let status = b.status ? b.status.toLowerCase() : "";
+
+    // ✅ row background based on status
+    if (status === "paid") {
+        tr.style.backgroundColor = "lightgreen";
+    } else if (status === "cancel") {
+        tr.style.backgroundColor = "lightcoral";
+        tr.style.color = "white";
+    } else if (status === "confirm") {
+        tr.style.backgroundColor = "lightblue";
+    }
+
+    // ✅ Edit button only works if Confirm
+    let editBtn = "";
+    if (status === "confirm") {
+        editBtn = `<button class="small-btn edit" onclick="editBooking('${bookingId}')">E</button>`;
+    } else {
+        editBtn = `<button class="small-btn edit" disabled>E</button>`;
+    }
+
+    tr.innerHTML = `
+        <td>${customerNumber}</td>
+        <td>${name}</td>
+        <td>${dateTime}</td>
+        <td>${phlebo}</td>
+        <td>${createdDateTime}</td>
+        <td>${agent}</td>
+        <td>${status}</td>
+        <td>${editBtn}</td>
+        <td><button class="small-btn cancel" onclick="updateStatus('${bookingId}','Cancel')">X</button></td>
+        <td><button class="small-btn paid" onclick="updateStatus('${bookingId}','Paid')">P</button></td>
+    `;
+    body.appendChild(tr);
+});
+
 
 /** Save Booking with mandatory field check **/
 function createBooking() {
