@@ -460,6 +460,7 @@ function editBooking(bookingId) {
             document.getElementById("discountList").value = data.discount;
             document.getElementById("techCharge").value = data.techCharge;
             document.getElementById("totalToPay").value = data.totalToPay;
+          window.currentBookingId = bookingId;   // store this ID for update
           document.getElementById("submitBtn").style.display = "none";
 document.getElementById("updateBtn").style.display = "inline-block";
 
