@@ -25,9 +25,19 @@ th { background: #eef; }
     <div class="flex">
         <input type="date" id="createdFrom">
         <input type="date" id="createdTo">
-        <input type="text" id="phleboName" placeholder="Phlebo Name">
-        <input type="text" id="agentName" placeholder="Agent Name">
-        <input type="text" id="location" placeholder="Location">
+
+        <select id="phleboName">
+            <option value="">-- Select Phlebo --</option>
+        </select>
+
+        <select id="agentName">
+            <option value="">-- Select Agent --</option>
+        </select>
+
+        <select id="location">
+            <option value="">-- Select Location --</option>
+        </select>
+
         <button onclick="filterReport()">Search</button>
     </div>
     <hr>
@@ -52,6 +62,33 @@ th { background: #eef; }
 </div>
 
 <script>
+// ✅ Load dropdown options from backend
+function loadDropdowns() {
+    fetch(`${API_URL}?action=getDropdowns`)
+        .then(res => res.json())
+        .then(data => {
+            // Populate Agents
+            const agentSelect = document.getElementById("agentName");
+            data.agents.forEach(a => {
+                agentSelect.innerHTML += `<option value="${a}">${a}</option>`;
+            });
+
+            // Populate Phlebos
+            const phleboSelect = document.getElementById("phleboName");
+            data.phlebos.forEach(p => {
+                phleboSelect.innerHTML += `<option value="${p}">${p}</option>`;
+            });
+
+            // Populate Locations
+            const locSelect = document.getElementById("location");
+            data.locations.forEach(l => {
+                locSelect.innerHTML += `<option value="${l}">${l}</option>`;
+            });
+        })
+        .catch(err => console.error("Dropdown load error:", err));
+}
+
+// ✅ Fetch report summary
 function filterReport() {
     const createdFrom = document.getElementById("createdFrom").value;
     const createdTo   = document.getElementById("createdTo").value;
@@ -59,7 +96,6 @@ function filterReport() {
     const agent       = document.getElementById("agentName").value;
     const location    = document.getElementById("location").value;
 
-    // Replace API_URL with your Apps Script endpoint
     fetch(`${API_URL}?action=getReportSummary&createdFrom=${createdFrom}&createdTo=${createdTo}&phlebo=${phlebo}&agent=${agent}&location=${location}`)
         .then(res => res.json())
         .then(data => {
@@ -82,6 +118,9 @@ function filterReport() {
         })
         .catch(err => alert("Error loading report: " + err));
 }
+
+// Load dropdowns on page load
+window.onload = loadDropdowns;
 </script>
 </body>
 </html>
