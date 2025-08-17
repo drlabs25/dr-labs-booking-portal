@@ -460,14 +460,16 @@ function confirmBooking() {
 
     // ✅ Take customer number from the form
     const customerNumber = document.getElementById("custNumber").value.trim();
-
     if (!/^\d{10}$/.test(customerNumber)) {
         alert("Missing or invalid customer number!");
         return;
     }
 
-    // 🔹 Call backend
-    fetch(`${API_URL}?action=confirmBooking&customerNumber=${encodeURIComponent(customerNumber)}`)
+    // ✅ Get agent name from localStorage
+    const agentName = localStorage.getItem("agentName") || "Unknown Agent";
+
+    // 🔹 Call backend WITH agent name
+    fetch(`${API_URL}?action=confirmBooking&customerNumber=${encodeURIComponent(customerNumber)}&agentName=${encodeURIComponent(agentName)}`)
         .then(res => res.json())
         .then(data => {
             if (data.success) {
@@ -506,7 +508,7 @@ function confirmBooking() {
                     if (!el) return;
                     el.readOnly = false;
                     el.disabled = false;
-                    el.style.backgroundColor = ""; // reset styling
+                    el.style.backgroundColor = "";
                 });
 
             } else {
@@ -518,6 +520,7 @@ function confirmBooking() {
             alert("Error confirming bookings. Please try again.");
         });
 }
+
 function showHeaderInfo(agentName) {
     document.getElementById("agentNameLabel").textContent = "Agent: " + agentName;
 
