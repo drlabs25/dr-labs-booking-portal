@@ -288,6 +288,66 @@ function createBooking() {
     });
 }
 
+function updateBooking() {
+    if (!window.currentBookingId) {
+        alert("No booking selected for update!");
+        return;
+    }
+
+    // Collect form data (same fields you use in createBooking)
+    const bookingData = {
+        bookingId: window.currentBookingId,  // already stored when Edit was clicked
+        custNumber: document.getElementById("custNumber").value.trim(),
+        custName: document.getElementById("custName").value.trim(),
+        dob: document.getElementById("dob").value,
+        age: document.getElementById("age").value.trim(),
+        gender: document.getElementById("gender").value,
+        address: document.getElementById("address").value.trim(),
+        location: document.getElementById("location").value.trim(),
+        city: document.getElementById("city").value.trim(),
+        phlebo: document.getElementById("phlebo").value,
+        pincode: document.getElementById("pincode").value.trim(),
+        preferredDate: document.getElementById("preferredDate").value,
+        preferredTime: document.getElementById("preferredTime").value,
+        tests: document.getElementById("tests").value.trim(),
+        packages: document.getElementById("packages").value.trim(),
+        totalAmount: document.getElementById("totalAmount").value,
+        discount: document.getElementById("discount").value,
+        techCharge: document.getElementById("techCharge").value,
+        totalToPay: document.getElementById("totalToPay").value,
+        agentName: localStorage.getItem("agentName") || ""
+    };
+
+    // Call backend to update
+    fetch(`${API_URL}?action=updateBooking`, {
+        method: "POST",
+        body: JSON.stringify(bookingData)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert("Booking updated successfully!");
+
+            // Reset buttons back to normal
+            document.getElementById("submitBtn").style.display = "inline-block";
+            document.getElementById("updateBtn").style.display = "none";
+
+            // Clear currentBookingId
+            window.currentBookingId = null;
+
+            // Optionally refresh history
+            searchCustomer();
+        } else {
+            alert(data.message || "Failed to update booking.");
+        }
+    })
+    .catch(err => {
+        console.error("Update error:", err);
+        alert("Error while updating booking.");
+    });
+}
+
+
 // ✅ keep this OUTSIDE
 function renderBookingTable() {
     const body = document.getElementById("mainBookingPreviewBody");
@@ -400,6 +460,9 @@ function editBooking(bookingId) {
             document.getElementById("discountList").value = data.discount;
             document.getElementById("techCharge").value = data.techCharge;
             document.getElementById("totalToPay").value = data.totalToPay;
+          document.getElementById("submitBtn").style.display = "none";
+document.getElementById("updateBtn").style.display = "inline-block";
+
         });
 }
 
