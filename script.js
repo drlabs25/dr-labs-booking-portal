@@ -378,41 +378,96 @@ function updateStatus(bookingId, status) {
 }
 
 function editBooking(bookingId) {
-    fetch(`${API_URL}?action=getBookingDetails&bookingId=${encodeURIComponent(bookingId)}`)
+    // Find the booking details via fetch
+    fetch(`${API_URL}?action=getBooking&bookingId=${encodeURIComponent(bookingId)}`)
         .then(res => res.json())
-        .then(data => {
-            if (data.success === false) {
-                alert("Booking not found");
+        .then(b => {
+            if (!b.success) {
+                alert("Booking details not found");
                 return;
             }
-            showBookingForm();
-            document.getElementById("custNumber").value = data.customerNumber;
-            document.getElementById("custName").value = data.mainCustomerName;
-            document.getElementById("dob").value = data.dob;
-            document.getElementById("age").value = data.age;
-            document.getElementById("gender").value = data.gender;
-            document.getElementById("address").value = data.address;
-            document.getElementById("location").value = data.location;
-            document.getElementById("city").value = data.city;
-            document.getElementById("phleboList").value = data.phleboName;
-            document.getElementById("pincode").value = data.pincode;
-            document.getElementById("prefDate").value = data.preferredDate;
-            document.getElementById("prefTime").value = data.preferredTime;
-            document.getElementById("totalAmount").value = data.totalAmount;
-            document.getElementById("discountList").value = data.discount;
-            document.getElementById("techCharge").value = data.techCharge;
-            document.getElementById("totalToPay").value = data.totalToPay;
-          // Hide submit, show update
-document.getElementById("submitBtn").style.display = "none";
-document.getElementById("updateBtn").style.display = "inline-block";
 
-// Store bookingId in hidden field for update
-document.getElementById("bookingForm").setAttribute("data-edit-id", bookingId);
-          // Reset buttons back to default
-document.getElementById("submitBtn").style.display = "inline-block";
-document.getElementById("updateBtn").style.display = "none";
-document.getElementById("bookingForm").removeAttribute("data-edit-id");
+            const booking = b.data;
 
+            // ✅ Fill form fields with booking details
+            document.getElementById("custNumber").value = booking.customerNumber || "";
+            document.getElementById("custName").value = booking.name || "";
+            document.getElementById("dob").value = booking.dob || "";
+            document.getElementById("age").value = booking.age || "";
+            document.getElementById("gender").value = booking.gender || "";
+            document.getElementById("address").value = booking.address || "";
+            document.getElementById("location").value = booking.location || "";
+            document.getElementById("city").value = booking.city || "";
+            document.getElementById("phlebo").value = booking.phlebo || "";
+            document.getElementById("pincode").value = booking.pincode || "";
+            document.getElementById("preferredDate").value = booking.preferredDate || "";
+            document.getElementById("preferredTime").value = booking.preferredTime || "";
+            document.getElementById("tests").value = booking.tests || "";
+            document.getElementById("packages").value = booking.packages || "";
+            document.getElementById("totalAmount").value = booking.totalAmount || "";
+
+            // ✅ Switch buttons
+            document.getElementById("submitBtn").style.display = "none";
+            document.getElementById("updateBtn").style.display = "inline-block";
+
+            // ✅ Store bookingId for update
+            document.getElementById("bookingForm").setAttribute("data-edit-id", bookingId);
+        })
+        .catch(err => {
+            console.error("Error fetching booking:", err);
+            alert("Error loading booking details");
+        });
+}
+
+function updateBooking() {
+    const bookingId = document.getElementById("bookingForm").getAttribute("data-edit-id");
+    if (!bookingId) {
+        alert("No booking selected for update");
+        return;
+    }
+
+    const updatedData = {
+        bookingId: bookingId,
+        customerNumber: document.getElementById("custNumber").value.trim(),
+        name: document.getElementById("custName").value.trim(),
+        dob: document.getElementById("dob").value.trim(),
+        age: document.getElementById("age").value.trim(),
+        gender: document.getElementById("gender").value,
+        address: document.getElementById("address").value.trim(),
+        location: document.getElementById("location").value.trim(),
+        city: document.getElementById("city").value.trim(),
+        phlebo: document.getElementById("phlebo").value,
+        pincode: document.getElementById("pincode").value.trim(),
+        preferredDate: document.getElementById("preferredDate").value,
+        preferredTime: document.getElementById("preferredTime").value,
+        tests: document.getElementById("tests").value,
+        packages: document.getElementById("packages").value,
+        totalAmount: document.getElementById("totalAmount").value
+    };
+
+    fetch(`${API_URL}?action=updateBooking`, {
+        method: "POST",
+        body: JSON.stringify(updatedData)
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert("Booking updated successfully!");
+
+                // ✅ Reset buttons
+                document.getElementById("submitBtn").style.display = "inline-block";
+                document.getElementById("updateBtn").style.display = "none";
+                document.getElementById("bookingForm").removeAttribute("data-edit-id");
+
+                // Optional: refresh search results
+                searchCustomer();
+            } else {
+                alert(data.message || "Update failed");
+            }
+        })
+        .catch(err => {
+            console.error("Update error:", err);
+            alert("Error updating booking!");
         });
 }
 
