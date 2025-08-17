@@ -23,23 +23,22 @@ th { background: #eef; }
 
     <!-- Filters -->
     <div class="flex">
-       <!-- Filters -->
-<input type="date" id="createdFrom">
-<input type="date" id="createdTo">
+        <input type="date" id="createdFrom">
+        <input type="date" id="createdTo">
 
-<select id="phleboFilter">
-  <option value="">-- Select Phlebo --</option>
-</select>
+        <select id="phleboFilter">
+          <option value="">-- Select Phlebo --</option>
+        </select>
 
-<select id="agentFilter">
-  <option value="">-- Select Agent --</option>
-</select>
+        <select id="agentFilter">
+          <option value="">-- Select Agent --</option>
+        </select>
 
-<select id="locationFilter">
-  <option value="">-- Select Location --</option>
-</select>
+        <select id="locationFilter">
+          <option value="">-- Select Location --</option>
+        </select>
 
-<button onclick="filterReport()">Search</button>
+        <button onclick="filterReport()">Search</button>
     </div>
     <hr>
 
@@ -63,39 +62,37 @@ th { background: #eef; }
 </div>
 
 <script>
-// ✅ Load dropdown options from backend
-function loadDropdowns() {
-    fetch(`${API_URL}?action=getDropdowns`)
-        .then(res => res.json())
-        .then(data => {
-            // Populate Agents
-            const agentSelect = document.getElementById("agentName");
-            data.agents.forEach(a => {
-                agentSelect.innerHTML += `<option value="${a}">${a}</option>`;
-            });
+// ✅ Load dropdowns from backend endpoints
+document.addEventListener("DOMContentLoaded", function() {
+  loadDropdown("phleboFilter", "getPhlebos", "name");
+  loadDropdown("agentFilter", "getAgents", "name");
+  loadDropdown("locationFilter", "getLocations", "location");
+});
 
-            // Populate Phlebos
-            const phleboSelect = document.getElementById("phleboName");
-            data.phlebos.forEach(p => {
-                phleboSelect.innerHTML += `<option value="${p}">${p}</option>`;
-            });
-
-            // Populate Locations
-            const locSelect = document.getElementById("location");
-            data.locations.forEach(l => {
-                locSelect.innerHTML += `<option value="${l}">${l}</option>`;
-            });
-        })
-        .catch(err => console.error("Dropdown load error:", err));
+// Generic loader
+function loadDropdown(elementId, action, key) {
+  fetch(`${API_URL}?action=${action}`)
+    .then(res => res.json())
+    .then(data => {
+      const select = document.getElementById(elementId);
+      data.forEach(item => {
+        const value = key ? item[key] : item;
+        const opt = document.createElement("option");
+        opt.value = value;
+        opt.textContent = value;
+        select.appendChild(opt);
+      });
+    })
+    .catch(err => console.error("Dropdown load failed:", err));
 }
 
 // ✅ Fetch report summary
 function filterReport() {
     const createdFrom = document.getElementById("createdFrom").value;
     const createdTo   = document.getElementById("createdTo").value;
-    const phlebo      = document.getElementById("phleboName").value;
-    const agent       = document.getElementById("agentName").value;
-    const location    = document.getElementById("location").value;
+    const phlebo      = document.getElementById("phleboFilter").value;
+    const agent       = document.getElementById("agentFilter").value;
+    const location    = document.getElementById("locationFilter").value;
 
     fetch(`${API_URL}?action=getReportSummary&createdFrom=${createdFrom}&createdTo=${createdTo}&phlebo=${phlebo}&agent=${agent}&location=${location}`)
         .then(res => res.json())
@@ -119,9 +116,7 @@ function filterReport() {
         })
         .catch(err => alert("Error loading report: " + err));
 }
-
-// Load dropdowns on page load
-window.onload = loadDropdowns;
 </script>
+
 </body>
 </html>
