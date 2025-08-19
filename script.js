@@ -361,44 +361,41 @@ function updateStatus(bookingId, status) {
 async function editBooking(bookingId) {
   try {
     const response = await fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`);
-    const data = await response.json();
+    const booking = await response.json();
 
-    if (data && data.bookingId) {
-      // ✅ Populate form fields
-      document.getElementById("bookingId").value = data.bookingId;
-      document.getElementById("customerNumber").value = data.customerNumber;
-      document.getElementById("mainCustomerName").value = data.mainCustomerName;
-      document.getElementById("dob").value = data.dob;
-      document.getElementById("age").value = data.age;
-      document.getElementById("gender").value = data.gender;
-      document.getElementById("address").value = data.address;
-      document.getElementById("location").value = data.location;
-      document.getElementById("city").value = data.city;
-      document.getElementById("phleboName").value = data.phleboName;
-      document.getElementById("pincode").value = data.pincode;
-      document.getElementById("preferredDate").value = data.preferredDate;
-      document.getElementById("preferredTime").value = data.preferredTime;
-      document.getElementById("tests").value = data.tests;
-      document.getElementById("packages").value = data.packages;
-      document.getElementById("totalAmount").value = data.totalAmount;
-      document.getElementById("discount").value = data.discount;
-      document.getElementById("techCharge").value = data.techCharge;
-      document.getElementById("totalToPay").value = data.totalToPay;
-      document.getElementById("agentName").value = data.agentName;
-      document.getElementById("status").value = data.status;
-
-      // ✅ Switch form mode to update
-      document.getElementById("saveBtn").style.display = "none";
-      document.getElementById("updateBtn").style.display = "inline-block";
-
-    } else {
-      alert("Booking not found!");
+    if (booking.error) {
+      alert("Booking not found");
+      return;
     }
-  } catch (err) {
-    console.error("Error fetching booking:", err);
+
+    // ✅ Fill form fields
+    document.getElementById("customerNumber").value = booking.customerNumber || "";
+    document.getElementById("mainCustomerName").value = booking.mainCustomerName || "";
+    document.getElementById("dob").value = booking.dob || "";
+    document.getElementById("age").value = booking.age || "";
+    document.getElementById("gender").value = booking.gender || "";
+    document.getElementById("address").value = booking.address || "";
+    document.getElementById("location").value = booking.location || "";
+    document.getElementById("city").value = booking.city || "";
+    document.getElementById("phleboName").value = booking.phleboName || "";
+    document.getElementById("pincode").value = booking.pincode || "";
+    document.getElementById("preferredDate").value = booking.preferredDate || "";
+    document.getElementById("preferredTime").value = booking.preferredTime || "";
+    document.getElementById("tests").value = booking.tests || "";
+    document.getElementById("packages").value = booking.packages || "";
+    document.getElementById("totalAmount").value = booking.totalAmount || "";
+    document.getElementById("discount").value = booking.discount || "";
+    document.getElementById("techCharge").value = booking.techCharge || "";
+    document.getElementById("totalToPay").value = booking.totalToPay || "";
+    document.getElementById("agentName").value = booking.agentName || "";
+    document.getElementById("status").value = booking.status || "";
+
+  } catch (error) {
+    console.error("Error fetching booking details:", error);
     alert("Failed to fetch booking details.");
   }
 }
+
 
 function updateBookingFromForm() {
   const bookingId = document.getElementById("updateBtn").getAttribute("data-booking-id");
