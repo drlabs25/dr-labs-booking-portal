@@ -779,61 +779,54 @@ function editBooking(bookingId) {
                 return;
             }
 
-            // Fill standard fields
-            document.getElementById("bookingId").value       = data.bookingId || "";
-            document.getElementById("custNumber").value      = data.customerNumber || "";
-            document.getElementById("custName").value        = data.mainCustomerName || "";
-            document.getElementById("dob").value             = data.dob || "";
-            document.getElementById("age").value             = data.age || "";
-            document.getElementById("gender").value          = data.gender || "";
-            document.getElementById("address").value         = data.address || "";
-            document.getElementById("location").value        = data.location || "";
-            document.getElementById("city").value            = data.city || "";
-            document.getElementById("phleboList").value      = data.phleboName || "";
-            document.getElementById("pincode").value         = data.pincode || "";
-
-            // ✅ Fix preferred date + time
-            document.getElementById("prefDate").value        = formatDateForInput(data.preferredDate);
-            document.getElementById("prefTime").value        = data.preferredTime || "";
-
-            document.getElementById("totalAmount").value     = data.totalAmount || "";
-            document.getElementById("discountList").value    = data.discount || "0";
-            document.getElementById("techCharge").value      = data.techCharge || "";
-            document.getElementById("totalToPay").value      = data.totalToPay || "";
-
-            // ✅ Load saved tests
-            document.getElementById("selectedTestsBody").innerHTML = "";
-            if (data.tests) {
-                data.tests.split(",").forEach(t => {
-                    let [code,name,cost] = t.split("|");
+           // ✅ Load saved tests by code
+document.getElementById("selectedTestsBody").innerHTML = "";
+if (data.tests) {
+    let testCodes = data.tests.split(",");
+    fetch(`${API_URL}?action=getTests&search=`)
+        .then(res => res.json())
+        .then(allTests => {
+            testCodes.forEach(code => {
+                let match = allTests.find(t => t.code == code);
+                if (match) {
                     let tr = document.createElement("tr");
-                    tr.id = "test_" + code;
+                    tr.id = "test_" + match.code;
                     tr.innerHTML = `
-                        <td>${name}</td>
-                        <td>₹${cost}</td>
-                        <td><button type="button" onclick="removeSelected('test_${code}')">Remove</button></td>
-                        <input type="hidden" class="selected-test" value="${code}|${cost}">
+                        <td>${match.name}</td>
+                        <td>₹${match.cost}</td>
+                        <td><button type="button" onclick="removeSelected('test_${match.code}')">Remove</button></td>
+                        <input type="hidden" class="selected-test" value="${match.code}|${match.cost}">
                     `;
                     document.getElementById("selectedTestsBody").appendChild(tr);
-                });
-            }
+                }
+            });
+        });
+}
 
-            // ✅ Load saved packages
-            document.getElementById("selectedPackagesBody").innerHTML = "";
-            if (data.packages) {
-                data.packages.split(",").forEach(p => {
-                    let [code,name,cost] = p.split("|");
+// ✅ Load saved packages by code
+document.getElementById("selectedPackagesBody").innerHTML = "";
+if (data.packages) {
+    let pkgCodes = data.packages.split(",");
+    fetch(`${API_URL}?action=getPackages&search=`)
+        .then(res => res.json())
+        .then(allPkgs => {
+            pkgCodes.forEach(code => {
+                let match = allPkgs.find(p => p.code == code);
+                if (match) {
                     let tr = document.createElement("tr");
-                    tr.id = "package_" + code;
+                    tr.id = "package_" + match.code;
                     tr.innerHTML = `
-                        <td>${name}</td>
-                        <td>₹${cost}</td>
-                        <td><button type="button" onclick="removeSelected('package_${code}')">Remove</button></td>
-                        <input type="hidden" class="selected-package" value="${code}|${cost}">
+                        <td>${match.name}</td>
+                        <td>₹${match.cost}</td>
+                        <td><button type="button" onclick="removeSelected('package_${match.code}')">Remove</button></td>
+                        <input type="hidden" class="selected-package" value="${match.code}|${match.cost}">
                     `;
                     document.getElementById("selectedPackagesBody").appendChild(tr);
-                });
-            }
+                }
+            });
+        });
+}
+
 
             // ✅ Show form
             document.getElementById("bookingForm").style.display = "block";
