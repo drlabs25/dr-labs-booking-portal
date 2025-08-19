@@ -758,15 +758,15 @@ function confirmBooking() {
     <script>
 function formatDateForInput(dateStr) {
     if (!dateStr) return "";
-    let d = new Date(dateStr);
-    if (isNaN(d)) {
-        // fallback: if it's in dd/MM/yyyy
-        let parts = dateStr.split("/");
-        if (parts.length === 3) {
+    let parts = dateStr.split(/[-/]/);
+    if (parts.length === 3) {
+        // dd-mm-yyyy or dd/mm/yyyy → yyyy-mm-dd
+        if (parts[2].length === 4) {
             return `${parts[2]}-${parts[1].padStart(2,"0")}-${parts[0].padStart(2,"0")}`;
         }
-        return "";
     }
+    let d = new Date(dateStr);
+    if (isNaN(d)) return "";
     return d.toISOString().split("T")[0];
 }
 
@@ -779,11 +779,10 @@ function editBooking(bookingId) {
                 return;
             }
 
-            // ✅ Fill customer info
-            document.getElementById("custNumber").value = data.customerNumber || "";
-            document.getElementById("custNumber").readOnly = true;
-            document.getElementById("bookingId").value = data.bookingId || "";
-            document.getElementById("custName").value = data.name || "";
+            // Basic fields
+            document.getElementById("bookingId").value = bookingId;
+            document.getElementById("custNumber").value = (data.customerNumber || "").padStart(10,"0");
+            document.getElementById("custName").value = data.mainCustomerName || "";
             document.getElementById("dob").value = formatDateForInput(data.dob);
             document.getElementById("age").value = data.age || "";
             document.getElementById("gender").value = data.gender || "";
@@ -794,48 +793,45 @@ function editBooking(bookingId) {
             document.getElementById("pincode").value = data.pincode || "";
             document.getElementById("prefDate").value = formatDateForInput(data.preferredDate);
             document.getElementById("prefTime").value = data.preferredTime || "";
+            document.getElementById("totalAmount").value = data.totalAmount || "";
+            document.getElementById("discountList").value = data.discount || "0";
+            document.getElementById("techCharge").value = data.techCharge || "";
+            document.getElementById("totalToPay").value = data.totalToPay || "";
 
-            // ✅ Clear existing selections
+            // ✅ Rebuild tests table
             document.getElementById("selectedTestsBody").innerHTML = "";
-            document.getElementById("selectedPackagesBody").innerHTML = "";
-
-            // ✅ Pre-fill Tests
             if (data.tests) {
                 data.tests.split(",").forEach(t => {
-                    let [code, cost] = t.split("|");
-                    if (code) {
-                        fetch(`${API_URL}?action=getTestByCode&code=${code}`)
-                          .then(r => r.json())
-                          .then(test => addSelectedTest(test.code, test.name, test.cost));
-                    }
+                    let [code,cost] = t.split("|");
+                    if (!code) return;
+                    // For display: fetch test name from backend OR use code as fallback
+                    fetch(`${API_URL}?action=getTestByCode&code=${encodeURIComponent(code)}`)
+                        .then(res => res.json())
+                        .then(test => {
+                            let name = test.name || code;
+                            addSelectedTest(code, name, cost);
+                        });
                 });
             }
 
-            // ✅ Pre-fill Packages
+            // ✅ Rebuild packages table
+            document.getElementById("selectedPackagesBody").innerHTML = "";
             if (data.packages) {
                 data.packages.split(",").forEach(p => {
-                    let [code, cost] = p.split("|");
-                    if (code) {
-                        fetch(`${API_URL}?action=getPackageByCode&code=${code}`)
-                          .then(r => r.json())
-                          .then(pkg => addSelectedPackage(pkg.code, pkg.name, pkg.cost));
-                    }
+                    let [code,cost] = p.split("|");
+                    if (!code) return;
+                    fetch(`${API_URL}?action=getPackageByCode&code=${encodeURIComponent(code)}`)
+                        .then(res => res.json())
+                        .then(pkg => {
+                            let name = pkg.name || code;
+                            addSelectedPackage(code, name, cost);
+                        });
                 });
             }
 
-            // ✅ Totals
-            recalculateTotal();
-
-            // ✅ Show form
-            document.getElementById("bookingForm").style.display = "block";
-            document.getElementById("history").style.display = "none";
-        })
-        .catch(err => {
-            console.error("Error loading booking:", err);
-            alert("Could not load booking details. Please try again.");
+            showBookingForm();
         });
 }
-
 
 
 function getSelectedTests() {
