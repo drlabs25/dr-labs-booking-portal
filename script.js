@@ -453,23 +453,35 @@ function updateBookingFromForm() {
     return;
   }
 
+  // ✅ Collect selected tests
+  let tests = [];
+  document.querySelectorAll(".selected-test").forEach(item => {
+    tests.push(item.value); // already "code|cost|name"
+  });
+
+  // ✅ Collect selected packages
+  let packages = [];
+  document.querySelectorAll(".selected-package").forEach(item => {
+    packages.push(item.value); // already "code|cost|name"
+  });
+
   const params = {
     action: "updateBooking",
     bookingId: bookingId,
-    customerNumber: document.getElementById("custNumber").value,
-    mainCustomerName: document.getElementById("custName").value,
+    customerNumber: document.getElementById("custNumber").value.trim(),
+    mainCustomerName: document.getElementById("custName").value.trim(),
     dob: document.getElementById("dob").value,
-    age: document.getElementById("age").value,
+    age: document.getElementById("age").value.trim(),
     gender: document.getElementById("gender").value,
-    address: document.getElementById("address").value,
-    location: document.getElementById("location").value,
+    address: document.getElementById("address").value.trim(),
+    location: document.getElementById("location").value.trim(),
     city: document.getElementById("city").value,
     phleboName: document.getElementById("phleboList").value,
-    pincode: document.getElementById("pincode").value,
+    pincode: document.getElementById("pincode").value.trim(),
     preferredDate: document.getElementById("prefDate").value,
     preferredTime: document.getElementById("prefTime").value,
-    tests: getSelectedCodes("testList"),
-    packages: getSelectedCodes("packageList"),
+    tests: tests.join(","),              // ✅ send in same format
+    packages: packages.join(","),        // ✅ send in same format
     totalAmount: document.getElementById("totalAmount").value,
     discount: document.getElementById("discountList").value,
     techCharge: document.getElementById("techCharge").value,
@@ -484,9 +496,16 @@ function updateBookingFromForm() {
     .then(data => {
       if (data.success) {
         alert("Booking updated successfully!");
+
+        // ✅ Switch buttons back
         document.getElementById("submitBtn").style.display = "inline-block";
         document.getElementById("updateBtn").style.display = "none";
-        searchCustomer(); // refresh table
+
+        // ✅ Hide form
+        document.getElementById("bookingForm").style.display = "none";
+
+        // ✅ Refresh booking history table
+        searchCustomer();
       } else {
         alert("Update failed!");
       }
