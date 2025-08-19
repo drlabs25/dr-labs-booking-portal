@@ -204,85 +204,86 @@ function createBooking() {
     if (!document.getElementById("location").value.trim()) return alert("Enter location");
     if (!document.getElementById("city").value) return alert("Select city");
     if (!document.getElementById("phleboList").value) return alert("Select phlebo");
-    if (!document.getElementById("prefDate").value) return alert("Select preferred date");
-    if (!document.getElementById("prefTime").value) return alert("Select preferred time");
 
+    // ✅ First define params
     const params = {
-    action: "saveBooking",
-    customerNumber: document.getElementById("custNumber").value,
-    mainCustomerName: document.getElementById("custName").value,
-    dob: document.getElementById("dob").value,
-    age: document.getElementById("age").value,
-    gender: document.getElementById("gender").value,
-    address: document.getElementById("address").value,
-    location: document.getElementById("location").value,
-    city: document.getElementById("city").value,
-    phleboName: document.getElementById("phleboList").value,
-    pincode: document.getElementById("pincode").value,
-    preferredDate: document.getElementById("prefDate").value,
-    preferredTime: document.getElementById("prefTime").value,
-    tests: getSelectedCodes("testList"),
-    packages: getSelectedCodes("packageList"),
-    totalAmount: document.getElementById("totalAmount").value,
-    discount: document.getElementById("discountList").value,
-    techCharge: document.getElementById("techCharge").value,
-    totalToPay: document.getElementById("totalToPay").value,
-    agentName: localStorage.getItem("agentName") || "",
-    // 🔹 NEW
-    bookingType: (bookingList.length === 0) ? "Main" : "Sub"
-};
+        action: "saveBooking",
+        customerNumber: document.getElementById("custNumber").value,
+        mainCustomerName: document.getElementById("custName").value,
+        dob: document.getElementById("dob").value,
+        age: document.getElementById("age").value,
+        gender: document.getElementById("gender").value,
+        address: document.getElementById("address").value,
+        location: document.getElementById("location").value,
+        city: document.getElementById("city").value,
+        phleboName: document.getElementById("phleboList").value,
+        pincode: document.getElementById("pincode").value,
+        preferredDate: document.getElementById("prefDate").value,
+        preferredTime: document.getElementById("prefTime").value,
+        tests: getSelectedCodes("testList"),
+        packages: getSelectedCodes("packageList"),
+        totalAmount: document.getElementById("totalAmount").value,
+        discount: document.getElementById("discountList").value,
+        techCharge: document.getElementById("techCharge").value,
+        totalToPay: document.getElementById("totalToPay").value,
+        agentName: localStorage.getItem("agentName") || "",
+        bookingType: (bookingList.length === 0) ? "Main" : "Sub"
+    };
+
+    // ✅ Now normalize prefDate safely
+    let normalizedDate = "";
+    if (params.preferredDate) {
+        let d = new Date(params.preferredDate);
+        if (!isNaN(d.getTime())) {
+            let yyyy = d.getFullYear();
+            let mm = String(d.getMonth() + 1).padStart(2, "0");
+            let dd = String(d.getDate()).padStart(2, "0");
+            normalizedDate = `${yyyy}-${mm}-${dd}`;
+        }
+    }
+
     const query = new URLSearchParams(params).toString();
     fetch(`${API_URL}?${query}`)
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            let label;
-           if (bookingList.length === 0) {
-    label = "Main Booking";
-    // Save main booking values
-    // ✅ Normalize prefDate before saving into mainBookingData
-let normalizedDate = "";
-if (params.preferredDate) {
-  let d = new Date(params.preferredDate);
-  if (!isNaN(d.getTime())) {
-    let yyyy = d.getFullYear();
-    let mm = String(d.getMonth() + 1).padStart(2, "0");
-    let dd = String(d.getDate()).padStart(2, "0");
-    normalizedDate = `${yyyy}-${mm}-${dd}`;
-  }
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                let label;
+                if (bookingList.length === 0) {
+                    label = "Main Booking";
+
+                    // ✅ Save main booking values with normalized date
+                    mainBookingData = {
+                        custNumber: params.customerNumber,
+                        address: params.address,
+                        location: params.location,
+                        city: params.city,
+                        phlebo: params.phleboName,
+                        pincode: params.pincode,
+                        prefDate: normalizedDate,   // yyyy-MM-dd only
+                        prefTime: params.preferredTime
+                    };
+
+                } else {
+                    subBookingCounter++;
+                    label = `Sub Booking ${subBookingCounter}`;
+                }
+
+                bookingList.push({
+                    type: label,
+                    name: params.mainCustomerName,
+                    datetime: `${normalizedDate} ${params.preferredTime}`,  // ✅ use normalized date here too
+                    cost: params.totalToPay
+                });
+
+                renderBookingTable();
+                document.getElementById("addMoreBtn").style.display = "inline-block";
+                addSubBooking();
+            } else {
+                alert("Booking failed");
+            }
+        });
 }
 
-mainBookingData = {
-    custNumber: params.customerNumber,
-    address: params.address,
-    location: params.location,
-    city: params.city,
-    phlebo: params.phleboName,
-    pincode: params.pincode,
-    prefDate: normalizedDate,   // ✅ only yyyy-MM-dd now
-    prefTime: params.preferredTime
-};
-
-} else {
-    subBookingCounter++;
-    label = `Sub Booking ${subBookingCounter}`;
-}
-
-            bookingList.push({
-                type: label,
-                name: params.mainCustomerName,
-                datetime: `${params.preferredDate} ${params.preferredTime}`,
-                cost: params.totalToPay
-            });
-
-            renderBookingTable();
-            document.getElementById("addMoreBtn").style.display = "inline-block";
-            addSubBooking();
-        } else {
-            alert("Booking failed");
-        }
-    });
-}
 
 // ✅ keep this OUTSIDE
 function renderBookingTable() {
