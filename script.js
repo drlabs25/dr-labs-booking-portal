@@ -374,7 +374,7 @@ function editBooking(bookingId) {
       // ✅ Fill form fields
       document.getElementById("custNumber").value = data.customerNumber || "";
       document.getElementById("custName").value = data.mainCustomerName || "";
-      document.getElementById("dob").value = data.dob || "";
+      document.getElementById("dob").value = data.dob ? data.dob.split("T")[0] : "";
       document.getElementById("age").value = data.age || "";
       document.getElementById("gender").value = data.gender || "";
       document.getElementById("address").value = data.address || "";
@@ -382,7 +382,7 @@ function editBooking(bookingId) {
       document.getElementById("city").value = data.city || "";
       document.getElementById("pincode").value = data.pincode || "";
       document.getElementById("phleboList").value = data.phleboName || "";
-      document.getElementById("prefDate").value = data.preferredDate || "";
+      document.getElementById("preferredDate").value = data.preferredDate ? data.preferredDate.split("T")[0] : "";
       document.getElementById("prefTime").value = data.preferredTime || "";
       document.getElementById("totalAmount").value = data.totalAmount || 0;
       document.getElementById("discountList").value = data.discount || 0;
