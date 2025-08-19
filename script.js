@@ -170,17 +170,19 @@ function searchCustomer() {
             document.getElementById("history").style.display = "block";
             bookings.forEach(b => {
                 const tr = document.createElement("tr");
-                tr.innerHTML = `
-                    <td>${b.customerNumber}</td>
-                    <td>${b.name}</td>
-                    <td>${b.dateTime}</td>
-                    <td>${b.phlebo}</td>
-                    <td>${b.agent}</td>
-                    <td>${b.status}</td>
-                    <td><button class="small-btn edit" onclick="editBooking('${b.bookingId}')">E</button></td>
-                    <td><button class="small-btn cancel" onclick="updateStatus('${b.bookingId}','Cancel')">X</button></td>
-                    <td><button class="small-btn paid" onclick="updateStatus('${b.bookingId}','Paid')">P</button></td>
-                `;
+                let disabled = (b.status && ["cancel","paid"].includes(b.status.toLowerCase())) ? "disabled" : "";
+
+tr.innerHTML = `
+    <td>${b.customerNumber}</td>
+    <td>${b.name}</td>
+    <td>${b.dateTime}</td>
+    <td>${b.phlebo}</td>
+    <td>${b.agent}</td>
+    <td>${b.status}</td>
+    <td><button class="small-btn edit" onclick="editBooking('${b.bookingId}')" ${disabled}>E</button></td>
+    <td><button class="small-btn cancel" onclick="updateStatus('${b.bookingId}','Cancel')" ${disabled}>X</button></td>
+    <td><button class="small-btn paid" onclick="updateStatus('${b.bookingId}','Paid')" ${disabled}>P</button></td>
+`;
                 body.appendChild(tr);
             });
         });
