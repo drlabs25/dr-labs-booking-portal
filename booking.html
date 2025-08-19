@@ -255,9 +255,14 @@ window.onload = function() {
 };
 
 function validateCustomerNumber(input) {
-    input.value = input.value.replace(/[^0-9]/g, '');
-    document.getElementById("createBookingBtn").disabled = (input.value.length !== 10);
+    const value = input.value.trim();
+    const isValid = /^[0-9]{10}$/.test(value); 
+    if (!isValid && value.length > 0) {
+        alert("Enter a valid 10-digit number");
+        input.value = value.slice(0, 10);
+    }
 }
+
 
 function validateAndShowBookingForm() {
     let num = document.getElementById("custNumber").value.trim();
