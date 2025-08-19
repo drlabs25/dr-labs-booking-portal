@@ -362,6 +362,9 @@ function editBooking(bookingId) {
   fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`)
     .then(res => res.json())
     .then(data => {
+      document.querySelector("#customerNumber").value = data.customerNumber;
+       document.querySelector("#mainCustomerName").value = data.mainCustomerName;
+       document.querySelector("#dob").value = data.dob;
       if (!data || !data.bookingId) {
         alert("Booking not found!");
         return;
