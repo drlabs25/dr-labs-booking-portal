@@ -447,7 +447,7 @@ function editBooking(bookingId) {
       }
 
       // ✅ Recalculate totals after restoring selections
-      recalculateTotal();
+      recalcTotalFromSelection();
 
       // Switch buttons
       document.getElementById("submitBtn").style.display = "none";
