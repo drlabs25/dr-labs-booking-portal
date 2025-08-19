@@ -381,8 +381,23 @@ function editBooking(bookingId) {
             document.getElementById("city").value = data.city || "";
             document.getElementById("phleboList").value = data.phleboName || "";
             document.getElementById("pincode").value = data.pincode || "";
-            document.getElementById("prefDate").value = data.preferredDate || "";
-            document.getElementById("prefTime").value = data.preferredTime || "";
+            if (data.preferredDate) {
+    let d = new Date(data.preferredDate);
+    if (!isNaN(d.getTime())) {
+        let yyyy = d.getFullYear();
+        let mm = String(d.getMonth() + 1).padStart(2, "0");
+        let dd = String(d.getDate()).padStart(2, "0");
+        document.getElementById("prefDate").value = `${yyyy}-${mm}-${dd}`;
+    }
+}
+           if (data.preferredTime) {
+    let time = data.preferredTime.toString();
+    // Extract only HH:MM
+    let match = time.match(/^(\d{2}:\d{2})/);
+    if (match) {
+        document.getElementById("prefTime").value = match[1];
+    }
+}
             document.getElementById("totalAmount").value = data.totalAmount || 0;
             document.getElementById("discountList").value = data.discount || 0;
             document.getElementById("techCharge").value = data.techCharge || 0;
