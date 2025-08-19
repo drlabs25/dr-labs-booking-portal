@@ -638,7 +638,7 @@ function renderBookingTable() {
             <td>${b.datetime}</td>
             <td>₹${b.cost}</td>
             <td>
-                <button onclick="editBooking('${b.bookingId}')">Edit</button>
+               <button onclick="editBooking('${b.id}')">Edit</button>
             </td>
         `;
         body.appendChild(tr);
