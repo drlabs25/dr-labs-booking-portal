@@ -85,99 +85,12 @@
     </div>
 </div>
 
-<!-- Booking Form Fields -->
 
-<!-- Booking Form Fields -->
-<div id="bookingForm" style="display:none; margin-top:20px;">
 
-    <!-- Customer Information -->
-    <fieldset style="margin-bottom:15px; padding:10px; border:1px solid #ccc; border-radius:6px;">
-        <legend><b>Customer Information</b></legend>
-        <div class="flex">
-            <input type="text" id="custNumber" placeholder="Customer Number (10 digits)" maxlength="10" required>
-            <input type="text" id="custName" placeholder="Customer Name" required>
-            <input type="date" id="dob" placeholder="Date of Birth" onchange="calcAge()">
-            <input type="number" id="age" placeholder="Age" required>
-            <select id="gender" required>
-                <option value="">--Gender--</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-            </select>
-        </div>
-        <div class="flex">
-            <textarea id="address" placeholder="Address" maxlength="500" required></textarea>
-            <input type="text" id="location" placeholder="Location" maxlength="100" required>
-            <select id="city" required>
-                <option value="">--Select City--</option>
-                <option>Chennai</option>
-                <option>Bangalore</option>
-                <option>Hyderabad</option>
-                <option>Mumbai</option>
-                <option>Delhi</option>
-                <option>Coimbatore</option>
-            </select>
-            <input type="number" id="pincode" placeholder="Pincode (6 digits)" maxlength="6" required>
-        </div>
-    </fieldset>
 
-    <!-- Assigning Information -->
-    <fieldset style="margin-bottom:15px; padding:10px; border:1px solid #ccc; border-radius:6px;">
-        <legend><b>Assigning Information</b></legend>
-        <div class="flex">
-            <select id="phleboList" onchange="checkPhleboAvailability()" required>
-                <option value="">--Select Phlebo--</option>
-            </select>
-            <input type="date" id="prefDate" min="" onchange="checkPhleboAvailability()" required>
-            <select id="prefTime" onchange="checkPhleboAvailability()" required></select>
-        </div>
-    </fieldset>
 
-    <!-- Test, Package & Amount Details -->
-    <fieldset style="margin-bottom:15px; padding:10px; border:1px solid #ccc; border-radius:6px;">
-        <legend><b>Test, Package & Amount Details</b></legend>
-        
-        <!-- Tests -->
-        <label>Tests</label>
-        <input type="text" placeholder="Search Test" oninput="loadTests(this.value)">
-        <div id="testList"></div>
-        <table border="1" style="width:100%; margin-top:5px;">
-            <thead>
-                <tr><th>Test Name</th><th>Cost</th><th>Action</th></tr>
-            </thead>
-            <tbody id="selectedTestsBody"></tbody>
-        </table>
-
-        <!-- Packages -->
-        <label>Packages</label>
-        <input type="text" placeholder="Search Package" oninput="loadPackages(this.value)">
-        <div id="packageList"></div>
-        <table border="1" style="width:100%; margin-top:5px;">
-            <thead>
-                <tr><th>Package Name</th><th>Cost</th><th>Action</th></tr>
-            </thead>
-            <tbody id="selectedPackagesBody"></tbody>
-        </table>
-
-        <!-- Amounts -->
-        <div class="flex">
-            <input type="number" id="totalAmount" placeholder="Total Amount" readonly>
-            <select id="discountList" onchange="recalculateTotal()">
-                <option value="0">No Discount</option>
-                <option value="5">5%</option>
-                <option value="10">10%</option>
-                <option value="15">15%</option>
-                <option value="20">20%</option>
-            </select>
-            <input type="number" id="techCharge" placeholder="Technician Charge" oninput="recalculateTotal()">
-            <input type="number" id="totalToPay" placeholder="Total To Pay" readonly>
-        </div>
-    </fieldset>
-
-    <!-- Submit -->
-    <button type="button" onclick="createBooking()">Submit</button>
-</div>
-<div id="bookingForm" style="display:none;">
     <h3>New Booking</h3>
+    <div id="bookingForm" style="display:none; margin-top:20px;">
     <!-- Hidden bookingId for edit mode -->
     <input type="hidden" id="bookingId">
     <!-- ✅ Customer Number belongs here -->
@@ -281,6 +194,7 @@
 
     <!-- ✅ Only one pair of buttons -->
     <button type="button" onclick="createBooking()">Submit</button>
+        </div>
 </div>
 
 <!-- ✅ Add More button OUTSIDE bookingForm -->
@@ -602,8 +516,11 @@ function createBooking() {
         return;
     }
 
-    // ✅ Always generate NEW bookingId (avoid overwrite)
-    let newBookingId = "BKG_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+   
+    // ✅ Use existing bookingId if editing, else create new
+let existingId = document.getElementById("bookingId").value;
+let newBookingId = existingId ? existingId : "BKG_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+
 
     let params = new URLSearchParams({
         action: "saveBooking",
@@ -755,6 +672,7 @@ function confirmBooking() {
             alert("Error confirming bookings. Please try again.");
         });
 }
+    </script>
     <script>
 function formatDateForInput(dateStr) {
     if (!dateStr) return "";
@@ -771,67 +689,53 @@ function formatDateForInput(dateStr) {
 }
 
 function editBooking(bookingId) {
-    fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`)
-        .then(res => res.json())
-        .then(data => {
-            if (!data || data.success === false) {
-                alert("Booking not found");
-                return;
-            }
+    const booking = bookingHistory.find(b => b.bookingId === bookingId);
+    if (!booking) {
+        alert("Booking not found!");
+        return;
+    }
 
-            // Basic fields
-            document.getElementById("bookingId").value = bookingId;
-            document.getElementById("custNumber").value = (data.customerNumber || "").padStart(10,"0");
-            document.getElementById("custName").value = data.mainCustomerName || "";
-            document.getElementById("dob").value = formatDateForInput(data.dob);
-            document.getElementById("age").value = data.age || "";
-            document.getElementById("gender").value = data.gender || "";
-            document.getElementById("address").value = data.address || "";
-            document.getElementById("location").value = data.location || "";
-            document.getElementById("city").value = data.city || "";
-            document.getElementById("phleboList").value = data.phleboName || "";
-            document.getElementById("pincode").value = data.pincode || "";
-            document.getElementById("prefDate").value = formatDateForInput(data.preferredDate);
-            document.getElementById("prefTime").value = data.preferredTime || "";
-            document.getElementById("totalAmount").value = data.totalAmount || "";
-            document.getElementById("discountList").value = data.discount || "0";
-            document.getElementById("techCharge").value = data.techCharge || "";
-            document.getElementById("totalToPay").value = data.totalToPay || "";
+    // ✅ Fill fields from booking
+    document.getElementById("bookingId").value = booking.bookingId || "";
+    document.getElementById("custNumber").value = booking.customerNumber || "";
+    document.getElementById("custName").value = booking.mainCustomerName || "";
+    document.getElementById("dob").value = formatDateForInput(booking.dob) || "";
+    document.getElementById("age").value = booking.age || "";
+    document.getElementById("gender").value = booking.gender || "";
+    document.getElementById("address").value = booking.address || "";
+    document.getElementById("location").value = booking.location || "";
+    document.getElementById("city").value = booking.city || "";
+    document.getElementById("pincode").value = booking.pincode || "";
+    document.getElementById("prefDate").value = formatDateForInput(booking.prefDate) || "";
+    document.getElementById("prefTime").value = booking.prefTime || "";
+    document.getElementById("discountList").value = booking.discount || "0";
+    document.getElementById("techCharge").value = booking.techCharge || "";
+    document.getElementById("totalAmount").value = booking.totalAmount || "";
+    document.getElementById("totalToPay").value = booking.totalToPay || "";
 
-            // ✅ Rebuild tests table
-            document.getElementById("selectedTestsBody").innerHTML = "";
-            if (data.tests) {
-                data.tests.split(",").forEach(t => {
-                    let [code,cost] = t.split("|");
-                    if (!code) return;
-                    // For display: fetch test name from backend OR use code as fallback
-                    fetch(`${API_URL}?action=getTestByCode&code=${encodeURIComponent(code)}`)
-                        .then(res => res.json())
-                        .then(test => {
-                            let name = test.name || code;
-                            addSelectedTest(code, name, cost);
-                        });
-                });
-            }
-
-            // ✅ Rebuild packages table
-            document.getElementById("selectedPackagesBody").innerHTML = "";
-            if (data.packages) {
-                data.packages.split(",").forEach(p => {
-                    let [code,cost] = p.split("|");
-                    if (!code) return;
-                    fetch(`${API_URL}?action=getPackageByCode&code=${encodeURIComponent(code)}`)
-                        .then(res => res.json())
-                        .then(pkg => {
-                            let name = pkg.name || code;
-                            addSelectedPackage(code, name, cost);
-                        });
-                });
-            }
-
-            showBookingForm();
+    // ✅ Reset & rebuild tests
+    const testTable = document.getElementById("selectedTestsBody");
+    testTable.innerHTML = "";
+    if (booking.tests && Array.isArray(booking.tests)) {
+        booking.tests.forEach(test => {
+            addSelectedTest(test.code, test.name, test.price);
         });
+    }
+
+    // ✅ Reset & rebuild packages
+    const packageTable = document.getElementById("selectedPackagesBody");
+    packageTable.innerHTML = "";
+    if (booking.packages && Array.isArray(booking.packages)) {
+        booking.packages.forEach(pkg => {
+            addSelectedPackage(pkg.code, pkg.name, pkg.price);
+        });
+    }
+
+    // ✅ Show booking form without resetting it
+    document.getElementById("bookingForm").style.display = "block";
+    document.getElementById("history").style.display = "none";
 }
+
 
 
 function getSelectedTests() {
