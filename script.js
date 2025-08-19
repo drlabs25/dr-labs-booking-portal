@@ -359,9 +359,11 @@ function updateStatus(bookingId, status) {
 }
 
 function editBooking(bookingId) {
+  console.log("🔹 editBooking called with ID:", bookingId);  
   fetch(`${API_URL}?action=getBookingDetails&bookingId=${encodeURIComponent(bookingId)}`)
     .then(res => res.json())
     .then(data => {
+      console.log("🔹 Booking details response:", data);
       if (data && data.bookingId) {
         // Show booking form
         document.getElementById("bookingForm").style.display = "block";
