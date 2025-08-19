@@ -360,82 +360,94 @@ function updateStatus(bookingId, status) {
 
 function editBooking(bookingId) {
   console.log("Editing bookingId:", bookingId);
-    fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`)
-        .then(res => res.json())
-        .then(data => {
-          console.log("Booking details response:", data);
-            if (!data || data.success === false) {
-                alert("Booking not found");
-                return;
-            }
+  fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`)
+    .then(res => res.json())
+    .then(data => {
+      console.log("Booking details response:", data);
+      if (!data || data.success === false) {
+        alert("Booking not found");
+        return;
+      }
 
-            // Fill the form
-            document.getElementById("bookingId").value = bookingId;
-            document.getElementById("custNumber").value = data.customerNumber || "";
-            document.getElementById("custName").value = data.mainCustomerName || "";
-            document.getElementById("dob").value = data.dob || "";
-            document.getElementById("age").value = data.age || "";
-            document.getElementById("gender").value = data.gender || "";
-            document.getElementById("address").value = data.address || "";
-            document.getElementById("location").value = data.location || "";
-            document.getElementById("city").value = data.city || "";
-            document.getElementById("phleboList").value = data.phleboName || "";
-            document.getElementById("pincode").value = data.pincode || "";
-            if (data.preferredDate) {
-    let d = new Date(data.preferredDate);
-    if (!isNaN(d.getTime())) {
-        let yyyy = d.getFullYear();
-        let mm = String(d.getMonth() + 1).padStart(2, "0");
-        let dd = String(d.getDate()).padStart(2, "0");
-        document.getElementById("prefDate").value = `${yyyy}-${mm}-${dd}`;
-    }
-}
-           if (data.preferredTime) {
-    let time = data.preferredTime.toString();
-    // Extract only HH:MM
-    let match = time.match(/^(\d{2}:\d{2})/);
-    if (match) {
-        document.getElementById("prefTime").value = match[1];
-    }
-}
-            document.getElementById("totalAmount").value = data.totalAmount || 0;
-            document.getElementById("discountList").value = data.discount || 0;
-            document.getElementById("techCharge").value = data.techCharge || 0;
-            document.getElementById("totalToPay").value = data.totalToPay || 0;
+      // Fill the form
+      document.getElementById("bookingId").value = bookingId;
+      document.getElementById("custNumber").value = data.customerNumber || "";
+      document.getElementById("custName").value = data.mainCustomerName || "";
+      document.getElementById("dob").value = data.dob || "";
+      document.getElementById("age").value = data.age || "";
+      document.getElementById("gender").value = data.gender || "";
+      document.getElementById("address").value = data.address || "";
+      document.getElementById("location").value = data.location || "";
+      document.getElementById("city").value = data.city || "";
+      document.getElementById("phleboList").value = data.phleboName || "";
+      document.getElementById("pincode").value = data.pincode || "";
 
-            // ✅ Restore tests
-            if (data.tests) {
-                let selectedTests = data.tests.split(",");
-                selectedTests.forEach(code => {
-                    let chk = document.querySelector(`#testList input[value^='${code}|']`);
-                    if (chk) chk.checked = true;
-                });
-            }
+      // ✅ Fix Preferred Date (convert to yyyy-MM-dd for <input type="date">)
+      if (data.preferredDate) {
+        let d = new Date(data.preferredDate);
+        if (!isNaN(d.getTime())) {
+          let yyyy = d.getFullYear();
+          let mm = String(d.getMonth() + 1).padStart(2, "0");
+          let dd = String(d.getDate()).padStart(2, "0");
+          document.getElementById("prefDate").value = `${yyyy}-${mm}-${dd}`;
+        }
+      }
 
-            // ✅ Restore packages
-            if (data.packages) {
-                let selectedPackages = data.packages.split(",");
-                selectedPackages.forEach(code => {
-                    let chk = document.querySelector(`#packageList input[value^='${code}|']`);
-                    if (chk) chk.checked = true;
-                });
-            }
+      // ✅ Fix Preferred Time (convert to HH:mm for <input type="time">)
+      if (data.preferredTime) {
+        let t = new Date(data.preferredTime);
+        if (!isNaN(t.getTime())) {
+          let hh = String(t.getHours()).padStart(2, "0");
+          let mm = String(t.getMinutes()).padStart(2, "0");
+          document.getElementById("prefTime").value = `${hh}:${mm}`;
+        } else {
+          // If backend already sends "HH:mm:ss"
+          let match = data.preferredTime.toString().match(/^(\d{2}:\d{2})/);
+          if (match) {
+            document.getElementById("prefTime").value = match[1];
+          }
+        }
+      }
 
-            // ✅ Recalculate totals after restoring selections
-            recalculateTotal();
+      document.getElementById("totalAmount").value = data.totalAmount || 0;
+      document.getElementById("discountList").value = data.discount || 0;
+      document.getElementById("techCharge").value = data.techCharge || 0;
+      document.getElementById("totalToPay").value = data.totalToPay || 0;
 
-            // Switch buttons
-            document.getElementById("submitBtn").style.display = "none";
-            document.getElementById("updateBtn").style.display = "inline-block";
-
-            // Show form
-            document.getElementById("bookingForm").style.display = "block";
-        })
-        .catch(err => {
-            console.error("Error fetching booking details:", err);
-            alert("Error fetching booking details!");
+      // ✅ Restore tests
+      if (data.tests) {
+        let selectedTests = data.tests.split(",");
+        selectedTests.forEach(code => {
+          let chk = document.querySelector(`#testList input[value^='${code}|']`);
+          if (chk) chk.checked = true;
         });
+      }
+
+      // ✅ Restore packages
+      if (data.packages) {
+        let selectedPackages = data.packages.split(",");
+        selectedPackages.forEach(code => {
+          let chk = document.querySelector(`#packageList input[value^='${code}|']`);
+          if (chk) chk.checked = true;
+        });
+      }
+
+      // ✅ Recalculate totals after restoring selections
+      recalculateTotal();
+
+      // Switch buttons
+      document.getElementById("submitBtn").style.display = "none";
+      document.getElementById("updateBtn").style.display = "inline-block";
+
+      // Show form
+      document.getElementById("bookingForm").style.display = "block";
+    })
+    .catch(err => {
+      console.error("Error fetching booking details:", err);
+      alert("Error fetching booking details!");
+    });
 }
+
 
 
 function updateBookingFromForm() {
