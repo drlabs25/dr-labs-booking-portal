@@ -755,6 +755,21 @@ function confirmBooking() {
             alert("Error confirming bookings. Please try again.");
         });
 }
+    <script>
+function formatDateForInput(dateStr) {
+    if (!dateStr) return "";
+    let d = new Date(dateStr);
+    if (isNaN(d)) {
+        // fallback: if it's in dd/MM/yyyy
+        let parts = dateStr.split("/");
+        if (parts.length === 3) {
+            return `${parts[2]}-${parts[1].padStart(2,"0")}-${parts[0].padStart(2,"0")}`;
+        }
+        return "";
+    }
+    return d.toISOString().split("T")[0];
+}
+
 function editBooking(bookingId) {
     fetch(`${API_URL}?action=getBookingDetails&bookingId=${encodeURIComponent(bookingId)}`)
         .then(res => res.json())
@@ -764,7 +779,7 @@ function editBooking(bookingId) {
                 return;
             }
 
-            // ✅ Fill form with saved booking details
+            // Fill standard fields
             document.getElementById("bookingId").value       = data.bookingId || "";
             document.getElementById("custNumber").value      = data.customerNumber || "";
             document.getElementById("custName").value        = data.mainCustomerName || "";
@@ -776,14 +791,51 @@ function editBooking(bookingId) {
             document.getElementById("city").value            = data.city || "";
             document.getElementById("phleboList").value      = data.phleboName || "";
             document.getElementById("pincode").value         = data.pincode || "";
-            document.getElementById("prefDate").value        = data.preferredDate || "";
+
+            // ✅ Fix preferred date + time
+            document.getElementById("prefDate").value        = formatDateForInput(data.preferredDate);
             document.getElementById("prefTime").value        = data.preferredTime || "";
+
             document.getElementById("totalAmount").value     = data.totalAmount || "";
             document.getElementById("discountList").value    = data.discount || "0";
             document.getElementById("techCharge").value      = data.techCharge || "";
             document.getElementById("totalToPay").value      = data.totalToPay || "";
 
-            // ✅ Ensure form is visible for editing
+            // ✅ Load saved tests
+            document.getElementById("selectedTestsBody").innerHTML = "";
+            if (data.tests) {
+                data.tests.split(",").forEach(t => {
+                    let [code,name,cost] = t.split("|");
+                    let tr = document.createElement("tr");
+                    tr.id = "test_" + code;
+                    tr.innerHTML = `
+                        <td>${name}</td>
+                        <td>₹${cost}</td>
+                        <td><button type="button" onclick="removeSelected('test_${code}')">Remove</button></td>
+                        <input type="hidden" class="selected-test" value="${code}|${cost}">
+                    `;
+                    document.getElementById("selectedTestsBody").appendChild(tr);
+                });
+            }
+
+            // ✅ Load saved packages
+            document.getElementById("selectedPackagesBody").innerHTML = "";
+            if (data.packages) {
+                data.packages.split(",").forEach(p => {
+                    let [code,name,cost] = p.split("|");
+                    let tr = document.createElement("tr");
+                    tr.id = "package_" + code;
+                    tr.innerHTML = `
+                        <td>${name}</td>
+                        <td>₹${cost}</td>
+                        <td><button type="button" onclick="removeSelected('package_${code}')">Remove</button></td>
+                        <input type="hidden" class="selected-package" value="${code}|${cost}">
+                    `;
+                    document.getElementById("selectedPackagesBody").appendChild(tr);
+                });
+            }
+
+            // ✅ Show form
             document.getElementById("bookingForm").style.display = "block";
             document.getElementById("history").style.display = "none";
         })
