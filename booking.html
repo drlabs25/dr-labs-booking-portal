@@ -684,6 +684,10 @@ function editBooking(bookingId) {
             document.getElementById("submitBtn").style.display = "none";
             document.getElementById("updateBtn").style.display = "inline-block";
 
+            // ✅ Just show the form directly (do NOT reset it)
+document.getElementById("bookingForm").style.display = "block";
+document.getElementById("history").style.display = "none";
+
             showBookingForm();
         });
 }
