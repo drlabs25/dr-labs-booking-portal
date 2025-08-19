@@ -360,12 +360,10 @@ function updateStatus(bookingId, status) {
 
 function editBooking(bookingId) {
   console.log("Editing bookingId:", bookingId);
-
   fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`)
     .then(res => res.json())
     .then(data => {
-      console.log("Booking details response:", JSON.stringify(data, null, 2));
-
+      console.log("Booking details response:", data);
       if (!data || data.success === false) {
         alert("Booking not found");
         return;
@@ -375,7 +373,7 @@ function editBooking(bookingId) {
       document.getElementById("bookingId").value = bookingId;
       document.getElementById("custNumber").value = data.customerNumber || "";
       document.getElementById("custName").value = data.mainCustomerName || "";
-      document.getElementById("dob").value = data.dob || "";
+      document.getElementById("dob").value = data.dob || "";              // ✅ Already formatted
       document.getElementById("age").value = data.age || "";
       document.getElementById("gender").value = data.gender || "";
       document.getElementById("address").value = data.address || "";
@@ -383,35 +381,15 @@ function editBooking(bookingId) {
       document.getElementById("city").value = data.city || "";
       document.getElementById("phleboList").value = data.phleboName || "";
       document.getElementById("pincode").value = data.pincode || "";
-
-      // ✅ Fix Date Parsing (works for both ISO and dd/MM/yyyy)
-      if (data.preferredDate) {
-        let d = new Date(data.preferredDate);
-        if (isNaN(d.getTime()) && data.preferredDate.includes("/")) {
-          let parts = data.preferredDate.split("/");
-          d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
-        }
-        if (!isNaN(d.getTime())) {
-          let yyyy = d.getFullYear();
-          let mm = String(d.getMonth() + 1).padStart(2, "0");
-          let dd = String(d.getDate()).padStart(2, "0");
-          document.getElementById("prefDate").value = `${yyyy}-${mm}-${dd}`;
-        }
-      }
-
-      // ✅ Fix Time Parsing
-      if (data.preferredTime) {
-        let time = data.preferredTime.toString();
-        let match = time.match(/^(\d{2}:\d{2})/);
-        document.getElementById("prefTime").value = match ? match[1] : "";
-      }
+      document.getElementById("prefDate").value = data.preferredDate || ""; // ✅ Already formatted
+      document.getElementById("prefTime").value = data.preferredTime || "";
 
       document.getElementById("totalAmount").value = data.totalAmount || 0;
       document.getElementById("discountList").value = data.discount || 0;
       document.getElementById("techCharge").value = data.techCharge || 0;
       document.getElementById("totalToPay").value = data.totalToPay || 0;
 
-      // Restore tests
+      // ✅ Restore tests
       if (data.tests) {
         let selectedTests = data.tests.split(",");
         selectedTests.forEach(code => {
@@ -420,7 +398,7 @@ function editBooking(bookingId) {
         });
       }
 
-      // Restore packages
+      // ✅ Restore packages
       if (data.packages) {
         let selectedPackages = data.packages.split(",");
         selectedPackages.forEach(code => {
@@ -429,7 +407,8 @@ function editBooking(bookingId) {
         });
       }
 
-      recalcTotalFromSelection();
+      // ✅ Recalculate totals
+      recalculateTotal();
 
       // Switch buttons
       document.getElementById("submitBtn").style.display = "none";
@@ -443,6 +422,7 @@ function editBooking(bookingId) {
       alert("Error fetching booking details!");
     });
 }
+
 
 function updateBookingFromForm() {
   const bookingId = document.getElementById("updateBtn").getAttribute("data-booking-id");
