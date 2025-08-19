@@ -397,20 +397,16 @@ function editBooking(bookingId) {
       document.getElementById("pincode").value = data.pincode || "";
 
       // ✅ Fix Preferred Date
-      if (data.preferredDate) {
-        let d = new Date(data.preferredDate);
-        if (!isNaN(d.getTime())) {
-          let yyyy = d.getFullYear();
-          let mm = String(d.getMonth() + 1).padStart(2, "0");
-          let dd = String(d.getDate()).padStart(2, "0");
-          document.getElementById("prefDate").value = `${yyyy}-${mm}-${dd}`;
-        } else {
-          document.getElementById("prefDate").value = "";
-        }
-      } else {
-        document.getElementById("prefDate").value = "";
-      }
-
+    if (data.preferredDate) {
+    let iso = data.preferredDate.toString();
+    if (iso.includes("T")) {
+        // example: 2025-08-23T18:30:00.000Z → 2025-08-23
+        document.getElementById("prefDate").value = iso.split("T")[0];
+    } else {
+        // if already yyyy-MM-dd
+        document.getElementById("prefDate").value = iso;
+    }
+}
       // ✅ Fix Preferred Time
       if (data.preferredTime) {
         let time = data.preferredTime.toString();
