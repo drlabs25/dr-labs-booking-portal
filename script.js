@@ -382,33 +382,32 @@ function editBooking(bookingId) {
       document.getElementById("phleboList").value = data.phleboName || "";
       document.getElementById("pincode").value = data.pincode || "";
 
-     
-      // ✅ Fix Preferred Date (convert to yyyy-MM-dd for <input type="date">)
-if (data.preferredDate) {
-  let d = new Date(data.preferredDate);
-  if (!isNaN(d.getTime())) {
-    let yyyy = d.getFullYear();
-    let mm = String(d.getMonth() + 1).padStart(2, "0");
-    let dd = String(d.getDate()).padStart(2, "0");
-    document.getElementById("prefDate").value = `${yyyy}-${mm}-${dd}`;
-  }
-}
-
-
-      // ✅ Fix Preferred Time (convert to HH:mm for <input type="time">)
-      if (data.preferredTime) {
-        let t = new Date(data.preferredTime);
-        if (!isNaN(t.getTime())) {
-          let hh = String(t.getHours()).padStart(2, "0");
-          let mm = String(t.getMinutes()).padStart(2, "0");
-          document.getElementById("prefTime").value = `${hh}:${mm}`;
+      // ✅ Fix Preferred Date
+      if (data.preferredDate) {
+        let d = new Date(data.preferredDate);
+        if (!isNaN(d.getTime())) {
+          let yyyy = d.getFullYear();
+          let mm = String(d.getMonth() + 1).padStart(2, "0");
+          let dd = String(d.getDate()).padStart(2, "0");
+          document.getElementById("prefDate").value = `${yyyy}-${mm}-${dd}`;
         } else {
-          // If backend already sends "HH:mm:ss"
-          let match = data.preferredTime.toString().match(/^(\d{2}:\d{2})/);
-          if (match) {
-            document.getElementById("prefTime").value = match[1];
-          }
+          document.getElementById("prefDate").value = "";
         }
+      } else {
+        document.getElementById("prefDate").value = "";
+      }
+
+      // ✅ Fix Preferred Time
+      if (data.preferredTime) {
+        let time = data.preferredTime.toString();
+        let match = time.match(/^(\d{2}:\d{2})/);
+        if (match) {
+          document.getElementById("prefTime").value = match[1];
+        } else {
+          document.getElementById("prefTime").value = "";
+        }
+      } else {
+        document.getElementById("prefTime").value = "";
       }
 
       document.getElementById("totalAmount").value = data.totalAmount || 0;
@@ -449,6 +448,7 @@ if (data.preferredDate) {
       alert("Error fetching booking details!");
     });
 }
+
 
 
 
