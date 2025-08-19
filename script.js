@@ -359,7 +359,89 @@ function updateStatus(bookingId, status) {
 }
 
 function editBooking(bookingId) {
+  fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`)
+    .then(res => res.json())
+    .then(data => {
+      if (!data || !data.bookingId) {
+        alert("Booking not found!");
+        return;
+      }
 
+      // Fill form with booking data
+      document.getElementById("custNumber").value = data.customerNumber || "";
+      document.getElementById("custName").value = data.mainCustomerName || "";
+      document.getElementById("dob").value = data.dob || "";
+      document.getElementById("age").value = data.age || "";
+      document.getElementById("gender").value = data.gender || "";
+      document.getElementById("address").value = data.address || "";
+      document.getElementById("location").value = data.location || "";
+      document.getElementById("city").value = data.city || "";
+      document.getElementById("pincode").value = data.pincode || "";
+      document.getElementById("phleboList").value = data.phleboName || "";
+      document.getElementById("prefDate").value = data.preferredDate || "";
+      document.getElementById("prefTime").value = data.preferredTime || "";
+      document.getElementById("totalAmount").value = data.totalAmount || 0;
+      document.getElementById("discountList").value = data.discount || 0;
+      document.getElementById("techCharge").value = data.techCharge || 0;
+      document.getElementById("totalToPay").value = data.totalToPay || 0;
+
+      // ✅ Restore Tests
+      document.getElementById("selectedTestsBody").innerHTML = "";
+      if (data.tests) {
+        data.tests.split(",").forEach(t => {
+          let parts = t.split("|"); // expect format code|cost
+          if (parts.length >= 2) {
+            let code = parts[0], cost = parts[1];
+            let name = parts[2] || code;
+            let tr = document.createElement("tr");
+            tr.id = "test_" + code;
+            tr.innerHTML = `
+              <td>${name}</td>
+              <td>₹${cost}</td>
+              <td><button type="button" onclick="removeSelected('test_${code}')">Remove</button></td>
+              <input type="hidden" class="selected-test" value="${code}|${cost}">
+            `;
+            document.getElementById("selectedTestsBody").appendChild(tr);
+          }
+        });
+      }
+
+      // ✅ Restore Packages
+      document.getElementById("selectedPackagesBody").innerHTML = "";
+      if (data.packages) {
+        data.packages.split(",").forEach(p => {
+          let parts = p.split("|");
+          if (parts.length >= 2) {
+            let code = parts[0], cost = parts[1];
+            let name = parts[2] || code;
+            let tr = document.createElement("tr");
+            tr.id = "package_" + code;
+            tr.innerHTML = `
+              <td>${name}</td>
+              <td>₹${cost}</td>
+              <td><button type="button" onclick="removeSelected('package_${code}')">Remove</button></td>
+              <input type="hidden" class="selected-package" value="${code}|${cost}">
+            `;
+            document.getElementById("selectedPackagesBody").appendChild(tr);
+          }
+        });
+      }
+
+      // Store bookingId for update
+      document.getElementById("updateBtn").setAttribute("data-booking-id", bookingId);
+
+      // Switch buttons
+      document.getElementById("submitBtn").style.display = "none";
+      document.getElementById("updateBtn").style.display = "inline-block";
+
+      // Show form
+      document.getElementById("bookingForm").style.display = "block";
+    })
+    .catch(err => {
+      console.error("Error fetching booking details:", err);
+      alert("Error fetching booking details!");
+    });
+}
 
 
 function updateBookingFromForm() {
