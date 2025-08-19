@@ -359,19 +359,13 @@ function updateStatus(bookingId, status) {
 }
 
 function editBooking(bookingId) {
-  console.log("🔹 editBooking called with ID:", bookingId);  // check if button sends ID
-
+  console.log("🔹 editBooking called with ID:", bookingId);  
   fetch(`${API_URL}?action=getBookingDetails&bookingId=${encodeURIComponent(bookingId)}`)
     .then(res => res.json())
     .then(data => {
-      console.log("🔹 Booking details response:", data);  // check if backend sends details
+      console.log("🔹 Booking details response:", data);
 
-      if (!data || !data.bookingId) {
-        alert("Booking not found!");
-        return;
-      }
-
-      // ✅ Fill form fields
+      // 🔹 Fill Patient Info
       document.getElementById("custNumber").value = data.customerNumber || "";
       document.getElementById("custName").value = data.mainCustomerName || "";
       document.getElementById("dob").value = data.dob ? data.dob.split("T")[0] : "";
@@ -381,26 +375,36 @@ function editBooking(bookingId) {
       document.getElementById("location").value = data.location || "";
       document.getElementById("city").value = data.city || "";
       document.getElementById("pincode").value = data.pincode || "";
-      document.getElementById("phleboList").value = data.phleboName || "";
+      document.getElementById("phleboName").value = data.phleboName || "";
       document.getElementById("preferredDate").value = data.preferredDate ? data.preferredDate.split("T")[0] : "";
-      document.getElementById("prefTime").value = data.preferredTime || "";
-      document.getElementById("totalAmount").value = data.totalAmount || 0;
-      document.getElementById("discountList").value = data.discount || 0;
-      document.getElementById("techCharge").value = data.techCharge || 0;
-      document.getElementById("totalToPay").value = data.totalToPay || 0;
+      document.getElementById("preferredTime").value = data.preferredTime || "";
 
-      // ✅ Switch buttons
+      // 🔹 Fill Tests
+      if (data.tests) {
+        const selectedTests = data.tests.split(",");
+        document.querySelectorAll("#testsContainer input[type='checkbox']").forEach(chk => {
+          chk.checked = selectedTests.includes(chk.value.split("|")[0]);
+        });
+      }
+
+      // 🔹 Fill Packages
+      if (data.packages) {
+        const selectedPackages = data.packages.split(",");
+        document.querySelectorAll("#packagesContainer input[type='checkbox']").forEach(chk => {
+          chk.checked = selectedPackages.includes(chk.value.split("|")[0]);
+        });
+      }
+
+      // 🔹 Show Update button, hide Submit
       document.getElementById("submitBtn").style.display = "none";
       document.getElementById("updateBtn").style.display = "inline-block";
 
-      // ✅ Show form
-      document.getElementById("bookingForm").style.display = "block";
+      // Store bookingId being edited
+      document.getElementById("updateBtn").setAttribute("data-booking-id", bookingId);
     })
-    .catch(err => {
-      console.error("Error fetching booking details:", err);
-      alert("Error loading booking details");
-    });
+    .catch(err => console.error("❌ Error loading booking:", err));
 }
+
 
 
 function updateBookingFromForm() {
