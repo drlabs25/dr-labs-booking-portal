@@ -382,16 +382,18 @@ function editBooking(bookingId) {
       document.getElementById("phleboList").value = data.phleboName || "";
       document.getElementById("pincode").value = data.pincode || "";
 
+     
       // ✅ Fix Preferred Date (convert to yyyy-MM-dd for <input type="date">)
-      if (data.preferredDate) {
-        let d = new Date(data.preferredDate);
-        if (!isNaN(d.getTime())) {
-          let yyyy = d.getFullYear();
-          let mm = String(d.getMonth() + 1).padStart(2, "0");
-          let dd = String(d.getDate()).padStart(2, "0");
-          document.getElementById("prefDate").value = `${yyyy}-${mm}-${dd}`;
-        }
-      }
+if (data.preferredDate) {
+  let d = new Date(data.preferredDate);
+  if (!isNaN(d.getTime())) {
+    let yyyy = d.getFullYear();
+    let mm = String(d.getMonth() + 1).padStart(2, "0");
+    let dd = String(d.getDate()).padStart(2, "0");
+    document.getElementById("prefDate").value = `${yyyy}-${mm}-${dd}`;
+  }
+}
+
 
       // ✅ Fix Preferred Time (convert to HH:mm for <input type="time">)
       if (data.preferredTime) {
