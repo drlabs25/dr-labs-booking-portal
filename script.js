@@ -359,51 +359,6 @@ function updateStatus(bookingId, status) {
 }
 
 function editBooking(bookingId) {
-  console.log("🔹 editBooking called with ID:", bookingId);  
-  fetch(`${API_URL}?action=getBookingDetails&bookingId=${encodeURIComponent(bookingId)}`)
-    .then(res => res.json())
-    .then(data => {
-      console.log("🔹 Booking details response:", data);
-
-      // 🔹 Fill Patient Info
-      document.getElementById("custNumber").value = data.customerNumber || "";
-      document.getElementById("custName").value = data.mainCustomerName || "";
-      document.getElementById("dob").value = data.dob ? data.dob.split("T")[0] : "";
-      document.getElementById("age").value = data.age || "";
-      document.getElementById("gender").value = data.gender || "";
-      document.getElementById("address").value = data.address || "";
-      document.getElementById("location").value = data.location || "";
-      document.getElementById("city").value = data.city || "";
-      document.getElementById("pincode").value = data.pincode || "";
-      document.getElementById("phleboName").value = data.phleboName || "";
-      document.getElementById("preferredDate").value = data.preferredDate ? data.preferredDate.split("T")[0] : "";
-      document.getElementById("preferredTime").value = data.preferredTime || "";
-
-      // 🔹 Fill Tests
-      if (data.tests) {
-        const selectedTests = data.tests.split(",");
-        document.querySelectorAll("#testsContainer input[type='checkbox']").forEach(chk => {
-          chk.checked = selectedTests.includes(chk.value.split("|")[0]);
-        });
-      }
-
-      // 🔹 Fill Packages
-      if (data.packages) {
-        const selectedPackages = data.packages.split(",");
-        document.querySelectorAll("#packagesContainer input[type='checkbox']").forEach(chk => {
-          chk.checked = selectedPackages.includes(chk.value.split("|")[0]);
-        });
-      }
-
-      // 🔹 Show Update button, hide Submit
-      document.getElementById("submitBtn").style.display = "none";
-      document.getElementById("updateBtn").style.display = "inline-block";
-
-      // Store bookingId being edited
-      document.getElementById("updateBtn").setAttribute("data-booking-id", bookingId);
-    })
-    .catch(err => console.error("❌ Error loading booking:", err));
-}
 
 
 
