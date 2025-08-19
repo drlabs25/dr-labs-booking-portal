@@ -379,11 +379,11 @@ function editBooking(bookingId) {
       document.getElementById("location").value = data.location || "";
       document.getElementById("city").value = data.city || "";
       document.getElementById("pincode").value = data.pincode || "";
-      document.getElementById("phleboList").value = data.phleboName || "";
+document.getElementById("phlebo").value = data.phleboName || "";
       document.getElementById("prefDate").value = data.preferredDate || "";
       document.getElementById("prefTime").value = data.preferredTime || "";
       document.getElementById("totalAmount").value = data.totalAmount || 0;
-      document.getElementById("discountList").value = data.discount || 0;
+document.getElementById("discount").value = data.discount || 0;
       document.getElementById("techCharge").value = data.techCharge || 0;
       document.getElementById("totalToPay").value = data.totalToPay || 0;
 
