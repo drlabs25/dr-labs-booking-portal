@@ -359,14 +359,16 @@ function updateStatus(bookingId, status) {
 }
 
 function editBooking(bookingId) {
-    fetch(`${API_URL}?action=getBookingDetails&bookingId=${encodeURIComponent(bookingId)}`)
+    fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`)
         .then(res => res.json())
         .then(data => {
-            if (data.success === false) {
+            if (!data || data.success === false) {
                 alert("Booking not found");
                 return;
             }
-            showBookingForm();
+
+            // Fill form fields
+            document.getElementById("bookingId").value = bookingId;
             document.getElementById("custNumber").value = data.customerNumber;
             document.getElementById("custName").value = data.mainCustomerName;
             document.getElementById("dob").value = data.dob;
@@ -383,8 +385,15 @@ function editBooking(bookingId) {
             document.getElementById("discountList").value = data.discount;
             document.getElementById("techCharge").value = data.techCharge;
             document.getElementById("totalToPay").value = data.totalToPay;
+
+            // ✅ Switch buttons
+            document.getElementById("submitBtn").style.display = "none";
+            document.getElementById("updateBtn").style.display = "inline-block";
+
+            showBookingForm();
         });
 }
+
 
 function addSubBooking() {
     document.querySelectorAll("#bookingForm input, #bookingForm select, #bookingForm textarea")
