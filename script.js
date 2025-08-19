@@ -240,16 +240,29 @@ function createBooking() {
            if (bookingList.length === 0) {
     label = "Main Booking";
     // Save main booking values
-    mainBookingData = {
-        custNumber: params.customerNumber,
-        address: params.address,
-        location: params.location,
-        city: params.city,
-        phlebo: params.phleboName,
-        pincode: params.pincode,
-        prefDate: params.preferredDate,
-        prefTime: params.preferredTime
-    };
+    // ✅ Normalize prefDate before saving into mainBookingData
+let normalizedDate = "";
+if (params.preferredDate) {
+  let d = new Date(params.preferredDate);
+  if (!isNaN(d.getTime())) {
+    let yyyy = d.getFullYear();
+    let mm = String(d.getMonth() + 1).padStart(2, "0");
+    let dd = String(d.getDate()).padStart(2, "0");
+    normalizedDate = `${yyyy}-${mm}-${dd}`;
+  }
+}
+
+mainBookingData = {
+    custNumber: params.customerNumber,
+    address: params.address,
+    location: params.location,
+    city: params.city,
+    phlebo: params.phleboName,
+    pincode: params.pincode,
+    prefDate: normalizedDate,   // ✅ only yyyy-MM-dd now
+    prefTime: params.preferredTime
+};
+
 } else {
     subBookingCounter++;
     label = `Sub Booking ${subBookingCounter}`;
@@ -532,9 +545,7 @@ document.getElementById("custNumber").readOnly = true;
         document.getElementById("phleboList").value = mainBookingData.phlebo;
         document.getElementById("phleboList").disabled = true;
 
-        document.getElementById("prefDate").value = mainBookingData.prefDate;
-        document.getElementById("prefDate").readOnly = true;
-
+       
         document.getElementById("prefTime").value = mainBookingData.prefTime;
         document.getElementById("prefTime").readOnly = true;
 
@@ -549,6 +560,8 @@ document.getElementById("custNumber").readOnly = true;
 
         document.getElementById("city").value = mainBookingData.city;
         document.getElementById("city").disabled = true;
+       document.getElementById("prefDate").value = mainBookingData.prefDate;
+        document.getElementById("prefDate").readOnly = true;
     }
 
     document.getElementById("bookingForm").style.display = "block";
@@ -663,3 +676,4 @@ window.onload = function () {
    const agent = localStorage.getItem("agentName") || "Unknown";
     showHeaderInfo(agent);
 };
+
