@@ -367,7 +367,7 @@ function editBooking(bookingId) {
         return;
       }
 
-      // Fill form with existing booking data
+      // ✅ Fill form with existing booking data
       document.getElementById("custNumber").value = data.customerNumber || "";
       document.getElementById("custName").value = data.mainCustomerName || "";
       document.getElementById("dob").value = data.dob || "";
@@ -385,14 +385,58 @@ function editBooking(bookingId) {
       document.getElementById("techCharge").value = data.techCharge || 0;
       document.getElementById("totalToPay").value = data.totalToPay || 0;
 
-      // Store bookingId for update
+      // ✅ Clear old selections first
+      document.getElementById("selectedTestsBody").innerHTML = "";
+      document.getElementById("selectedPackagesBody").innerHTML = "";
+
+      // ✅ Restore Tests if available
+      if (data.tests) {
+        let testItems = data.tests.split(",");
+        testItems.forEach(item => {
+          let parts = item.split("|"); // expect "code|cost|name"
+          if (parts.length === 3) {
+            let code = parts[0], cost = parts[1], name = parts[2];
+            let tr = document.createElement("tr");
+            tr.id = "test_" + code;
+            tr.innerHTML = `
+              <td>${name}</td>
+              <td>₹${cost}</td>
+              <td><button type="button" onclick="removeSelected('test_${code}')">Remove</button></td>
+              <input type="hidden" class="selected-test" value="${code}|${cost}|${name}">
+            `;
+            document.getElementById("selectedTestsBody").appendChild(tr);
+          }
+        });
+      }
+
+      // ✅ Restore Packages if available
+      if (data.packages) {
+        let packageItems = data.packages.split(",");
+        packageItems.forEach(item => {
+          let parts = item.split("|"); // expect "code|cost|name"
+          if (parts.length === 3) {
+            let code = parts[0], cost = parts[1], name = parts[2];
+            let tr = document.createElement("tr");
+            tr.id = "package_" + code;
+            tr.innerHTML = `
+              <td>${name}</td>
+              <td>₹${cost}</td>
+              <td><button type="button" onclick="removeSelected('package_${code}')">Remove</button></td>
+              <input type="hidden" class="selected-package" value="${code}|${cost}|${name}">
+            `;
+            document.getElementById("selectedPackagesBody").appendChild(tr);
+          }
+        });
+      }
+
+      // ✅ Store bookingId for update
       document.getElementById("updateBtn").setAttribute("data-booking-id", bookingId);
 
-      // Switch buttons
+      // ✅ Switch buttons
       document.getElementById("submitBtn").style.display = "none";
       document.getElementById("updateBtn").style.display = "inline-block";
 
-      // Show form
+      // ✅ Show form
       document.getElementById("bookingForm").style.display = "block";
     })
     .catch(err => {
@@ -400,6 +444,7 @@ function editBooking(bookingId) {
       alert("Error fetching booking details!");
     });
 }
+
 
 function updateBookingFromForm() {
   const bookingId = document.getElementById("updateBtn").getAttribute("data-booking-id");
