@@ -360,34 +360,61 @@ function updateStatus(bookingId, status) {
         });
 }
 
-function editBooking(bookingId) {
-    fetch(`${API_URL}?action=getBookingDetails&bookingId=${encodeURIComponent(bookingId)}`)
+ffunction editBooking(bookingId) {
+    fetch(`${API_URL}?action=getBooking&bookingId=${encodeURIComponent(bookingId)}`)
         .then(res => res.json())
         .then(data => {
-            if (data.success === false) {
-                alert("Booking not found");
+            if (!data.success) {
+                alert("Booking not found!");
                 return;
             }
-            showBookingForm();
-            document.getElementById("custNumber").value = data.customerNumber;
-            document.getElementById("custName").value = data.mainCustomerName;
-            document.getElementById("dob").value = data.dob;
-            document.getElementById("age").value = data.age;
-            document.getElementById("gender").value = data.gender;
-            document.getElementById("address").value = data.address;
-            document.getElementById("location").value = data.location;
-            document.getElementById("city").value = data.city;
-            document.getElementById("phleboList").value = data.phleboName;
-            document.getElementById("pincode").value = data.pincode;
-            document.getElementById("prefDate").value = data.preferredDate;
-            document.getElementById("prefTime").value = data.preferredTime;
-            document.getElementById("totalAmount").value = data.totalAmount;
-            document.getElementById("discountList").value = data.discount;
-            document.getElementById("techCharge").value = data.techCharge;
-            document.getElementById("totalToPay").value = data.totalToPay;
+
+            // ✅ Clean customer number (remove .0, spaces, non-digits)
+            let cleanCust = data.customerNumber
+                ? String(data.customerNumber).replace(/\D/g, "").slice(0, 10)
+                : "";
+
+            // Fill form fields
+            document.getElementById("custNumber").value = cleanCust;
+            document.getElementById("searchCustNumber").value = cleanCust;
+            document.getElementById("custName").value = data.mainCustomerName || "";
+            document.getElementById("dob").value = data.dob || "";
+            document.getElementById("age").value = data.age || "";
+            document.getElementById("gender").value = data.gender || "";
+            document.getElementById("address").value = data.address || "";
+            document.getElementById("location").value = data.location || "";
+            document.getElementById("city").value = data.city || "";
+            document.getElementById("pincode").value = data.pincode || "";
+            document.getElementById("preferredDate").value = data.preferredDate || "";
+            document.getElementById("preferredTime").value = data.preferredTime || "";
+            document.getElementById("phleboName").value = data.phleboName || "";
+            document.getElementById("totalAmount").value = data.totalAmount || "";
+            document.getElementById("discount").value = data.discount || "";
+            document.getElementById("techCharge").value = data.techCharge || "";
+            document.getElementById("totalToPay").value = data.totalToPay || "";
+
+            // ✅ Handle tests (codes stored in sheet → join them)
+            if (data.tests) {
+                document.getElementById("tests").value = Array.isArray(data.tests)
+                    ? data.tests.join(", ")
+                    : data.tests;
+            }
+
+            // ✅ Handle packages (codes stored in sheet → join them)
+            if (data.packages) {
+                document.getElementById("packages").value = Array.isArray(data.packages)
+                    ? data.packages.join(", ")
+                    : data.packages;
+            }
+
+            // Store current booking data globally (so confirmBooking knows this is edit)
+            mainBookingData = data;
+        })
+        .catch(err => {
+            console.error("Edit booking error:", err);
+            alert("Error fetching booking details!");
         });
 }
-
 function addSubBooking() {
     document.querySelectorAll("#bookingForm input, #bookingForm select, #bookingForm textarea")
         .forEach(el => {
