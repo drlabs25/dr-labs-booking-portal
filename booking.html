@@ -626,15 +626,20 @@ function renderBookingTable() {
     bookingList.forEach(b => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
+            <td>${b.bookingId || ''}</td>
+            <td>${b.custName || ''}</td>
+            <td>${b.custNumber || ''}</td>
             <td>${b.type}: ${b.name}</td>
             <td>${b.datetime}</td>
             <td>₹${b.cost}</td>
+            <td>
+                <button onclick="editBooking('${b.bookingId}')">Edit</button>
+            </td>
         `;
         body.appendChild(tr);
     });
     document.getElementById("mainBookingPreview").style.display = "block";
 }
-
 function confirmBooking() {
     if (bookingList.length === 0) {
         alert("No bookings to confirm!");
