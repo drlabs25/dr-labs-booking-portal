@@ -786,6 +786,57 @@ function editBooking(bookingId) {
             showBookingForm();
         });
 }
+function updateBookingFromForm() {
+    let bookingId = document.getElementById("bookingId").value;
+    if (!bookingId) {
+        alert("No booking selected for update!");
+        return;
+    }
+
+    let params = new URLSearchParams({
+        action: "updateBooking",
+        bookingId: bookingId,   // use the saved bookingId
+        customerNumber: document.getElementById("custNumber").value.trim(),
+        mainCustomerName: document.getElementById("custName").value.trim(),
+        dob: document.getElementById("dob").value,
+        age: document.getElementById("age").value.trim(),
+        gender: document.getElementById("gender").value,
+        address: document.getElementById("address").value.trim(),
+        location: document.getElementById("location").value.trim(),
+        city: document.getElementById("city").value,
+        phleboName: document.getElementById("phleboList").value,
+        pincode: document.getElementById("pincode").value.trim(),
+        preferredDate: document.getElementById("prefDate").value,
+        preferredTime: document.getElementById("prefTime").value,
+        tests: getSelectedTests(),
+        packages: getSelectedPackages(),
+        totalAmount: document.getElementById("totalAmount").value,
+        discount: document.getElementById("discountList").value,
+        techCharge: document.getElementById("techCharge").value,
+        totalToPay: document.getElementById("totalToPay").value,
+        agentName: localStorage.getItem("agentName") || ""
+    });
+
+    fetch(`${API_URL}?${params.toString()}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert("Booking updated successfully!");
+                // switch buttons back
+                document.getElementById("submitBtn").style.display = "inline-block";
+                document.getElementById("updateBtn").style.display = "none";
+                // hide form & refresh table
+                document.getElementById("bookingForm").style.display = "none";
+                searchCustomer();
+            } else {
+                alert("Failed to update booking.");
+            }
+        })
+        .catch(err => {
+            console.error("Update error:", err);
+            alert("Error updating booking!");
+        });
+}
 
 function getSelectedTests() {
     let tests = [];
