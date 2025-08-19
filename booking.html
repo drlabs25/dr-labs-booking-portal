@@ -288,8 +288,6 @@
 
 
 <script>
-    let testLookup = {};
-let packageLookup = {}
 window.onload = function() {
     let today = new Date().toISOString().split("T")[0];
     document.getElementById("prefDate").setAttribute("min", today);
@@ -365,41 +363,37 @@ function showBookingForm() {
     document.getElementById("history").style.display = "none";
 }
 
-function loadTests() {
-    fetch(`${API_URL}?action=getTests`)
+function loadTests(query) {
+    query = (query || "").trim();
+    if (query.length < 2) {
+        document.getElementById("testList").innerHTML = "";
+        return;
+    }
+    fetch(`${API_URL}?action=getTests&search=${encodeURIComponent(query)}`)
         .then(res => res.json())
         .then(tests => {
-            let testList = document.getElementById("testList");
-            testList.innerHTML = "<option value=''>--Select--</option>";
+            let html = "";
             tests.forEach(t => {
-                // Add option to dropdown
-                let opt = document.createElement("option");
-                opt.value = t.code; 
-                opt.textContent = `${t.name} - ₹${t.cost}`;
-                testList.appendChild(opt);
-
-                // 🔑 Save to lookup
-                testLookup[t.code] = { name: t.name, cost: t.cost };
+                html += `<div><button type="button" onclick="addSelectedTest('${t.code}','${t.name}','${t.cost}')">${t.name} - ₹${t.cost}</button></div>`;
             });
+            document.getElementById("testList").innerHTML = html;
         });
 }
 
-ffunction loadPackages() {
-    fetch(`${API_URL}?action=getPackages`)
+function loadPackages(query) {
+    query = (query || "").trim();
+    if (query.length < 2) {
+        document.getElementById("packageList").innerHTML = "";
+        return;
+    }
+    fetch(`${API_URL}?action=getPackages&search=${encodeURIComponent(query)}`)
         .then(res => res.json())
         .then(packages => {
-            let packageList = document.getElementById("packageList");
-            packageList.innerHTML = "<option value=''>--Select--</option>";
+            let html = "";
             packages.forEach(p => {
-                // Add option to dropdown
-                let opt = document.createElement("option");
-                opt.value = p.code;
-                opt.textContent = `${p.name} - ₹${p.cost}`;
-                packageList.appendChild(opt);
-
-                // 🔑 Save to lookup
-                packageLookup[p.code] = { name: p.name, cost: p.cost };
+                html += `<div><button type="button" onclick="addSelectedPackage('${p.code}','${p.name}','${p.cost}')">${p.name} - ₹${p.cost}</button></div>`;
             });
+            document.getElementById("packageList").innerHTML = html;
         });
 }
 
@@ -762,82 +756,42 @@ function confirmBooking() {
         });
 }
 function editBooking(bookingId) {
-    fetch(`${API_URL}?action=getBookingById&bookingId=${encodeURIComponent(bookingId)}`)
+    fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`)
         .then(res => res.json())
         .then(data => {
-            if (!data.success) {
-                alert("Booking not found!");
+            if (!data || data.success === false) {
+                alert("Booking not found");
                 return;
             }
+            document.getElementById("bookingId").value = bookingId;
+            document.getElementById("custNumber").value = data.customerNumber;
+            document.getElementById("custName").value = data.mainCustomerName;
+            document.getElementById("dob").value = data.dob;
+            document.getElementById("age").value = data.age;
+            document.getElementById("gender").value = data.gender;
+            document.getElementById("address").value = data.address;
+            document.getElementById("location").value = data.location;
+            document.getElementById("city").value = data.city;
+            document.getElementById("phleboList").value = data.phleboName;
+            document.getElementById("pincode").value = data.pincode;
+            document.getElementById("prefDate").value = data.preferredDate;
+            document.getElementById("prefTime").value = data.preferredTime;
+            document.getElementById("totalAmount").value = data.totalAmount;
+            document.getElementById("discountList").value = data.discount;
+            document.getElementById("techCharge").value = data.techCharge;
+            document.getElementById("totalToPay").value = data.totalToPay;
 
-            // ✅ Fill form with saved data
-            document.getElementById("bookingId").value = data.bookingId || "";
-            document.getElementById("custNumber").value = data.customerNumber || "";
-            document.getElementById("custName").value = data.mainCustomerName || "";
-            document.getElementById("dob").value = data.dob ? formatDateForInput(data.dob) : "";
-            document.getElementById("age").value = data.age || "";
-            document.getElementById("gender").value = data.gender || "";
-            document.getElementById("address").value = data.address || "";
-            document.getElementById("location").value = data.location || "";
-            document.getElementById("city").value = data.city || "";
-            document.getElementById("pincode").value = data.pincode || "";
-            document.getElementById("preferredDate").value = data.preferredDate ? formatDateForInput(data.preferredDate) : "";
-            document.getElementById("preferredTime").value = data.preferredTime || "";
-            document.getElementById("phleboName").value = data.phleboName || "";
-
-            // ✅ Reset selected lists first
-            document.getElementById("selectedTests").innerHTML = "";
-            document.getElementById("selectedPackages").innerHTML = "";
-
-            // ✅ Load saved tests using lookup
-            if (data.tests) {
-                try {
-                    let tests = JSON.parse(data.tests); // ["T001|200"]
-                    tests.forEach(t => {
-                        let [code] = t.split("|");
-                        let testInfo = testLookup[code];
-                        if (testInfo) {
-                            addSelectedTest(code, testInfo.name, testInfo.cost);
-                        } else {
-                            addSelectedTest(code, code, "");
-                        }
-                    });
-                } catch (e) {
-                    console.warn("Tests parsing failed:", e);
-                }
-            }
-
-            // ✅ Load saved packages using lookup
-            if (data.packages) {
-                try {
-                    let packages = JSON.parse(data.packages); // ["P001|1500"]
-                    packages.forEach(p => {
-                        let [code] = p.split("|");
-                        let pkgInfo = packageLookup[code];
-                        if (pkgInfo) {
-                            addSelectedPackage(code, pkgInfo.name, pkgInfo.cost);
-                        } else {
-                            addSelectedPackage(code, code, "");
-                        }
-                    });
-                } catch (e) {
-                    console.warn("Packages parsing failed:", e);
-                }
-            }
-
-            // ✅ Recalculate totals
-            recalculateTotal();
-
-            // ✅ Show form, hide history
-            document.getElementById("bookingForm").style.display = "block";
-            document.getElementById("history").style.display = "none";
-        })
-        .catch(err => {
-            console.error("Error fetching booking details:", err);
-            alert("Error loading booking for edit.");
+            showBookingForm();
         });
 }
-         
+
+function getSelectedTests() {
+    let tests = [];
+    document.querySelectorAll(".selected-test").forEach(item => {
+        tests.push(item.value);
+    });
+    return tests.join(",");
+}
 
 function getSelectedPackages() {
     let packages = [];
