@@ -360,10 +360,12 @@ function updateStatus(bookingId, status) {
 
 function editBooking(bookingId) {
   console.log("Editing bookingId:", bookingId);
+
   fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`)
     .then(res => res.json())
     .then(data => {
-      console.log("Booking details response:", data);
+      console.log("Booking details response:", JSON.stringify(data, null, 2));
+
       if (!data || data.success === false) {
         alert("Booking not found");
         return;
@@ -382,20 +384,26 @@ function editBooking(bookingId) {
       document.getElementById("phleboList").value = data.phleboName || "";
       document.getElementById("pincode").value = data.pincode || "";
 
-      // ❌ Skip preferredDate completely to avoid yyyy-MM-dd error
-      document.getElementById("prefDate").value = "";
+      // ✅ Fix Date Parsing (works for both ISO and dd/MM/yyyy)
+      if (data.preferredDate) {
+        let d = new Date(data.preferredDate);
+        if (isNaN(d.getTime()) && data.preferredDate.includes("/")) {
+          let parts = data.preferredDate.split("/");
+          d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+        }
+        if (!isNaN(d.getTime())) {
+          let yyyy = d.getFullYear();
+          let mm = String(d.getMonth() + 1).padStart(2, "0");
+          let dd = String(d.getDate()).padStart(2, "0");
+          document.getElementById("prefDate").value = `${yyyy}-${mm}-${dd}`;
+        }
+      }
 
-      // ✅ Preferred Time (still works)
+      // ✅ Fix Time Parsing
       if (data.preferredTime) {
         let time = data.preferredTime.toString();
         let match = time.match(/^(\d{2}:\d{2})/);
-        if (match) {
-          document.getElementById("prefTime").value = match[1];
-        } else {
-          document.getElementById("prefTime").value = "";
-        }
-      } else {
-        document.getElementById("prefTime").value = "";
+        document.getElementById("prefTime").value = match ? match[1] : "";
       }
 
       document.getElementById("totalAmount").value = data.totalAmount || 0;
@@ -403,7 +411,7 @@ function editBooking(bookingId) {
       document.getElementById("techCharge").value = data.techCharge || 0;
       document.getElementById("totalToPay").value = data.totalToPay || 0;
 
-      // ✅ Restore tests
+      // Restore tests
       if (data.tests) {
         let selectedTests = data.tests.split(",");
         selectedTests.forEach(code => {
@@ -412,7 +420,7 @@ function editBooking(bookingId) {
         });
       }
 
-      // ✅ Restore packages
+      // Restore packages
       if (data.packages) {
         let selectedPackages = data.packages.split(",");
         selectedPackages.forEach(code => {
@@ -421,7 +429,6 @@ function editBooking(bookingId) {
         });
       }
 
-      // ✅ Recalculate totals after restoring selections
       recalcTotalFromSelection();
 
       // Switch buttons
@@ -436,7 +443,6 @@ function editBooking(bookingId) {
       alert("Error fetching booking details!");
     });
 }
-
 
 function updateBookingFromForm() {
   const bookingId = document.getElementById("updateBtn").getAttribute("data-booking-id");
