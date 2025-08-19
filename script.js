@@ -204,86 +204,72 @@ function createBooking() {
     if (!document.getElementById("location").value.trim()) return alert("Enter location");
     if (!document.getElementById("city").value) return alert("Select city");
     if (!document.getElementById("phleboList").value) return alert("Select phlebo");
+    if (!document.getElementById("prefDate").value) return alert("Select preferred date");
+    if (!document.getElementById("prefTime").value) return alert("Select preferred time");
 
-    // ✅ First define params
     const params = {
-        action: "saveBooking",
-        customerNumber: document.getElementById("custNumber").value,
-        mainCustomerName: document.getElementById("custName").value,
-        dob: document.getElementById("dob").value,
-        age: document.getElementById("age").value,
-        gender: document.getElementById("gender").value,
-        address: document.getElementById("address").value,
-        location: document.getElementById("location").value,
-        city: document.getElementById("city").value,
-        phleboName: document.getElementById("phleboList").value,
-        pincode: document.getElementById("pincode").value,
-        preferredDate: document.getElementById("prefDate").value,
-        preferredTime: document.getElementById("prefTime").value,
-        tests: getSelectedCodes("testList"),
-        packages: getSelectedCodes("packageList"),
-        totalAmount: document.getElementById("totalAmount").value,
-        discount: document.getElementById("discountList").value,
-        techCharge: document.getElementById("techCharge").value,
-        totalToPay: document.getElementById("totalToPay").value,
-        agentName: localStorage.getItem("agentName") || "",
-        bookingType: (bookingList.length === 0) ? "Main" : "Sub"
-    };
-
-    // ✅ Now normalize prefDate safely
-    let normalizedDate = "";
-    if (params.preferredDate) {
-        let d = new Date(params.preferredDate);
-        if (!isNaN(d.getTime())) {
-            let yyyy = d.getFullYear();
-            let mm = String(d.getMonth() + 1).padStart(2, "0");
-            let dd = String(d.getDate()).padStart(2, "0");
-            normalizedDate = `${yyyy}-${mm}-${dd}`;
-        }
-    }
-
+    action: "saveBooking",
+    customerNumber: document.getElementById("custNumber").value,
+    mainCustomerName: document.getElementById("custName").value,
+    dob: document.getElementById("dob").value,
+    age: document.getElementById("age").value,
+    gender: document.getElementById("gender").value,
+    address: document.getElementById("address").value,
+    location: document.getElementById("location").value,
+    city: document.getElementById("city").value,
+    phleboName: document.getElementById("phleboList").value,
+    pincode: document.getElementById("pincode").value,
+    preferredDate: document.getElementById("prefDate").value,
+    preferredTime: document.getElementById("prefTime").value,
+    tests: getSelectedCodes("testList"),
+    packages: getSelectedCodes("packageList"),
+    totalAmount: document.getElementById("totalAmount").value,
+    discount: document.getElementById("discountList").value,
+    techCharge: document.getElementById("techCharge").value,
+    totalToPay: document.getElementById("totalToPay").value,
+    agentName: localStorage.getItem("agentName") || "",
+    // 🔹 NEW
+    bookingType: (bookingList.length === 0) ? "Main" : "Sub"
+};
     const query = new URLSearchParams(params).toString();
     fetch(`${API_URL}?${query}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                let label;
-                if (bookingList.length === 0) {
-                    label = "Main Booking";
-
-                    // ✅ Save main booking values with normalized date
-                    mainBookingData = {
-                        custNumber: params.customerNumber,
-                        address: params.address,
-                        location: params.location,
-                        city: params.city,
-                        phlebo: params.phleboName,
-                        pincode: params.pincode,
-                        prefDate: normalizedDate,   // yyyy-MM-dd only
-                        prefTime: params.preferredTime
-                    };
-
-                } else {
-                    subBookingCounter++;
-                    label = `Sub Booking ${subBookingCounter}`;
-                }
-
-                bookingList.push({
-                    type: label,
-                    name: params.mainCustomerName,
-                    datetime: `${normalizedDate} ${params.preferredTime}`,  // ✅ use normalized date here too
-                    cost: params.totalToPay
-                });
-
-                renderBookingTable();
-                document.getElementById("addMoreBtn").style.display = "inline-block";
-                addSubBooking();
-            } else {
-                alert("Booking failed");
-            }
-        });
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            let label;
+           if (bookingList.length === 0) {
+    label = "Main Booking";
+    // Save main booking values
+    mainBookingData = {
+        custNumber: params.customerNumber,
+        address: params.address,
+        location: params.location,
+        city: params.city,
+        phlebo: params.phleboName,
+        pincode: params.pincode,
+        prefDate: params.preferredDate,
+        prefTime: params.preferredTime
+    };
+} else {
+    subBookingCounter++;
+    label = `Sub Booking ${subBookingCounter}`;
 }
 
+            bookingList.push({
+                type: label,
+                name: params.mainCustomerName,
+                datetime: `${params.preferredDate} ${params.preferredTime}`,
+                cost: params.totalToPay
+            });
+
+            renderBookingTable();
+            document.getElementById("addMoreBtn").style.display = "inline-block";
+            addSubBooking();
+        } else {
+            alert("Booking failed");
+        }
+    });
+}
 
 // ✅ keep this OUTSIDE
 function renderBookingTable() {
@@ -396,18 +382,10 @@ function editBooking(bookingId) {
       document.getElementById("phleboList").value = data.phleboName || "";
       document.getElementById("pincode").value = data.pincode || "";
 
-      // ✅ Fix Preferred Date
-    if (data.preferredDate) {
-    let iso = data.preferredDate.toString();
-    if (iso.includes("T")) {
-        // example: 2025-08-23T18:30:00.000Z → 2025-08-23
-        document.getElementById("prefDate").value = iso.split("T")[0];
-    } else {
-        // if already yyyy-MM-dd
-        document.getElementById("prefDate").value = iso;
-    }
-}
-      // ✅ Fix Preferred Time
+      // ❌ Skip preferredDate completely to avoid yyyy-MM-dd error
+      document.getElementById("prefDate").value = "";
+
+      // ✅ Preferred Time (still works)
       if (data.preferredTime) {
         let time = data.preferredTime.toString();
         let match = time.match(/^(\d{2}:\d{2})/);
@@ -458,8 +436,6 @@ function editBooking(bookingId) {
       alert("Error fetching booking details!");
     });
 }
-
-
 
 
 function updateBookingFromForm() {
@@ -542,7 +518,9 @@ document.getElementById("custNumber").readOnly = true;
         document.getElementById("phleboList").value = mainBookingData.phlebo;
         document.getElementById("phleboList").disabled = true;
 
-       
+        document.getElementById("prefDate").value = mainBookingData.prefDate;
+        document.getElementById("prefDate").readOnly = true;
+
         document.getElementById("prefTime").value = mainBookingData.prefTime;
         document.getElementById("prefTime").readOnly = true;
 
@@ -557,8 +535,6 @@ document.getElementById("custNumber").readOnly = true;
 
         document.getElementById("city").value = mainBookingData.city;
         document.getElementById("city").disabled = true;
-       document.getElementById("prefDate").value = mainBookingData.prefDate;
-        document.getElementById("prefDate").readOnly = true;
     }
 
     document.getElementById("bookingForm").style.display = "block";
@@ -673,4 +649,3 @@ window.onload = function () {
    const agent = localStorage.getItem("agentName") || "Unknown";
     showHeaderInfo(agent);
 };
-
