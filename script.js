@@ -359,17 +359,15 @@ function updateStatus(bookingId, status) {
 }
 
 function editBooking(bookingId) {
-  console.log("Edit button clicked, bookingId =", bookingId);
   fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`)
     .then(res => res.json())
     .then(data => {
-        console.log("Fetched booking details:", data);
       if (!data || !data.bookingId) {
         alert("Booking not found!");
         return;
       }
 
-      // ✅ Fill form with existing booking data
+      // Fill form with existing booking data
       document.getElementById("custNumber").value = data.customerNumber || "";
       document.getElementById("custName").value = data.mainCustomerName || "";
       document.getElementById("dob").value = data.dob || "";
@@ -379,66 +377,22 @@ function editBooking(bookingId) {
       document.getElementById("location").value = data.location || "";
       document.getElementById("city").value = data.city || "";
       document.getElementById("pincode").value = data.pincode || "";
-document.getElementById("phlebo").value = data.phleboName || "";
+      document.getElementById("phleboList").value = data.phleboName || "";
       document.getElementById("prefDate").value = data.preferredDate || "";
       document.getElementById("prefTime").value = data.preferredTime || "";
       document.getElementById("totalAmount").value = data.totalAmount || 0;
-document.getElementById("discount").value = data.discount || 0;
+      document.getElementById("discountList").value = data.discount || 0;
       document.getElementById("techCharge").value = data.techCharge || 0;
       document.getElementById("totalToPay").value = data.totalToPay || 0;
 
-      // ✅ Clear old selections first
-      document.getElementById("selectedTestsBody").innerHTML = "";
-      document.getElementById("selectedPackagesBody").innerHTML = "";
-
-      // ✅ Restore Tests if available
-      if (data.tests) {
-        let testItems = data.tests.split(",");
-        testItems.forEach(item => {
-          let parts = item.split("|"); // expect "code|cost|name"
-          if (parts.length === 3) {
-            let code = parts[0], cost = parts[1], name = parts[2];
-            let tr = document.createElement("tr");
-            tr.id = "test_" + code;
-            tr.innerHTML = `
-              <td>${name}</td>
-              <td>₹${cost}</td>
-              <td><button type="button" onclick="removeSelected('test_${code}')">Remove</button></td>
-              <input type="hidden" class="selected-test" value="${code}|${cost}|${name}">
-            `;
-            document.getElementById("selectedTestsBody").appendChild(tr);
-          }
-        });
-      }
-
-      // ✅ Restore Packages if available
-      if (data.packages) {
-        let packageItems = data.packages.split(",");
-        packageItems.forEach(item => {
-          let parts = item.split("|"); // expect "code|cost|name"
-          if (parts.length === 3) {
-            let code = parts[0], cost = parts[1], name = parts[2];
-            let tr = document.createElement("tr");
-            tr.id = "package_" + code;
-            tr.innerHTML = `
-              <td>${name}</td>
-              <td>₹${cost}</td>
-              <td><button type="button" onclick="removeSelected('package_${code}')">Remove</button></td>
-              <input type="hidden" class="selected-package" value="${code}|${cost}|${name}">
-            `;
-            document.getElementById("selectedPackagesBody").appendChild(tr);
-          }
-        });
-      }
-
-      // ✅ Store bookingId for update
+      // Store bookingId for update
       document.getElementById("updateBtn").setAttribute("data-booking-id", bookingId);
 
-      // ✅ Switch buttons
+      // Switch buttons
       document.getElementById("submitBtn").style.display = "none";
       document.getElementById("updateBtn").style.display = "inline-block";
 
-      // ✅ Show form
+      // Show form
       document.getElementById("bookingForm").style.display = "block";
     })
     .catch(err => {
@@ -447,7 +401,6 @@ document.getElementById("discount").value = data.discount || 0;
     });
 }
 
-
 function updateBookingFromForm() {
   const bookingId = document.getElementById("updateBtn").getAttribute("data-booking-id");
   if (!bookingId) {
@@ -455,35 +408,23 @@ function updateBookingFromForm() {
     return;
   }
 
-  // ✅ Collect selected tests
-  let tests = [];
-  document.querySelectorAll(".selected-test").forEach(item => {
-    tests.push(item.value); // already "code|cost|name"
-  });
-
-  // ✅ Collect selected packages
-  let packages = [];
-  document.querySelectorAll(".selected-package").forEach(item => {
-    packages.push(item.value); // already "code|cost|name"
-  });
-
   const params = {
     action: "updateBooking",
     bookingId: bookingId,
-    customerNumber: document.getElementById("custNumber").value.trim(),
-    mainCustomerName: document.getElementById("custName").value.trim(),
+    customerNumber: document.getElementById("custNumber").value,
+    mainCustomerName: document.getElementById("custName").value,
     dob: document.getElementById("dob").value,
-    age: document.getElementById("age").value.trim(),
+    age: document.getElementById("age").value,
     gender: document.getElementById("gender").value,
-    address: document.getElementById("address").value.trim(),
-    location: document.getElementById("location").value.trim(),
+    address: document.getElementById("address").value,
+    location: document.getElementById("location").value,
     city: document.getElementById("city").value,
     phleboName: document.getElementById("phleboList").value,
-    pincode: document.getElementById("pincode").value.trim(),
+    pincode: document.getElementById("pincode").value,
     preferredDate: document.getElementById("prefDate").value,
     preferredTime: document.getElementById("prefTime").value,
-    tests: tests.join(","),              // ✅ send in same format
-    packages: packages.join(","),        // ✅ send in same format
+    tests: getSelectedCodes("testList"),
+    packages: getSelectedCodes("packageList"),
     totalAmount: document.getElementById("totalAmount").value,
     discount: document.getElementById("discountList").value,
     techCharge: document.getElementById("techCharge").value,
@@ -498,16 +439,9 @@ function updateBookingFromForm() {
     .then(data => {
       if (data.success) {
         alert("Booking updated successfully!");
-
-        // ✅ Switch buttons back
         document.getElementById("submitBtn").style.display = "inline-block";
         document.getElementById("updateBtn").style.display = "none";
-
-        // ✅ Hide form
-        document.getElementById("bookingForm").style.display = "none";
-
-        // ✅ Refresh booking history table
-        searchCustomer();
+        searchCustomer(); // refresh table
       } else {
         alert("Update failed!");
       }
