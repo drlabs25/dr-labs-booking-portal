@@ -359,36 +359,45 @@ function updateStatus(bookingId, status) {
 }
 
 function editBooking(bookingId) {
-  fetch(`${SCRIPT_URL}?action=getBookingDetails&bookingId=${bookingId}`)
-    .then(res => res.json())
-    .then(data => {
-      if (data.error) {
-        alert("Booking not found!");
-        return;
-      }
+    fetch(`${API_URL}?action=getBookingById&bookingId=${encodeURIComponent(bookingId)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) {
+                alert("Booking not found!");
+                return;
+            }
 
-      // Fill the form
-      document.getElementById("bookingId").value = data.bookingId;
-      document.getElementById("custNumber").value = data.custNumber;
-      document.getElementById("custName").value = data.custName;
-      document.getElementById("dob").value = data.dob;
-      document.getElementById("age").value = data.age;
-      document.getElementById("gender").value = data.gender;
-      document.getElementById("address").value = data.address;
-      document.getElementById("location").value = data.location;
-      document.getElementById("city").value = data.city;
-      document.getElementById("phleboList").value = data.phlebo;
-      document.getElementById("pincode").value = data.pincode;
-      document.getElementById("prefDate").value = data.prefDate;
-      document.getElementById("prefTime").value = data.prefTime;
+            let booking = data.booking;
 
-      // Show the form
-      document.getElementById("bookingForm").style.display = "block";
-    })
-    .catch(err => console.error(err));
+            // Now fill your form fields
+            document.getElementById("bookingId").value = booking.BookingId;  // must match your header name
+            document.getElementById("custNumber").value = booking.CustomerNumber;
+            document.getElementById("name").value = booking.Name;
+            document.getElementById("dob").value = booking.DOB;
+            document.getElementById("address").value = booking.Address;
+            document.getElementById("city").value = booking.City;
+            document.getElementById("location").value = booking.Location;
+            document.getElementById("pincode").value = booking.Pincode;
+            document.getElementById("phleboList").value = booking.Phlebo;
+
+            // Example for date/time
+            if (booking.PreferredDate) {
+                let d = new Date(booking.PreferredDate);
+                document.getElementById("prefDate").value =
+                  d.toISOString().split("T")[0];
+            }
+            if (booking.PreferredTime) {
+                document.getElementById("prefTime").value = booking.PreferredTime;
+            }
+
+            // finally show form
+            document.getElementById("bookingForm").style.display = "block";
+        })
+        .catch(err => {
+            console.error("Error fetching booking:", err);
+            alert("Error while fetching booking data.");
+        });
 }
-
-
 
 function updateBookingFromForm() {
   const bookingId = document.getElementById("updateBtn").getAttribute("data-booking-id");
