@@ -358,43 +358,36 @@ function updateStatus(bookingId, status) {
         });
 }
 
-async function editBooking(bookingId) {
-  try {
-    const response = await fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`);
-    const booking = await response.json();
+function editBooking(bookingId) {
+  fetch(`${SCRIPT_URL}?action=getBookingDetails&bookingId=${bookingId}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.error) {
+        alert("Booking not found!");
+        return;
+      }
 
-    if (booking.error) {
-      alert("Booking not found");
-      return;
-    }
+      // Fill the form
+      document.getElementById("bookingId").value = data.bookingId;
+      document.getElementById("custNumber").value = data.custNumber;
+      document.getElementById("custName").value = data.custName;
+      document.getElementById("dob").value = data.dob;
+      document.getElementById("age").value = data.age;
+      document.getElementById("gender").value = data.gender;
+      document.getElementById("address").value = data.address;
+      document.getElementById("location").value = data.location;
+      document.getElementById("city").value = data.city;
+      document.getElementById("phleboList").value = data.phlebo;
+      document.getElementById("pincode").value = data.pincode;
+      document.getElementById("prefDate").value = data.prefDate;
+      document.getElementById("prefTime").value = data.prefTime;
 
-    // ✅ Fill form fields
-    document.getElementById("customerNumber").value = booking.customerNumber || "";
-    document.getElementById("mainCustomerName").value = booking.mainCustomerName || "";
-    document.getElementById("dob").value = booking.dob || "";
-    document.getElementById("age").value = booking.age || "";
-    document.getElementById("gender").value = booking.gender || "";
-    document.getElementById("address").value = booking.address || "";
-    document.getElementById("location").value = booking.location || "";
-    document.getElementById("city").value = booking.city || "";
-    document.getElementById("phleboName").value = booking.phleboName || "";
-    document.getElementById("pincode").value = booking.pincode || "";
-    document.getElementById("preferredDate").value = booking.preferredDate || "";
-    document.getElementById("preferredTime").value = booking.preferredTime || "";
-    document.getElementById("tests").value = booking.tests || "";
-    document.getElementById("packages").value = booking.packages || "";
-    document.getElementById("totalAmount").value = booking.totalAmount || "";
-    document.getElementById("discount").value = booking.discount || "";
-    document.getElementById("techCharge").value = booking.techCharge || "";
-    document.getElementById("totalToPay").value = booking.totalToPay || "";
-    document.getElementById("agentName").value = booking.agentName || "";
-    document.getElementById("status").value = booking.status || "";
-
-  } catch (error) {
-    console.error("Error fetching booking details:", error);
-    alert("Failed to fetch booking details.");
-  }
+      // Show the form
+      document.getElementById("bookingForm").style.display = "block";
+    })
+    .catch(err => console.error(err));
 }
+
 
 
 function updateBookingFromForm() {
