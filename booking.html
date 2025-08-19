@@ -76,7 +76,7 @@
       </div>
 
       <button id="submitBtn" onclick="createBooking()">Submit</button>
-      <button id="updateBtn" style="display:none;" onclick="updateBooking()">Update</button>
+      <button id="updateBtn" style="display:none;" onclick="updateBookingFromForm()">Update</button>
     </div>
  
 
@@ -126,7 +126,7 @@
     <input type="number" id="totalToPay" placeholder="Total Amount to be Paid" readonly>
 
     <!-- ✅ Only one pair of buttons -->
-    <button type="button" onclick="createBooking()">Submit</button>
+   
 </div>
 
 <!-- ✅ Add More button OUTSIDE bookingForm -->
@@ -614,30 +614,62 @@ function editBooking(bookingId) {
 
             // Fill the form
             document.getElementById("bookingId").value = bookingId;
-            document.getElementById("custNumber").value = data.customerNumber;
-            document.getElementById("custName").value = data.mainCustomerName;
-            document.getElementById("dob").value = data.dob;
-            document.getElementById("age").value = data.age;
-            document.getElementById("gender").value = data.gender;
-            document.getElementById("address").value = data.address;
-            document.getElementById("location").value = data.location;
-            document.getElementById("city").value = data.city;
-            document.getElementById("phleboList").value = data.phleboName;
-            document.getElementById("pincode").value = data.pincode;
-            document.getElementById("prefDate").value = data.preferredDate;
-            document.getElementById("prefTime").value = data.preferredTime;
-            document.getElementById("totalAmount").value = data.totalAmount;
-            document.getElementById("discountList").value = data.discount;
-            document.getElementById("techCharge").value = data.techCharge;
-            document.getElementById("totalToPay").value = data.totalToPay;
+            document.getElementById("custNumber").value = data.customerNumber || "";
+            document.getElementById("custName").value = data.mainCustomerName || "";
+            document.getElementById("dob").value = data.dob || "";
+            document.getElementById("age").value = data.age || "";
+            document.getElementById("gender").value = data.gender || "";
+            document.getElementById("address").value = data.address || "";
+            document.getElementById("location").value = data.location || "";
+            document.getElementById("city").value = data.city || "";
+            document.getElementById("phleboList").value = data.phleboName || "";
+            document.getElementById("pincode").value = data.pincode || "";
+
+            // ✅ Normalize preferredDate
+            if (data.preferredDate) {
+                let d = new Date(data.preferredDate);
+                if (!isNaN(d.getTime())) {
+                    let yyyy = d.getFullYear();
+                    let mm = String(d.getMonth() + 1).padStart(2, "0");
+                    let dd = String(d.getDate()).padStart(2, "0");
+                    document.getElementById("prefDate").value = `${yyyy}-${mm}-${dd}`;
+                } else {
+                    document.getElementById("prefDate").value = "";
+                }
+            } else {
+                document.getElementById("prefDate").value = "";
+            }
+
+            // ✅ Normalize preferredTime
+            if (data.preferredTime) {
+                let time = data.preferredTime.toString();
+                let match = time.match(/^(\d{2}:\d{2})/);
+                if (match) {
+                    document.getElementById("prefTime").value = match[1];
+                } else {
+                    document.getElementById("prefTime").value = "";
+                }
+            } else {
+                document.getElementById("prefTime").value = "";
+            }
+
+            document.getElementById("totalAmount").value = data.totalAmount || 0;
+            document.getElementById("discountList").value = data.discount || 0;
+            document.getElementById("techCharge").value = data.techCharge || 0;
+            document.getElementById("totalToPay").value = data.totalToPay || 0;
 
             // ✅ Switch buttons
             document.getElementById("submitBtn").style.display = "none";
             document.getElementById("updateBtn").style.display = "inline-block";
 
             showBookingForm();
+        })
+        .catch(err => {
+            console.error("Error fetching booking details:", err);
+            alert("Error fetching booking details!");
         });
 }
+
 
 function updateBookingFromForm() {
     let bookingId = document.getElementById("bookingId").value;
