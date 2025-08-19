@@ -359,9 +359,11 @@ function updateStatus(bookingId, status) {
 }
 
 function editBooking(bookingId) {
+  console.log("Edit button clicked, bookingId =", bookingId);
   fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`)
     .then(res => res.json())
     .then(data => {
+        console.log("Fetched booking details:", data);
       if (!data || !data.bookingId) {
         alert("Booking not found!");
         return;
