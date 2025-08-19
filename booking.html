@@ -764,20 +764,20 @@ function editBooking(bookingId) {
                 return;
             }
 
-            // Basic fields
+            // ✅ Basic details
             document.getElementById("bookingId").value = bookingId;
-            document.getElementById("custNumber").value = data.customerNumber;
-            document.getElementById("custName").value = data.mainCustomerName;
-            document.getElementById("dob").value = data.dob;
-            document.getElementById("age").value = data.age;
-            document.getElementById("gender").value = data.gender;
-            document.getElementById("address").value = data.address;
-            document.getElementById("location").value = data.location;
-            document.getElementById("city").value = data.city;
-            document.getElementById("phleboList").value = data.phleboName;
-            document.getElementById("pincode").value = data.pincode;
+            document.getElementById("custNumber").value = data.customerNumber || "";
+            document.getElementById("custName").value = data.mainCustomerName || "";
+            document.getElementById("dob").value = data.dob || "";
+            document.getElementById("age").value = data.age || "";
+            document.getElementById("gender").value = data.gender || "";
+            document.getElementById("address").value = data.address || "";
+            document.getElementById("location").value = data.location || "";
+            document.getElementById("city").value = data.city || "";
+            document.getElementById("phleboList").value = data.phleboName || "";
+            document.getElementById("pincode").value = data.pincode || "";
 
-            // ✅ Fix date format for prefDate
+            // ✅ Preferred Date (convert to yyyy-mm-dd if valid)
             if (data.preferredDate) {
                 let d = new Date(data.preferredDate);
                 if (!isNaN(d)) {
@@ -788,13 +788,17 @@ function editBooking(bookingId) {
                 } else {
                     document.getElementById("prefDate").value = data.preferredDate;
                 }
+            } else {
+                document.getElementById("prefDate").value = "";
             }
-            document.getElementById("prefTime").value = data.preferredTime;
 
-            document.getElementById("totalAmount").value = data.totalAmount;
-            document.getElementById("discountList").value = data.discount;
-            document.getElementById("techCharge").value = data.techCharge;
-            document.getElementById("totalToPay").value = data.totalToPay;
+            document.getElementById("prefTime").value = data.preferredTime || "";
+
+            // ✅ Other numeric fields
+            document.getElementById("totalAmount").value = data.totalAmount || 0;
+            document.getElementById("discountList").value = data.discount || "";
+            document.getElementById("techCharge").value = data.techCharge || 0;
+            document.getElementById("totalToPay").value = data.totalToPay || 0;
 
             // ✅ Clear old selections
             document.getElementById("selectedTestsBody").innerHTML = "";
@@ -803,11 +807,12 @@ function editBooking(bookingId) {
             // ✅ Load saved tests
             if (data.tests) {
                 try {
-                    let tests = JSON.parse(data.tests); // e.g. ["T001|500","T002|300"]
+                    let tests = JSON.parse(data.tests); // e.g. ["T001|500"]
                     tests.forEach(t => {
                         let [code, cost] = t.split("|");
-                        let name = code; // TODO: replace with lookup if you want test names
-                        addSelectedTest(code, name, cost);
+                        let name = testLookup[code]?.name || code;
+                        let finalCost = testLookup[code]?.cost || cost;
+                        addSelectedTest(code, name, finalCost);
                     });
                 } catch (e) {
                     console.warn("Tests parsing failed:", e);
@@ -817,23 +822,28 @@ function editBooking(bookingId) {
             // ✅ Load saved packages
             if (data.packages) {
                 try {
-                    let packages = JSON.parse(data.packages);
+                    let packages = JSON.parse(data.packages); // e.g. ["P001|1200"]
                     packages.forEach(p => {
                         let [code, cost] = p.split("|");
-                        let name = code;
-                        addSelectedPackage(code, name, cost);
+                        let name = packageLookup[code]?.name || code;
+                        let finalCost = packageLookup[code]?.cost || cost;
+                        addSelectedPackage(code, name, finalCost);
                     });
                 } catch (e) {
                     console.warn("Packages parsing failed:", e);
                 }
             }
 
-            // ✅ Finally recalc totals
+            // ✅ Recalculate totals after restoring tests/packages
             recalculateTotal();
 
-            // ✅ Show form
+            // ✅ Show booking form, hide history
             document.getElementById("bookingForm").style.display = "block";
             document.getElementById("history").style.display = "none";
+        })
+        .catch(err => {
+            console.error("Error fetching booking details:", err);
+            alert("Could not load booking details!");
         });
 }
 
