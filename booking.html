@@ -765,6 +765,8 @@ function editBooking(bookingId) {
                 alert("Booking not found");
                 return;
             }
+
+            // Fill the form
             document.getElementById("bookingId").value = bookingId;
             document.getElementById("custNumber").value = data.customerNumber;
             document.getElementById("custName").value = data.mainCustomerName;
@@ -783,9 +785,14 @@ function editBooking(bookingId) {
             document.getElementById("techCharge").value = data.techCharge;
             document.getElementById("totalToPay").value = data.totalToPay;
 
+            // ✅ Switch buttons
+            document.getElementById("submitBtn").style.display = "none";
+            document.getElementById("updateBtn").style.display = "inline-block";
+
             showBookingForm();
         });
 }
+
 function updateBookingFromForm() {
     let bookingId = document.getElementById("bookingId").value;
     if (!bookingId) {
@@ -795,7 +802,7 @@ function updateBookingFromForm() {
 
     let params = new URLSearchParams({
         action: "updateBooking",
-        bookingId: bookingId,   // use the saved bookingId
+        bookingId: bookingId,  // use existing ID
         customerNumber: document.getElementById("custNumber").value.trim(),
         mainCustomerName: document.getElementById("custName").value.trim(),
         dob: document.getElementById("dob").value,
@@ -822,10 +829,12 @@ function updateBookingFromForm() {
         .then(data => {
             if (data.success) {
                 alert("Booking updated successfully!");
-                // switch buttons back
+
+                // ✅ Switch buttons back
                 document.getElementById("submitBtn").style.display = "inline-block";
                 document.getElementById("updateBtn").style.display = "none";
-                // hide form & refresh table
+
+                // ✅ Hide form and refresh history table
                 document.getElementById("bookingForm").style.display = "none";
                 searchCustomer();
             } else {
@@ -837,6 +846,7 @@ function updateBookingFromForm() {
             alert("Error updating booking!");
         });
 }
+
 
 function getSelectedTests() {
     let tests = [];
