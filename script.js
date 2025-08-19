@@ -170,37 +170,17 @@ function searchCustomer() {
             document.getElementById("history").style.display = "block";
             bookings.forEach(b => {
                 const tr = document.createElement("tr");
-               let status = (b.status || "").trim().toLowerCase();
-let actionButtons = "";
-
-if (status === "confirm") {
-    actionButtons += `<td><button class="small-btn edit" onclick="editBooking('${b.bookingId}')">E</button></td>`;
-    actionButtons += `<td><button class="small-btn cancel" onclick="updateStatus('${b.bookingId}','Cancel')">X</button></td>`;
-    actionButtons += `<td><button class="small-btn paid" onclick="updateStatus('${b.bookingId}','Paid')">P</button></td>`;
-}
-else if (status === "paid" || status === "cancel") {
-    actionButtons += `<td><button class="small-btn edit" disabled>E</button></td>`;
-    actionButtons += `<td><button class="small-btn cancel" disabled>X</button></td>`;
-    actionButtons += `<td><button class="small-btn paid" disabled>P</button></td>`;
-}
-else {
-    actionButtons += `<td><button class="small-btn edit" onclick="editBooking('${b.bookingId}')">E</button></td>`;
-    actionButtons += `<td><button class="small-btn cancel" onclick="updateStatus('${b.bookingId}','Cancel')">X</button></td>`;
-    actionButtons += `<td><button class="small-btn paid" onclick="updateStatus('${b.bookingId}','Paid')">P</button></td>`;
-}
-
-row.innerHTML = `
-  <td>${b.bookingId}</td>
-  <td>${b.customerNumber}</td>
-  <td>${b.name}</td>
-  <td>${b.dateTime}</td>
-  <td>${b.phlebo}</td>
-  <td>${b.agent}</td>
-  <td>${b.status}</td>
-  <td>
-    <button onclick="editBooking('${b.bookingId}')">Edit</button>
-  </td>
-`;
+                tr.innerHTML = `
+                    <td>${b.customerNumber}</td>
+                    <td>${b.name}</td>
+                    <td>${b.dateTime}</td>
+                    <td>${b.phlebo}</td>
+                    <td>${b.agent}</td>
+                    <td>${b.status}</td>
+                    <td><button class="small-btn edit" onclick="editBooking('${b.bookingId}')">E</button></td>
+                    <td><button class="small-btn cancel" onclick="updateStatus('${b.bookingId}','Cancel')">X</button></td>
+                    <td><button class="small-btn paid" onclick="updateStatus('${b.bookingId}','Paid')">P</button></td>
+                `;
                 body.appendChild(tr);
             });
         });
@@ -379,16 +359,14 @@ function updateStatus(bookingId, status) {
 }
 
 function editBooking(bookingId) {
-    fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`)
+    fetch(`${API_URL}?action=getBookingDetails&bookingId=${encodeURIComponent(bookingId)}`)
         .then(res => res.json())
         .then(data => {
-            if (!data || data.success === false) {
+            if (data.success === false) {
                 alert("Booking not found");
                 return;
             }
-
-            // Fill the form with existing data
-            document.getElementById("bookingId").value = bookingId;
+            showBookingForm();
             document.getElementById("custNumber").value = data.customerNumber;
             document.getElementById("custName").value = data.mainCustomerName;
             document.getElementById("dob").value = data.dob;
@@ -405,58 +383,7 @@ function editBooking(bookingId) {
             document.getElementById("discountList").value = data.discount;
             document.getElementById("techCharge").value = data.techCharge;
             document.getElementById("totalToPay").value = data.totalToPay;
-
-            // ✅ Toggle buttons: hide Submit, show Update
-            document.getElementById("submitBtn").style.display = "none";
-            document.getElementById("updateBtn").style.display = "inline-block";
-
-            // ✅ Finally show the form
-            document.getElementById("bookingForm").style.display = "block";
         });
-}
-
-
-function updateBooking() {
-  const bookingId = document.getElementById("updateBtn").getAttribute("data-id");
-
-  const data = {
-    bookingId: bookingId,
-    customerNumber: document.getElementById("custNumber").value,
-    name: document.getElementById("custName").value,
-    dob: document.getElementById("dob").value,
-    age: document.getElementById("age").value,
-    gender: document.getElementById("gender").value,
-    address: document.getElementById("address").value,
-    location: document.getElementById("location").value,
-    city: document.getElementById("city").value,
-    phlebo: document.getElementById("phleboName").value,
-    pincode: document.getElementById("pincode").value,
-    preferredDate: document.getElementById("preferredDate").value,
-    preferredTime: document.getElementById("preferredTime").value,
-    tests: document.getElementById("tests").value,
-    packages: document.getElementById("packages").value,
-    totalAmount: document.getElementById("totalAmount").value,
-  };
-
-  fetch(`${API_URL}?action=updateBooking`, {
-    method: "POST",
-    body: JSON.stringify(data),
-    headers: { "Content-Type": "application/json" }
-  })
-  .then(res => res.json())
-  .then(result => {
-    if (result.success) {
-      alert("Booking updated successfully!");
-      document.getElementById("submitBtn").style.display = "inline-block";
-      document.getElementById("updateBtn").style.display = "none";
-    } else {
-      alert("Update failed: " + result.message);
-    }
-  })
-  .catch(err => {
-    console.error("Update error:", err);
-    alert("Error updating booking!");
-  });
 }
 
 function addSubBooking() {
