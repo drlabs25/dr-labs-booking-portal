@@ -771,7 +771,7 @@ function formatDateForInput(dateStr) {
 }
 
 function editBooking(bookingId) {
-    fetch(`${API_URL}?action=getBookingDetails&bookingId=${encodeURIComponent(bookingId)}`)
+    fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`)
         .then(res => res.json())
         .then(data => {
             if (!data || data.success === false) {
@@ -779,54 +779,52 @@ function editBooking(bookingId) {
                 return;
             }
 
-           // ✅ Load saved tests by code
-document.getElementById("selectedTestsBody").innerHTML = "";
-if (data.tests) {
-    let testCodes = data.tests.split(",");
-    fetch(`${API_URL}?action=getTests&search=`)
-        .then(res => res.json())
-        .then(allTests => {
-            testCodes.forEach(code => {
-                let match = allTests.find(t => t.code == code);
-                if (match) {
-                    let tr = document.createElement("tr");
-                    tr.id = "test_" + match.code;
-                    tr.innerHTML = `
-                        <td>${match.name}</td>
-                        <td>₹${match.cost}</td>
-                        <td><button type="button" onclick="removeSelected('test_${match.code}')">Remove</button></td>
-                        <input type="hidden" class="selected-test" value="${match.code}|${match.cost}">
-                    `;
-                    document.getElementById("selectedTestsBody").appendChild(tr);
-                }
-            });
-        });
-}
+            // ✅ Fill customer info
+            document.getElementById("custNumber").value = data.customerNumber || "";
+            document.getElementById("custNumber").readOnly = true;
+            document.getElementById("bookingId").value = data.bookingId || "";
+            document.getElementById("custName").value = data.name || "";
+            document.getElementById("dob").value = formatDateForInput(data.dob);
+            document.getElementById("age").value = data.age || "";
+            document.getElementById("gender").value = data.gender || "";
+            document.getElementById("address").value = data.address || "";
+            document.getElementById("location").value = data.location || "";
+            document.getElementById("city").value = data.city || "";
+            document.getElementById("phleboList").value = data.phleboName || "";
+            document.getElementById("pincode").value = data.pincode || "";
+            document.getElementById("prefDate").value = formatDateForInput(data.preferredDate);
+            document.getElementById("prefTime").value = data.preferredTime || "";
 
-// ✅ Load saved packages by code
-document.getElementById("selectedPackagesBody").innerHTML = "";
-if (data.packages) {
-    let pkgCodes = data.packages.split(",");
-    fetch(`${API_URL}?action=getPackages&search=`)
-        .then(res => res.json())
-        .then(allPkgs => {
-            pkgCodes.forEach(code => {
-                let match = allPkgs.find(p => p.code == code);
-                if (match) {
-                    let tr = document.createElement("tr");
-                    tr.id = "package_" + match.code;
-                    tr.innerHTML = `
-                        <td>${match.name}</td>
-                        <td>₹${match.cost}</td>
-                        <td><button type="button" onclick="removeSelected('package_${match.code}')">Remove</button></td>
-                        <input type="hidden" class="selected-package" value="${match.code}|${match.cost}">
-                    `;
-                    document.getElementById("selectedPackagesBody").appendChild(tr);
-                }
-            });
-        });
-}
+            // ✅ Clear existing selections
+            document.getElementById("selectedTestsBody").innerHTML = "";
+            document.getElementById("selectedPackagesBody").innerHTML = "";
 
+            // ✅ Pre-fill Tests
+            if (data.tests) {
+                data.tests.split(",").forEach(t => {
+                    let [code, cost] = t.split("|");
+                    if (code) {
+                        fetch(`${API_URL}?action=getTestByCode&code=${code}`)
+                          .then(r => r.json())
+                          .then(test => addSelectedTest(test.code, test.name, test.cost));
+                    }
+                });
+            }
+
+            // ✅ Pre-fill Packages
+            if (data.packages) {
+                data.packages.split(",").forEach(p => {
+                    let [code, cost] = p.split("|");
+                    if (code) {
+                        fetch(`${API_URL}?action=getPackageByCode&code=${code}`)
+                          .then(r => r.json())
+                          .then(pkg => addSelectedPackage(pkg.code, pkg.name, pkg.cost));
+                    }
+                });
+            }
+
+            // ✅ Totals
+            recalculateTotal();
 
             // ✅ Show form
             document.getElementById("bookingForm").style.display = "block";
@@ -837,6 +835,7 @@ if (data.packages) {
             alert("Could not load booking details. Please try again.");
         });
 }
+
 
 
 function getSelectedTests() {
