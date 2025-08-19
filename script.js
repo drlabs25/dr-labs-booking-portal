@@ -367,7 +367,7 @@ function editBooking(bookingId) {
         return;
       }
 
-      // Fill form with booking data
+      // Fill form with existing booking data
       document.getElementById("custNumber").value = data.customerNumber || "";
       document.getElementById("custName").value = data.mainCustomerName || "";
       document.getElementById("dob").value = data.dob || "";
@@ -385,48 +385,6 @@ function editBooking(bookingId) {
       document.getElementById("techCharge").value = data.techCharge || 0;
       document.getElementById("totalToPay").value = data.totalToPay || 0;
 
-      // ✅ Restore Tests
-      document.getElementById("selectedTestsBody").innerHTML = "";
-      if (data.tests) {
-        data.tests.split(",").forEach(t => {
-          let parts = t.split("|"); // expect format code|cost
-          if (parts.length >= 2) {
-            let code = parts[0], cost = parts[1];
-            let name = parts[2] || code;
-            let tr = document.createElement("tr");
-            tr.id = "test_" + code;
-            tr.innerHTML = `
-              <td>${name}</td>
-              <td>₹${cost}</td>
-              <td><button type="button" onclick="removeSelected('test_${code}')">Remove</button></td>
-              <input type="hidden" class="selected-test" value="${code}|${cost}">
-            `;
-            document.getElementById("selectedTestsBody").appendChild(tr);
-          }
-        });
-      }
-
-      // ✅ Restore Packages
-      document.getElementById("selectedPackagesBody").innerHTML = "";
-      if (data.packages) {
-        data.packages.split(",").forEach(p => {
-          let parts = p.split("|");
-          if (parts.length >= 2) {
-            let code = parts[0], cost = parts[1];
-            let name = parts[2] || code;
-            let tr = document.createElement("tr");
-            tr.id = "package_" + code;
-            tr.innerHTML = `
-              <td>${name}</td>
-              <td>₹${cost}</td>
-              <td><button type="button" onclick="removeSelected('package_${code}')">Remove</button></td>
-              <input type="hidden" class="selected-package" value="${code}|${cost}">
-            `;
-            document.getElementById("selectedPackagesBody").appendChild(tr);
-          }
-        });
-      }
-
       // Store bookingId for update
       document.getElementById("updateBtn").setAttribute("data-booking-id", bookingId);
 
@@ -442,7 +400,6 @@ function editBooking(bookingId) {
       alert("Error fetching booking details!");
     });
 }
-
 
 function updateBookingFromForm() {
   const bookingId = document.getElementById("updateBtn").getAttribute("data-booking-id");
