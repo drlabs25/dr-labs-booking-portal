@@ -360,7 +360,7 @@ function updateStatus(bookingId, status) {
         });
 }
 
-ffunction editBooking(bookingId) {
+function editBooking(bookingId) {
     fetch(`${API_URL}?action=getBooking&bookingId=${encodeURIComponent(bookingId)}`)
         .then(res => res.json())
         .then(data => {
