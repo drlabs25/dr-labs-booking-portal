@@ -358,6 +358,7 @@ function updateStatus(bookingId, status) {
         });
 }
 
+// ✅ Edit Booking: fetch details and populate form
 function editBooking(bookingId) {
   console.log("Editing bookingId:", bookingId);
   fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`)
@@ -373,7 +374,7 @@ function editBooking(bookingId) {
       document.getElementById("bookingId").value = bookingId;
       document.getElementById("custNumber").value = data.customerNumber || "";
       document.getElementById("custName").value = data.mainCustomerName || "";
-      document.getElementById("dob").value = data.dob || "";              // ✅ Already formatted
+      document.getElementById("dob").value = data.dob || "";
       document.getElementById("age").value = data.age || "";
       document.getElementById("gender").value = data.gender || "";
       document.getElementById("address").value = data.address || "";
@@ -381,9 +382,21 @@ function editBooking(bookingId) {
       document.getElementById("city").value = data.city || "";
       document.getElementById("phleboList").value = data.phleboName || "";
       document.getElementById("pincode").value = data.pincode || "";
-      document.getElementById("prefDate").value = data.preferredDate || ""; // ✅ Already formatted
-      document.getElementById("prefTime").value = data.preferredTime || "";
 
+      // ✅ Normalize date for <input type="date">
+      if (data.preferredDate) {
+        let d = new Date(data.preferredDate);
+        if (!isNaN(d.getTime())) {
+          document.getElementById("prefDate").value =
+            d.toISOString().split("T")[0]; // yyyy-MM-dd
+        } else {
+          document.getElementById("prefDate").value = data.preferredDate;
+        }
+      } else {
+        document.getElementById("prefDate").value = "";
+      }
+
+      document.getElementById("prefTime").value = data.preferredTime || "";
       document.getElementById("totalAmount").value = data.totalAmount || 0;
       document.getElementById("discountList").value = data.discount || 0;
       document.getElementById("techCharge").value = data.techCharge || 0;
@@ -407,8 +420,8 @@ function editBooking(bookingId) {
         });
       }
 
-      // ✅ Recalculate totals
-      recalculateTotal();
+      // ✅ Fix: recalc totals after restoring
+      recalcTotalFromSelection();
 
       // Switch buttons
       document.getElementById("submitBtn").style.display = "none";
@@ -416,12 +429,14 @@ function editBooking(bookingId) {
 
       // Show form
       document.getElementById("bookingForm").style.display = "block";
+      document.getElementById("history").style.display = "none";
     })
     .catch(err => {
       console.error("Error fetching booking details:", err);
       alert("Error fetching booking details!");
     });
 }
+
 
 
 function updateBookingFromForm() {
@@ -528,18 +543,41 @@ document.getElementById("custNumber").readOnly = true;
 }
 
 function showBookingForm() {
-    let custNumber = document.getElementById("custNumber").value.trim();
+  let custNumber = document.getElementById("searchCustNumber").value.trim();
 
-    // Debug log (remove after testing)
-    console.log("custNumber:", custNumber, "length:", custNumber.length);
+  if (!/^\d{10}$/.test(custNumber)) {
+    alert("Please enter a valid 10-digit Customer Number");
+    return;
+  }
 
-    if (!/^\d{10}$/.test(custNumber)) {
-        alert("Enter a valid 10-digit Customer Number");
-        return;
-    }
+  // ✅ Put number into form and freeze it
+  document.getElementById("custNumber").value = custNumber;
+  document.getElementById("custNumber").readOnly = true;
 
-    // ✅ Passed validation → show booking form
-    document.getElementById("bookingForm").style.display = "block";
+  // ✅ Reset only the fields we want cleared (not bookingId, custNumber)
+  document.querySelectorAll("#bookingForm input, #bookingForm select, #bookingForm textarea").forEach(el => {
+    if (el.id !== "custNumber" && el.id !== "bookingId") el.value = "";
+  });
+
+  // Clear selected tests & packages
+  document.querySelectorAll("#testList input[type='checkbox']").forEach(el => el.checked = false);
+  document.querySelectorAll("#packageList input[type='checkbox']").forEach(el => el.checked = false);
+  document.getElementById("selectedTestsBody").innerHTML = "";
+  document.getElementById("selectedPackagesBody").innerHTML = "";
+
+  // Reset totals
+  document.getElementById("totalAmount").value = "";
+  document.getElementById("techCharge").value = "";
+  document.getElementById("totalToPay").value = "";
+  document.getElementById("discountList").value = "0";
+
+  // ✅ Show the form
+  document.getElementById("bookingForm").style.display = "block";
+  document.getElementById("history").style.display = "none";
+
+  // Switch buttons for fresh booking
+  document.getElementById("submitBtn").style.display = "inline-block";
+  document.getElementById("updateBtn").style.display = "none";
 }
 function confirmBooking() {
     if (bookingList.length === 0) {
