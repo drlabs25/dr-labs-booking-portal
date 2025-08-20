@@ -1,132 +1,151 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>Booking</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="script.js"></script>
-  <style>
-    .small-btn { padding: 5px 10px; font-size: 12px; border-radius: 50%; border: none; cursor: pointer; }
-    .cancel { background: red; color: white; }
-    .edit { background: orange; color: white; }
-    .paid { background: green; color: white; }
-    .flex { display: flex; gap: 10px; flex-wrap: wrap; }
-    .flex input, .flex select { flex: 1; }
-  </style>
+<meta charset="UTF-8">
+<title>Booking</title>
+<link rel="stylesheet" href="style.css">
+<script src="script.js"></script>
+
+<style>
+.small-btn { padding: 5px 10px; font-size: 12px; border-radius: 50%; border: none; cursor: pointer; }
+.cancel { background: red; color: white; }
+.edit { background: orange; color: white; }
+.paid { background: green; color: white; }
+.flex { display: flex; gap: 10px; flex-wrap: wrap; }
+.flex input, .flex select { flex: 1; }
+
+/* Container for top-left buttons */
+#topLeftBtns {
+    position: fixed;
+    top: 10px;
+    left: 20px;
+    display: flex;
+    gap: 6px;   /* space between buttons */
+    z-index: 999;
+}
+
+/* Style for both Back & Home buttons */
+#topLeftBtns button {
+    padding: 4px 8px;      
+    font-size: 11px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background: #444;
+    color: white;
+}
+</style>
 </head>
 <body>
-  <button class="nav-btn back" onclick="goBack()">Back</button>
-  <button class="nav-btn home" onclick="goHome()">Home</button>
 
-  <div class="container">
-    <h2>Booking Form</h2>
+<!-- Navigation buttons -->
+<div id="topLeftBtns">
+    <button onclick="goBack()">Back</button>
+    <button onclick="goHome()">Home</button>
+</div>
 
-    <!-- ✅ Single Booking Form -->
-    <div id="bookingForm" style="display:none; margin-top:20px;">
-      <input type="hidden" id="bookingId">
+<div class="container">
+<h2>Booking Form</h2>
 
-      <div class="flex">
+<!-- Search Section -->
+<div class="flex">
+    <input type="number" id="searchCustNumber" placeholder="Enter Customer Number">
+    <button onclick="showBookingForm()">Search</button>
+</div>
+
+<!-- Booking Form -->
+<div id="bookingForm" style="display:none;">
+    <input type="hidden" id="bookingId">
+
+    <div class="flex">
         <input type="number" id="custNumber" placeholder="Customer Number">
         <input type="text" id="custName" placeholder="Customer Name">
-      </div>
+    </div>
 
-      <div class="flex">
-        <input type="date" id="dob" placeholder="Date of Birth">
+    <div class="flex">
+        <input type="date" id="dob">
         <input type="number" id="age" placeholder="Age">
         <select id="gender">
-          <option value="">Select Gender</option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
+            <option value="">Select Gender</option>
+            <option>Male</option>
+            <option>Female</option>
+            <option>Other</option>
         </select>
-      </div>
+    </div>
 
-      <div class="flex">
-        <textarea id="address" placeholder="Address"></textarea>
-      </div>
+    <textarea id="address" placeholder="Address"></textarea>
 
-      <div class="flex">
+    <div class="flex">
         <input type="text" id="location" placeholder="Location">
         <select id="city">
-          <option value="">Select City</option>
-          <option value="City1">City1</option>
-          <option value="City2">City2</option>
+            <option value="">Select City</option>
+            <option>Chennai</option>
+            <option>Bangalore</option>
+            <option>Hyderabad</option>
         </select>
-      </div>
+    </div>
 
-      <div class="flex">
+    <div class="flex">
         <select id="phleboList">
-          <option value="">Select Phlebo</option>
+            <option value="">Select Phlebo</option>
         </select>
         <input type="number" id="pincode" placeholder="Pincode">
-      </div>
+    </div>
 
-      <div class="flex">
+    <div class="flex">
         <input type="date" id="prefDate">
         <input type="time" id="prefTime">
-      </div>
-
-      <div id="testList"></div>
-      <div id="packageList"></div>
-
-      <div class="flex">
-        <input type="number" id="totalAmount" placeholder="Total Amount">
-        <input type="number" id="discountList" placeholder="Discount">
-        <input type="number" id="techCharge" placeholder="Tech Charge">
-        <input type="number" id="totalToPay" placeholder="Total To Pay">
-      </div>
-
-      <button id="submitBtn" onclick="createBooking()">Submit</button>
-      <button id="updateBtn" style="display:none;" onclick="updateBookingFromForm()">Update</button>
-    </div>
- 
-
-    <!-- Main Booking Preview Table -->
-    <div id="mainBookingPreview" style="display:none; float:right; width:35%; margin-top:20px;">
-        <h3>Main Booking</h3>
-        <table border="1" style="width:100%;">
-            <thead>
-                <tr>
-                    <th>Customer Name</th>
-                    <th>Preferred Date & Time</th>
-                    <th>Total Cost</th>
-                </tr>
-            </thead>
-            <tbody id="mainBookingPreviewBody"></tbody>
-        </table>
     </div>
 
-    <!-- Package selection -->
-    <label>Packages</label>
-    <input type="text" placeholder="Search Package" oninput="loadPackages(this.value)">
-    <div id="packageList"></div>
-    <div id="selectedPackages">
-        <table border="1" style="width:100%; margin-top:5px;">
-            <thead>
-                <tr>
-                    <th>Package Name</th>
-                    <th>Cost</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="selectedPackagesBody"></tbody>
-        </table>
-    </div>
+    <h3>Tests</h3>
+    <input type="text" id="testSearch" placeholder="Search Tests..." oninput="searchTests()">
+    <div id="testResults"></div>
+    <table>
+        <tbody id="selectedTestsBody"></tbody>
+    </table>
 
+    <button id="submitBtn" onclick="createBooking()">Create Booking</button>
+    <button id="updateBtn" style="display:none;" onclick="updateBooking()">Update Booking</button>
+</div>
+
+<!-- Main Booking Preview Table -->
+<h3>Main Booking Preview</h3>
+<table border="1" id="bookingTable">
+    <thead>
+        <tr>
+            <th>Type</th>
+            <th>Name</th>
+            <th>Date/Time</th>
+            <th>Cost</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<!-- Packages & Totals Section -->
+<h3>Packages</h3>
+<input type="text" id="packageSearch" placeholder="Search Packages..." oninput="searchPackages()">
+<div id="packageResults"></div>
+<table>
+    <tbody id="selectedPackagesBody"></tbody>
+</table>
+
+<h3>Totals</h3>
+<div class="flex">
     <input type="number" id="totalAmount" placeholder="Total Amount" readonly>
-
     <select id="discountList" onchange="recalculateTotal()">
         <option value="0">No Discount</option>
-        <option value="5">5%</option>
-        <option value="10">10%</option>
-        <option value="15">15%</option>
-        <option value="20">20%</option>
+        <option value="5">5% Discount</option>
+        <option value="10">10% Discount</option>
+        <option value="15">15% Discount</option>
     </select>
-
     <input type="number" id="techCharge" placeholder="Technician Charge" oninput="recalculateTotal()">
     <input type="number" id="totalToPay" placeholder="Total Amount to be Paid" readonly>
+</div>
 
-    <!-- ✅ Only one pair of buttons -->
-   
+<button onclick="confirmBooking()">Confirm Booking</button>
+
 </div>
 
 <!-- ✅ Add More button OUTSIDE bookingForm -->
