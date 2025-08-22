@@ -802,8 +802,12 @@ function editBooking(bookingId) {
 
             // ✅ Load Tests from codes into table
             document.getElementById("selectedTestsBody").innerHTML = "";
-            if (data.testCodes && Array.isArray(data.testCodes)) {
-                data.testCodes.forEach(code => {
+            let testCodes = data.testCodes;
+            if (typeof testCodes === "string" && testCodes.trim() !== "") {
+                testCodes = testCodes.split(",").map(c => c.trim());
+            }
+            if (Array.isArray(testCodes)) {
+                testCodes.forEach(code => {
                     const test = testsList.find(t => t.code === code);
                     if (test) {
                         addTestToTable(test.code, test.name, test.price);
@@ -813,8 +817,12 @@ function editBooking(bookingId) {
 
             // ✅ Load Packages from codes into table
             document.getElementById("selectedPackagesBody").innerHTML = "";
-            if (data.packageCodes && Array.isArray(data.packageCodes)) {
-                data.packageCodes.forEach(code => {
+            let packageCodes = data.packageCodes;
+            if (typeof packageCodes === "string" && packageCodes.trim() !== "") {
+                packageCodes = packageCodes.split(",").map(c => c.trim());
+            }
+            if (Array.isArray(packageCodes)) {
+                packageCodes.forEach(code => {
                     const pkg = packagesList.find(p => p.code === code);
                     if (pkg) {
                         addPackageToTable(pkg.code, pkg.name, pkg.price);
@@ -843,6 +851,7 @@ function editBooking(bookingId) {
             alert("Error fetching booking details!");
         });
 }
+
 
 
 
