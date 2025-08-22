@@ -390,27 +390,28 @@ function editBooking(bookingId) {
       document.getElementById("selectedTestsBody").innerHTML = "";
       document.getElementById("selectedPackagesBody").innerHTML = "";
 
-      // ✅ Re-fill Tests
-      if (data.tests) {
-        const testItems = data.tests.split(",");
-        testItems.forEach(item => {
-          let parts = item.split("|"); // [code, cost, name]
-          if (parts.length >= 3) {
-            addSelectedTest(parts[0], parts[1], parts[2]);
-          }
-        });
-      }
+    // ✅ Re-fill Tests
+if (data.tests) {
+  const testItems = data.tests.split(",");
+  testItems.forEach(item => {
+    let parts = item.split("|"); // [code, name, cost]
+    if (parts.length === 3) {
+      addSelectedTest(parts[0], parts[1], parts[2]);
+    }
+  });
+}
 
-      // ✅ Re-fill Packages
-      if (data.packages) {
-        const pkgItems = data.packages.split(",");
-        pkgItems.forEach(item => {
-          let parts = item.split("|"); // [code, cost, name]
-          if (parts.length >= 3) {
-            addSelectedPackage(parts[0], parts[1], parts[2]);
-          }
-        });
-      }
+// ✅ Re-fill Packages
+if (data.packages) {
+  const pkgItems = data.packages.split(",");
+  pkgItems.forEach(item => {
+    let parts = item.split("|"); // [code, name, cost]
+    if (parts.length === 3) {
+      addSelectedPackage(parts[0], parts[1], parts[2]);
+    }
+  });
+}
+
 
       // ✅ Recalculate totals
       recalculateTotal();
