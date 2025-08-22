@@ -1,124 +1,85 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>Booking</title>
-<link rel="stylesheet" href="style.css">
-<script src="script.js"></script>
-<style>
-.small-btn { padding: 5px 10px; font-size: 12px; border-radius: 50%; border: none; cursor: pointer; }
-.cancel { background: red; color: white; }
-.edit { background: orange; color: white; }
-.paid { background: green; color: white; }
-.flex { display: flex; gap: 10px; flex-wrap: wrap; }
-.flex input, .flex select { flex: 1; }
-
-/* Container for top-left buttons */
-#topLeftBtns {
-    position: fixed;
-    top: 10px;
-    left: 20px;
-    display: flex;
-    gap: 6px;   /* space between buttons */
-    z-index: 999;
-}
-
-/* Search section styling */
-#searchCustNumber {
-    flex: 2;
-}
-#searchSection {
-    margin: 20px 0;
-}
-</style>
+  <title>Bookings</title>
 </head>
 <body>
-    <div class="container">
-        <h2>Booking Form</h2>
 
-        <!-- 🔍 Search Section -->
-        <div id="searchSection" class="flex">
-            <input type="number" id="searchCustNumber" placeholder="Enter Customer Number">
-            <button onclick="showBookingForm()">Search</button>
-        </div>
+  <!-- Example Edit button (you can generate this for each booking row) -->
+  <button onclick="editBooking('12345')">Edit Booking</button>
 
-        <!-- Booking Form -->
-        <form id="bookingForm" style="display:none;">
-            <input type="hidden" id="bookingId">
+  <!-- Booking Form -->
+  <form id="bookingForm">
+    <input id="bookingId" type="hidden">
 
-            <div class="flex">
-                <!-- Readonly Customer Number (filled after search) -->
-                <input type="number" id="custNumber" placeholder="Customer Number" readonly>
-                <input type="text" id="custName" placeholder="Customer Name">
-            </div>
+    <label>Name</label>
+    <input id="mainCustomerName" type="text">
 
-            <div class="flex">
-                <input type="date" id="dob" placeholder="Date of Birth">
-                <input type="number" id="age" placeholder="Age">
-                <select id="gender">
-                    <option value="">Select Gender</option>
-                    <option>Male</option>
-                    <option>Female</option>
-                </select>
-            </div>
+    <label>Mobile</label>
+    <input id="customerNumber" type="text">
 
-            <div class="flex">
-                <textarea id="address" placeholder="Address"></textarea>
-            </div>
+    <label>DOB</label>
+    <input id="dob" type="date">
 
-            <div class="flex">
-                <input type="text" id="location" placeholder="Location">
-                <select id="city">
-                    <option value="">Select City</option>
-                    <option>Chennai</option>
-                    <option>Bangalore</option>
-                </select>
-            </div>
+    <label>Age</label>
+    <input id="age" type="number">
 
-            <div class="flex">
-                <select id="phleboList">
-                    <option value="">Select Phlebo</option>
-                </select>
-                <input type="text" id="pincode" placeholder="Pincode">
-            </div>
+    <label>Gender</label>
+    <input id="gender" type="text">
 
-            <div class="flex">
-                <input type="date" id="prefDate">
-                <input type="time" id="prefTime">
-            </div>
+    <label>Address</label>
+    <textarea id="address"></textarea>
 
-            <!-- Tests Section -->
-            <h3>Tests</h3>
-            <input type="text" id="testSearch" placeholder="Search Tests...">
-            <table>
-                <tbody id="selectedTestsBody"></tbody>
-            </table>
+    <label>Location</label>
+    <input id="location" type="text">
 
-            <!-- Packages Section -->
-            <h3>Packages</h3>
-            <input type="text" id="packageSearch" placeholder="Search Package">
-            <table>
-                <tbody id="selectedPackagesBody"></tbody>
-            </table>
+    <label>City</label>
+    <input id="city" type="text">
 
-            <div class="flex">
-                <input type="text" id="totalAmount" placeholder="Total Amount" readonly>
-                <select id="discountList">
-                    <option value="0">No Discount</option>
-                </select>
-            </div>
+    <label>Phlebo</label>
+    <input id="phleboName" type="text">
 
-            <div class="flex">
-                <input type="text" id="techCharge" placeholder="Technician Charge" readonly>
-                <input type="text" id="totalToPay" placeholder="Total Amount to be Paid" readonly>
-            </div>
+    <label>Pincode</label>
+    <input id="pincode" type="text">
 
-            <button id="submitBtn" type="button" onclick="createBooking()">Create Booking</button>
-            <button id="updateBtn" type="button" style="display:none;" onclick="updateBooking()">Update Booking</button>
-        </form>
-    </div>
+    <label>Preferred Date</label>
+    <input id="preferredDate" type="date">
+
+    <label>Preferred Time</label>
+    <input id="preferredTime" type="text">
+
+    <label>Tests</label>
+    <input id="tests" type="text">
+
+    <label>Packages</label>
+    <input id="packages" type="text">
+
+    <label>Total Amount</label>
+    <input id="totalAmount" type="number">
+
+    <label>Discount</label>
+    <input id="discount" type="number">
+
+    <label>Technician Charge</label>
+    <input id="techCharge" type="number">
+
+    <label>Total To Pay</label>
+    <input id="totalToPay" type="number">
+
+    <label>Agent</label>
+    <input id="agentName" type="text">
+
+    <label>Status</label>
+    <input id="status" type="text">
+
+    <button type="button" onclick="updateBooking()">Update</button>
+  </form>
+
+  <!-- Attach JS file -->
+  <script src="script.js"></script>
 </body>
 </html>
+
 
 
 <!-- Main Booking Preview Table -->
