@@ -358,85 +358,50 @@ function updateStatus(bookingId, status) {
         });
 }
 
-// ✅ Edit Booking: fetch details and populate form
+let currentBookingId = null;
+
+// 🟢 EDIT — fetch booking & fill form
 function editBooking(bookingId) {
-  console.log("Editing bookingId:", bookingId);
-  fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`)
+  currentBookingId = bookingId;
+  const url = `https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec?action=getBookingDetails&bookingId=${bookingId}`;
+
+  fetch(url)
     .then(res => res.json())
     .then(data => {
-      console.log("Booking details response:", data);
-      if (!data || data.success === false) {
-        alert("Booking not found");
-        return;
-      }
-
-      // Fill the form
-      document.getElementById("bookingId").value = bookingId;
-      document.getElementById("custNumber").value = data.customerNumber || "";
-      document.getElementById("custName").value = data.mainCustomerName || "";
-      document.getElementById("dob").value = data.dob || "";
-      document.getElementById("age").value = data.age || "";
-      document.getElementById("gender").value = data.gender || "";
-      document.getElementById("address").value = data.address || "";
-      document.getElementById("location").value = data.location || "";
-      document.getElementById("city").value = data.city || "";
-      document.getElementById("phleboList").value = data.phleboName || "";
-      document.getElementById("pincode").value = data.pincode || "";
-
-      // ✅ Normalize date for <input type="date">
-      if (data.preferredDate) {
-        let d = new Date(data.preferredDate);
-        if (!isNaN(d.getTime())) {
-          document.getElementById("prefDate").value =
-            d.toISOString().split("T")[0]; // yyyy-MM-dd
-        } else {
-          document.getElementById("prefDate").value = data.preferredDate;
+      if (data.success) {
+        // Fill all form fields that match keys
+        for (const key in data) {
+          if (document.getElementById(key)) {
+            document.getElementById(key).value = data[key] || "";
+          }
         }
       } else {
-        document.getElementById("prefDate").value = "";
+        alert("Booking not found!");
       }
-
-      document.getElementById("prefTime").value = data.preferredTime || "";
-      document.getElementById("totalAmount").value = data.totalAmount || 0;
-      document.getElementById("discountList").value = data.discount || 0;
-      document.getElementById("techCharge").value = data.techCharge || 0;
-      document.getElementById("totalToPay").value = data.totalToPay || 0;
-
-      // ✅ Restore tests
-      if (data.tests) {
-        let selectedTests = data.tests.split(",");
-        selectedTests.forEach(code => {
-          let chk = document.querySelector(`#testList input[value^='${code}|']`);
-          if (chk) chk.checked = true;
-        });
-      }
-
-      // ✅ Restore packages
-      if (data.packages) {
-        let selectedPackages = data.packages.split(",");
-        selectedPackages.forEach(code => {
-          let chk = document.querySelector(`#packageList input[value^='${code}|']`);
-          if (chk) chk.checked = true;
-        });
-      }
-
-      // ✅ Fix: recalc totals after restoring
-      recalcTotalFromSelection();
-
-      // Switch buttons
-      document.getElementById("submitBtn").style.display = "none";
-      document.getElementById("updateBtn").style.display = "inline-block";
-
-      // Show form
-      document.getElementById("bookingForm").style.display = "block";
-      document.getElementById("history").style.display = "none";
     })
-    .catch(err => {
-      console.error("Error fetching booking details:", err);
-      alert("Error fetching booking details!");
-    });
+    .catch(err => alert("Error fetching booking: " + err));
 }
 
+// 🟢 UPDATE — send edited values back
+function updateBooking() {
+  const form = document.getElementById("bookingForm");
+  const formData = new FormData(form);
+  formData.append("action", "updateBooking");
+  formData.append("bookingId", currentBookingId);
+
+  const url = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec";
+
+  fetch(url, { method: "POST", body: formData })
+    .then(res => res.json())
+    .then(resp => {
+      if (resp.success) {
+        alert("Booking updated successfully!");
+      } else {
+        alert("Update failed: " + resp.message);
+      }
+    })
+    .catch(err => alert("Error updating booking: " + err));
+}
 
 
 function updateBookingFromForm() {
