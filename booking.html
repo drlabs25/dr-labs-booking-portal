@@ -805,10 +805,12 @@ function editBooking(bookingId) {
             if (data.tests) {
                 data.tests.split(",").forEach(item => {
                     const parts = item.split("|");
-                    const code  = parts[0] || "";
-                    const cost  = parts[1] || "0";
-                    const name  = parts[2] || code;
-                    addSelectedTest(code, name, cost);
+                    if (parts.length >= 3) {
+                        const code = parts[0];
+                        const cost = parts[1];
+                        const name = parts[2];
+                        addSelectedTest(code, name, cost);
+                    }
                 });
             }
 
@@ -817,10 +819,12 @@ function editBooking(bookingId) {
             if (data.packages) {
                 data.packages.split(",").forEach(item => {
                     const parts = item.split("|");
-                    const code  = parts[0] || "";
-                    const cost  = parts[1] || "0";
-                    const name  = parts[2] || code;
-                    addSelectedPackage(code, name, cost);
+                    if (parts.length >= 3) {
+                        const code = parts[0];
+                        const cost = parts[1];
+                        const name = parts[2];
+                        addSelectedPackage(code, name, cost);
+                    }
                 });
             }
 
@@ -831,7 +835,7 @@ function editBooking(bookingId) {
             document.getElementById("submitBtn").style.display = "none";
             document.getElementById("updateBtn").style.display = "inline-block";
 
-            // ✅ Freeze these fields in edit mode
+            // Freeze these fields in edit mode
             document.getElementById("location").disabled   = true;
             document.getElementById("city").disabled       = true;
             document.getElementById("pincode").disabled    = true;
@@ -848,6 +852,7 @@ function editBooking(bookingId) {
             alert("Error fetching booking details!");
         });
 }
+
 
 
 
