@@ -358,51 +358,48 @@ function updateStatus(bookingId, status) {
         });
 }
 
-let currentBookingId = null;
-
-// 🟢 EDIT — fetch booking & fill form
 function editBooking(bookingId) {
-  currentBookingId = bookingId;
-  const url = `https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec?action=getBookingDetails&bookingId=${bookingId}`;
-
-  fetch(url)
+  fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`)
     .then(res => res.json())
     .then(data => {
-      if (data.success) {
-        // Fill all form fields that match keys
-        for (const key in data) {
-          if (document.getElementById(key)) {
-            document.getElementById(key).value = data[key] || "";
-          }
-        }
-      } else {
+      if (!data || !data.bookingId) {
         alert("Booking not found!");
+        return;
       }
+
+      // Fill form with existing booking data
+      document.getElementById("custNumber").value = data.customerNumber || "";
+      document.getElementById("custName").value = data.mainCustomerName || "";
+      document.getElementById("dob").value = data.dob || "";
+      document.getElementById("age").value = data.age || "";
+      document.getElementById("gender").value = data.gender || "";
+      document.getElementById("address").value = data.address || "";
+      document.getElementById("location").value = data.location || "";
+      document.getElementById("city").value = data.city || "";
+      document.getElementById("pincode").value = data.pincode || "";
+      document.getElementById("phleboList").value = data.phleboName || "";
+      document.getElementById("prefDate").value = data.preferredDate || "";
+      document.getElementById("prefTime").value = data.preferredTime || "";
+      document.getElementById("totalAmount").value = data.totalAmount || 0;
+      document.getElementById("discountList").value = data.discount || 0;
+      document.getElementById("techCharge").value = data.techCharge || 0;
+      document.getElementById("totalToPay").value = data.totalToPay || 0;
+
+      // Store bookingId for update
+      document.getElementById("updateBtn").setAttribute("data-booking-id", bookingId);
+
+      // Switch buttons
+      document.getElementById("submitBtn").style.display = "none";
+      document.getElementById("updateBtn").style.display = "inline-block";
+
+      // Show form
+      document.getElementById("bookingForm").style.display = "block";
     })
-    .catch(err => alert("Error fetching booking: " + err));
+    .catch(err => {
+      console.error("Error fetching booking details:", err);
+      alert("Error fetching booking details!");
+    });
 }
-
-// 🟢 UPDATE — send edited values back
-function updateBooking() {
-  const form = document.getElementById("bookingForm");
-  const formData = new FormData(form);
-  formData.append("action", "updateBooking");
-  formData.append("bookingId", currentBookingId);
-
-  const url = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec";
-
-  fetch(url, { method: "POST", body: formData })
-    .then(res => res.json())
-    .then(resp => {
-      if (resp.success) {
-        alert("Booking updated successfully!");
-      } else {
-        alert("Update failed: " + resp.message);
-      }
-    })
-    .catch(err => alert("Error updating booking: " + err));
-}
-
 
 function updateBookingFromForm() {
   const bookingId = document.getElementById("updateBtn").getAttribute("data-booking-id");
@@ -508,41 +505,18 @@ document.getElementById("custNumber").readOnly = true;
 }
 
 function showBookingForm() {
-  let custNumber = document.getElementById("searchCustNumber").value.trim();
+    let custNumber = document.getElementById("custNumber").value.trim();
 
-  if (!/^\d{10}$/.test(custNumber)) {
-    alert("Please enter a valid 10-digit Customer Number");
-    return;
-  }
+    // Debug log (remove after testing)
+    console.log("custNumber:", custNumber, "length:", custNumber.length);
 
-  // ✅ Put number into form and freeze it
-  document.getElementById("custNumber").value = custNumber;
-  document.getElementById("custNumber").readOnly = true;
+    if (!/^\d{10}$/.test(custNumber)) {
+        alert("Enter a valid 10-digit Customer Number");
+        return;
+    }
 
-  // ✅ Reset only the fields we want cleared (not bookingId, custNumber)
-  document.querySelectorAll("#bookingForm input, #bookingForm select, #bookingForm textarea").forEach(el => {
-    if (el.id !== "custNumber" && el.id !== "bookingId") el.value = "";
-  });
-
-  // Clear selected tests & packages
-  document.querySelectorAll("#testList input[type='checkbox']").forEach(el => el.checked = false);
-  document.querySelectorAll("#packageList input[type='checkbox']").forEach(el => el.checked = false);
-  document.getElementById("selectedTestsBody").innerHTML = "";
-  document.getElementById("selectedPackagesBody").innerHTML = "";
-
-  // Reset totals
-  document.getElementById("totalAmount").value = "";
-  document.getElementById("techCharge").value = "";
-  document.getElementById("totalToPay").value = "";
-  document.getElementById("discountList").value = "0";
-
-  // ✅ Show the form
-  document.getElementById("bookingForm").style.display = "block";
-  document.getElementById("history").style.display = "none";
-
-  // Switch buttons for fresh booking
-  document.getElementById("submitBtn").style.display = "inline-block";
-  document.getElementById("updateBtn").style.display = "none";
+    // ✅ Passed validation → show booking form
+    document.getElementById("bookingForm").style.display = "block";
 }
 function confirmBooking() {
     if (bookingList.length === 0) {
