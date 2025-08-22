@@ -357,6 +357,13 @@ function updateStatus(bookingId, status) {
             }
         });
 }
+function formatDateForInput(dateStr) {
+  if (!dateStr) return "";
+  // Handle values like "12/08/2025", "12-Aug-2025", or "8/12/2025 0:00:00"
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return ""; // invalid date
+  return d.toISOString().split("T")[0]; // yyyy-MM-dd
+}
 
 function editBooking(bookingId) {
   fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`)
@@ -371,7 +378,11 @@ function editBooking(bookingId) {
       document.getElementById("bookingId").value = bookingId;
       document.getElementById("custNumber").value = data.customerNumber || "";
       document.getElementById("custName").value = data.mainCustomerName || "";
-      document.getElementById("dob").value = data.dob || "";
+
+      // ✅ Convert date formats for <input type="date">
+      document.getElementById("dob").value = formatDateForInput(data.dob);
+      document.getElementById("prefDate").value = formatDateForInput(data.preferredDate);
+
       document.getElementById("age").value = data.age || "";
       document.getElementById("gender").value = data.gender || "";
       document.getElementById("address").value = data.address || "";
@@ -379,7 +390,6 @@ function editBooking(bookingId) {
       document.getElementById("city").value = data.city || "";
       document.getElementById("phleboList").value = data.phleboName || "";
       document.getElementById("pincode").value = data.pincode || "";
-      document.getElementById("prefDate").value = data.preferredDate || "";
       document.getElementById("prefTime").value = data.preferredTime || "";
       document.getElementById("totalAmount").value = data.totalAmount || 0;
       document.getElementById("discountList").value = data.discount || 0;
@@ -393,7 +403,7 @@ function editBooking(bookingId) {
       // ✅ Re-fill Tests
       if (data.tests) {
         data.tests.split(",").forEach(item => {
-          let parts = item.split("|"); // should be [code, name, cost]
+          let parts = item.split("|"); // [code, name, cost]
           if (parts.length === 3) {
             addSelectedTest(parts[0], parts[1], parts[2]);
           }
@@ -424,6 +434,7 @@ function editBooking(bookingId) {
       alert("Error fetching booking details!");
     });
 }
+
 
 
 function updateBookingFromForm() {
