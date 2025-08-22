@@ -407,7 +407,6 @@ function addSelectedTest(code, name, cost) {
             <td>${name}</td>
             <td>₹${cost}</td>
             <td><button type="button" onclick="removeSelected('test_${code}')">Remove</button></td>
-            <!-- Save full details -->
             <input type="hidden" class="selected-test" value="${code}|${name}|${cost}">
         `;
         document.getElementById("selectedTestsBody").appendChild(tr);
@@ -424,7 +423,6 @@ function addSelectedPackage(code, name, cost) {
             <td>${name}</td>
             <td>₹${cost}</td>
             <td><button type="button" onclick="removeSelected('package_${code}')">Remove</button></td>
-            <!-- Save full details -->
             <input type="hidden" class="selected-package" value="${code}|${name}|${cost}">
         `;
         document.getElementById("selectedPackagesBody").appendChild(tr);
@@ -432,6 +430,23 @@ function addSelectedPackage(code, name, cost) {
     document.getElementById("packageList").innerHTML = "";
     recalculateTotal();
 }
+
+function getSelectedTests() {
+    let tests = [];
+    document.querySelectorAll(".selected-test").forEach(item => {
+        tests.push(item.value);  // full code|name|cost
+    });
+    return tests.join(",");
+}
+
+function getSelectedPackages() {
+    let packages = [];
+    document.querySelectorAll(".selected-package").forEach(item => {
+        packages.push(item.value); // full code|name|cost
+    });
+    return packages.join(",");
+}
+
 
 
 function removeSelected(id) {
