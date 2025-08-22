@@ -359,80 +359,58 @@ function updateStatus(bookingId, status) {
 }
 function formatDateForInput(dateStr) {
   if (!dateStr) return "";
-  // Handle values like "12/08/2025", "12-Aug-2025", or "8/12/2025 0:00:00"
+  // Case: Excel serial number (e.g. "45234")
+  if (!isNaN(dateStr) && dateStr.length <= 5) {
+    const d = new Date(1899, 11, 30);
+    d.setDate(d.getDate() + parseInt(dateStr));
+    return d.toISOString().split("T")[0]; // yyyy-mm-dd
+  }
+  // Case: normal date string (e.g. "12/08/2025" or "2025-08-12")
   const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return ""; // invalid date
-  return d.toISOString().split("T")[0]; // yyyy-MM-dd
+  if (isNaN(d.getTime())) return "";
+  return d.toISOString().split("T")[0]; // yyyy-mm-dd
 }
 
+
 function editBooking(bookingId) {
-  fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`)
-    .then(res => res.json())
-    .then(data => {
-      if (!data || data.success === false) {
-        alert("Booking not found");
-        return;
-      }
+    fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`)
+        .then(res => res.json())
+        .then(data => {
+            if (!data || data.success === false) {
+                alert("Booking not found");
+                return;
+            }
 
-      // ✅ Fill basic fields
-      document.getElementById("bookingId").value = bookingId;
-      document.getElementById("custNumber").value = data.customerNumber || "";
-      document.getElementById("custName").value = data.mainCustomerName || "";
+            // Fill the form
+            document.getElementById("bookingId").value = bookingId;
+            document.getElementById("custNumber").value = data.customerNumber || "";
+            document.getElementById("custName").value = data.mainCustomerName || "";
+            document.getElementById("dob").value = formatDateForInput(data.dob);
+            document.getElementById("age").value = data.age || "";
+            document.getElementById("gender").value = data.gender || "";
+            document.getElementById("address").value = data.address || "";
+            document.getElementById("location").value = data.location || "";
+            document.getElementById("city").value = data.city || "";
+            document.getElementById("phleboList").value = data.phleboName || "";
+            document.getElementById("pincode").value = data.pincode || "";
+            document.getElementById("prefDate").value = formatDateForInput(data.preferredDate);
+            document.getElementById("prefTime").value = data.preferredTime || "";
+            document.getElementById("totalAmount").value = data.totalAmount || 0;
+            document.getElementById("discountList").value = data.discount || 0;
+            document.getElementById("techCharge").value = data.techCharge || 0;
+            document.getElementById("totalToPay").value = data.totalToPay || 0;
 
-      // ✅ Convert date formats for <input type="date">
-      document.getElementById("dob").value = formatDateForInput(data.dob);
-      document.getElementById("prefDate").value = formatDateForInput(data.preferredDate);
+            // Switch buttons
+            document.getElementById("submitBtn").style.display = "none";
+            document.getElementById("updateBtn").style.display = "inline-block";
 
-      document.getElementById("age").value = data.age || "";
-      document.getElementById("gender").value = data.gender || "";
-      document.getElementById("address").value = data.address || "";
-      document.getElementById("location").value = data.location || "";
-      document.getElementById("city").value = data.city || "";
-      document.getElementById("phleboList").value = data.phleboName || "";
-      document.getElementById("pincode").value = data.pincode || "";
-      document.getElementById("prefTime").value = data.preferredTime || "";
-      document.getElementById("totalAmount").value = data.totalAmount || 0;
-      document.getElementById("discountList").value = data.discount || 0;
-      document.getElementById("techCharge").value = data.techCharge || 0;
-      document.getElementById("totalToPay").value = data.totalToPay || 0;
-
-      // ✅ Clear old selections
-      document.getElementById("selectedTestsBody").innerHTML = "";
-      document.getElementById("selectedPackagesBody").innerHTML = "";
-
-      // ✅ Re-fill Tests
-      if (data.tests) {
-        data.tests.split(",").forEach(item => {
-          let parts = item.split("|"); // [code, name, cost]
-          if (parts.length === 3) {
-            addSelectedTest(parts[0], parts[1], parts[2]);
-          }
+            // ✅ Show the form directly (don’t reset fields!)
+            document.getElementById("bookingForm").style.display = "block";
+        })
+        .catch(err => {
+            console.error("Error in editBooking:", err);
+            alert("Error fetching booking details");
         });
-      }
-
-      // ✅ Re-fill Packages
-      if (data.packages) {
-        data.packages.split(",").forEach(item => {
-          let parts = item.split("|");
-          if (parts.length === 3) {
-            addSelectedPackage(parts[0], parts[1], parts[2]);
-          }
-        });
-      }
-
-      recalculateTotal();
-
-      // ✅ Switch buttons
-      document.getElementById("submitBtn").style.display = "none";
-      document.getElementById("updateBtn").style.display = "inline-block";
-
-      // ✅ Show form
-      document.getElementById("bookingForm").style.display = "block";
-    })
-    .catch(err => {
-      console.error("Error fetching booking details:", err);
-      alert("Error fetching booking details!");
-    });
 }
 
 
