@@ -362,85 +362,44 @@ function editBooking(bookingId) {
   fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`)
     .then(res => res.json())
     .then(data => {
-      console.log("Booking details from backend:", data);  // 👀 Debug log
-
       if (!data || !data.bookingId) {
         alert("Booking not found!");
         return;
       }
 
-      // ✅ Fill form fields
-      document.getElementById("custNumber").value   = data.customerNumber || "";
-      document.getElementById("custName").value     = data.mainCustomerName || "";
-      document.getElementById("dob").value          = data.dob || "";
-      document.getElementById("age").value          = data.age || "";
-      document.getElementById("gender").value       = data.gender || "";
-      document.getElementById("address").value      = data.address || "";
-      document.getElementById("location").value     = data.location || "";
-      document.getElementById("city").value         = data.city || "";
-      document.getElementById("pincode").value      = data.pincode || "";
-      document.getElementById("phleboList").value   = data.phleboName || "";
-      document.getElementById("prefDate").value     = data.preferredDate || "";
-      document.getElementById("prefTime").value     = data.preferredTime || "";
-      document.getElementById("totalAmount").value  = data.totalAmount || 0;
+      // Fill form with existing booking data
+      document.getElementById("custNumber").value = data.customerNumber || "";
+      document.getElementById("custName").value = data.mainCustomerName || "";
+      document.getElementById("dob").value = data.dob || "";
+      document.getElementById("age").value = data.age || "";
+      document.getElementById("gender").value = data.gender || "";
+      document.getElementById("address").value = data.address || "";
+      document.getElementById("location").value = data.location || "";
+      document.getElementById("city").value = data.city || "";
+      document.getElementById("pincode").value = data.pincode || "";
+      document.getElementById("phleboList").value = data.phleboName || "";
+      document.getElementById("prefDate").value = data.preferredDate || "";
+      document.getElementById("prefTime").value = data.preferredTime || "";
+      document.getElementById("totalAmount").value = data.totalAmount || 0;
       document.getElementById("discountList").value = data.discount || 0;
-      document.getElementById("techCharge").value   = data.techCharge || 0;
-      document.getElementById("totalToPay").value   = data.totalToPay || 0;
+      document.getElementById("techCharge").value = data.techCharge || 0;
+      document.getElementById("totalToPay").value = data.totalToPay || 0;
 
-      // ✅ Render Tests (string like "T001|CBC|200,T002|Lipid|400")
-      document.getElementById("selectedTestsBody").innerHTML = "";
-      if (data.tests && typeof data.tests === "string") {
-        data.tests.split(",").forEach(t => {
-          const [code, name, price] = t.split("|");
-          if (code && name) {
-            document.getElementById("selectedTestsBody").innerHTML += `
-              <tr>
-                <td>${code}</td>
-                <td>${name}</td>
-                <td>${price || 0}</td>
-              </tr>`;
-          }
-        });
-      }
+      // Store bookingId for update
+      document.getElementById("updateBtn").setAttribute("data-booking-id", bookingId);
 
-      // ✅ Render Packages (string like "P001|Basic|800")
-      document.getElementById("selectedPackagesBody").innerHTML = "";
-      if (data.packages && typeof data.packages === "string") {
-        data.packages.split(",").forEach(p => {
-          const [code, name, price] = p.split("|");
-          if (code && name) {
-            document.getElementById("selectedPackagesBody").innerHTML += `
-              <tr>
-                <td>${code}</td>
-                <td>${name}</td>
-                <td>${price || 0}</td>
-              </tr>`;
-          }
-        });
-      }
-
-      // ✅ Switch buttons
+      // Switch buttons
       document.getElementById("submitBtn").style.display = "none";
       document.getElementById("updateBtn").style.display = "inline-block";
 
-      // ✅ Freeze fields in edit mode
-      ["location", "city", "pincode", "phleboList", "prefDate", "prefTime"].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.disabled = true;
-      });
-
-      // ✅ Show form & hide history
+      // Show form
       document.getElementById("bookingForm").style.display = "block";
-      document.getElementById("history").style.display = "none";
     })
     .catch(err => {
       console.error("Error fetching booking details:", err);
       alert("Error fetching booking details!");
     });
 }
-
-
-
 
 function updateBookingFromForm() {
   const bookingId = document.getElementById("updateBtn").getAttribute("data-booking-id");
