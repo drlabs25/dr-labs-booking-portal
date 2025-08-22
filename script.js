@@ -368,22 +368,56 @@ function editBooking(bookingId) {
       }
 
       // Fill form with existing booking data
-      document.getElementById("custNumber").value = data.customerNumber || "";
-      document.getElementById("custName").value = data.mainCustomerName || "";
-      document.getElementById("dob").value = data.dob || "";
-      document.getElementById("age").value = data.age || "";
-      document.getElementById("gender").value = data.gender || "";
-      document.getElementById("address").value = data.address || "";
-      document.getElementById("location").value = data.location || "";
-      document.getElementById("city").value = data.city || "";
-      document.getElementById("pincode").value = data.pincode || "";
-      document.getElementById("phleboList").value = data.phleboName || "";
-      document.getElementById("prefDate").value = data.preferredDate || "";
-      document.getElementById("prefTime").value = data.preferredTime || "";
-      document.getElementById("totalAmount").value = data.totalAmount || 0;
+      document.getElementById("custNumber").value   = data.customerNumber || "";
+      document.getElementById("custName").value     = data.mainCustomerName || "";
+      document.getElementById("dob").value          = data.dob || "";
+      document.getElementById("age").value          = data.age || "";
+      document.getElementById("gender").value       = data.gender || "";
+      document.getElementById("address").value      = data.address || "";
+      document.getElementById("location").value     = data.location || "";
+      document.getElementById("city").value         = data.city || "";
+      document.getElementById("pincode").value      = data.pincode || "";
+      document.getElementById("phleboList").value   = data.phleboName || "";
+      document.getElementById("prefDate").value     = data.preferredDate || "";
+      document.getElementById("prefTime").value     = data.preferredTime || "";
+      document.getElementById("totalAmount").value  = data.totalAmount || 0;
       document.getElementById("discountList").value = data.discount || 0;
-      document.getElementById("techCharge").value = data.techCharge || 0;
-      document.getElementById("totalToPay").value = data.totalToPay || 0;
+      document.getElementById("techCharge").value   = data.techCharge || 0;
+      document.getElementById("totalToPay").value   = data.totalToPay || 0;
+
+      // ✅ Load Tests from backend (saved as "T001|CBC|200,T002|Lipid|400")
+      document.getElementById("selectedTestsBody").innerHTML = "";
+      if (data.tests) {
+        const testsArr = data.tests.split(",");
+        testsArr.forEach(t => {
+          const [code, name, cost] = t.split("|");
+          if (code && name) {
+            document.getElementById("selectedTestsBody").innerHTML += `
+              <tr>
+                <td>${code}</td>
+                <td>${name}</td>
+                <td>${cost || 0}</td>
+              </tr>`;
+          }
+        });
+      }
+
+      // ✅ Load Packages from backend (saved as "P001|Basic|800")
+      document.getElementById("selectedPackagesBody").innerHTML = "";
+      if (data.packages) {
+        const pkgArr = data.packages.split(",");
+        pkgArr.forEach(p => {
+          const [code, name, cost] = p.split("|");
+          if (code && name) {
+            document.getElementById("selectedPackagesBody").innerHTML += `
+              <tr>
+                <td>${code}</td>
+                <td>${name}</td>
+                <td>${cost || 0}</td>
+              </tr>`;
+          }
+        });
+      }
 
       // Store bookingId for update
       document.getElementById("updateBtn").setAttribute("data-booking-id", bookingId);
@@ -392,14 +426,24 @@ function editBooking(bookingId) {
       document.getElementById("submitBtn").style.display = "none";
       document.getElementById("updateBtn").style.display = "inline-block";
 
+      // ✅ Freeze these fields in edit mode
+      document.getElementById("location").disabled   = true;
+      document.getElementById("city").disabled       = true;
+      document.getElementById("pincode").disabled    = true;
+      document.getElementById("phleboList").disabled = true;
+      document.getElementById("prefDate").disabled   = true;
+      document.getElementById("prefTime").disabled   = true;
+
       // Show form
       document.getElementById("bookingForm").style.display = "block";
+      document.getElementById("history").style.display = "none";
     })
     .catch(err => {
       console.error("Error fetching booking details:", err);
       alert("Error fetching booking details!");
     });
 }
+
 
 function updateBookingFromForm() {
   const bookingId = document.getElementById("updateBtn").getAttribute("data-booking-id");
