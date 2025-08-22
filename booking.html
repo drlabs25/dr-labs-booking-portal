@@ -800,6 +800,33 @@ function editBooking(bookingId) {
             document.getElementById("techCharge").value  = data.techCharge || "";
             document.getElementById("totalToPay").value  = data.totalToPay || "";
 
+            // ✅ Restore Tests
+            document.getElementById("selectedTestsBody").innerHTML = "";
+            if (data.tests) {
+                data.tests.split(",").forEach(item => {
+                    const parts = item.split("|");
+                    const code  = parts[0] || "";
+                    const cost  = parts[1] || "0";
+                    const name  = parts[2] || code;
+                    addSelectedTest(code, name, cost);
+                });
+            }
+
+            // ✅ Restore Packages
+            document.getElementById("selectedPackagesBody").innerHTML = "";
+            if (data.packages) {
+                data.packages.split(",").forEach(item => {
+                    const parts = item.split("|");
+                    const code  = parts[0] || "";
+                    const cost  = parts[1] || "0";
+                    const name  = parts[2] || code;
+                    addSelectedPackage(code, name, cost);
+                });
+            }
+
+            // ✅ Refresh totals
+            recalculateTotal();
+
             // Switch buttons
             document.getElementById("submitBtn").style.display = "none";
             document.getElementById("updateBtn").style.display = "inline-block";
@@ -821,6 +848,7 @@ function editBooking(bookingId) {
             alert("Error fetching booking details!");
         });
 }
+
 
 
 
