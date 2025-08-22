@@ -385,6 +385,31 @@ function editBooking(bookingId) {
       document.getElementById("techCharge").value = data.techCharge || 0;
       document.getElementById("totalToPay").value = data.totalToPay || 0;
 
+      // ✅ Restore Tests
+      if (data.tests) {
+        const testCodes = data.tests.split(",");
+        document.querySelectorAll("#testList input[type='checkbox']").forEach(chk => {
+          const code = chk.value.split("|")[0];
+          if (testCodes.includes(code)) {
+            chk.checked = true;
+          }
+        });
+      }
+
+      // ✅ Restore Packages
+      if (data.packages) {
+        const packageCodes = data.packages.split(",");
+        document.querySelectorAll("#packageList input[type='checkbox']").forEach(chk => {
+          const code = chk.value.split("|")[0];
+          if (packageCodes.includes(code)) {
+            chk.checked = true;
+          }
+        });
+      }
+
+      // ✅ Recalculate totals after restoring selections
+      recalcTotalFromSelection();
+
       // Store bookingId for update
       document.getElementById("updateBtn").setAttribute("data-booking-id", bookingId);
 
@@ -400,6 +425,7 @@ function editBooking(bookingId) {
       alert("Error fetching booking details!");
     });
 }
+
 
 function updateBookingFromForm() {
   const bookingId = document.getElementById("updateBtn").getAttribute("data-booking-id");
