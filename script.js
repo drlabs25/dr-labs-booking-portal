@@ -387,37 +387,38 @@ function editBooking(bookingId) {
       document.getElementById("techCharge").value   = data.techCharge || 0;
       document.getElementById("totalToPay").value   = data.totalToPay || 0;
 
-      // ✅ Render Tests (string "T001|CBC|200,T002|Lipid|400")
-      document.getElementById("selectedTestsBody").innerHTML = "";
-      if (data.tests && typeof data.tests === "string") {
-        data.tests.split(",").forEach(t => {
-          const [code, name, price] = t.split("|");
-          if (code && name) {
-            document.getElementById("selectedTestsBody").innerHTML += `
-              <tr>
-                <td>${code}</td>
-                <td>${name}</td>
-                <td>${price || 0}</td>
-              </tr>`;
-          }
-        });
-      }
+    // ✅ Render Tests (string like "T001|CBC|200,T002|Lipid|400")
+document.getElementById("selectedTestsBody").innerHTML = "";
+if (data.tests && typeof data.tests === "string") {
+  data.tests.split(",").forEach(t => {
+    const [code, name, price] = t.split("|");
+    if (code && name) {
+      document.getElementById("selectedTestsBody").innerHTML += `
+        <tr>
+          <td>${code}</td>
+          <td>${name}</td>
+          <td>${price || 0}</td>
+        </tr>`;
+    }
+  });
+}
 
-      // ✅ Render Packages (string "P001|Basic|800")
-      document.getElementById("selectedPackagesBody").innerHTML = "";
-      if (data.packages && typeof data.packages === "string") {
-        data.packages.split(",").forEach(p => {
-          const [code, name, price] = p.split("|");
-          if (code && name) {
-            document.getElementById("selectedPackagesBody").innerHTML += `
-              <tr>
-                <td>${code}</td>
-                <td>${name}</td>
-                <td>${price || 0}</td>
-              </tr>`;
-          }
-        });
-      }
+// ✅ Render Packages (string like "P001|Basic|800")
+document.getElementById("selectedPackagesBody").innerHTML = "";
+if (data.packages && typeof data.packages === "string") {
+  data.packages.split(",").forEach(p => {
+    const [code, name, price] = p.split("|");
+    if (code && name) {
+      document.getElementById("selectedPackagesBody").innerHTML += `
+        <tr>
+          <td>${code}</td>
+          <td>${name}</td>
+          <td>${price || 0}</td>
+        </tr>`;
+    }
+  });
+}
+
 
       // Switch buttons
       document.getElementById("submitBtn").style.display = "none";
