@@ -362,14 +362,14 @@ function editBooking(bookingId) {
   fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`)
     .then(res => res.json())
     .then(data => {
-      console.log("Booking details from backend:", data);  // 👀 debug log
+      console.log("Booking details from backend:", data);  // 👀 Debug log
 
       if (!data || !data.bookingId) {
         alert("Booking not found!");
         return;
       }
 
-      // Fill form fields
+      // ✅ Fill form fields
       document.getElementById("custNumber").value   = data.customerNumber || "";
       document.getElementById("custName").value     = data.mainCustomerName || "";
       document.getElementById("dob").value          = data.dob || "";
@@ -387,52 +387,49 @@ function editBooking(bookingId) {
       document.getElementById("techCharge").value   = data.techCharge || 0;
       document.getElementById("totalToPay").value   = data.totalToPay || 0;
 
-    // ✅ Render Tests (string like "T001|CBC|200,T002|Lipid|400")
-document.getElementById("selectedTestsBody").innerHTML = "";
-if (data.tests && typeof data.tests === "string") {
-  data.tests.split(",").forEach(t => {
-    const [code, name, price] = t.split("|");
-    if (code && name) {
-      document.getElementById("selectedTestsBody").innerHTML += `
-        <tr>
-          <td>${code}</td>
-          <td>${name}</td>
-          <td>${price || 0}</td>
-        </tr>`;
-    }
-  });
-}
+      // ✅ Render Tests (string like "T001|CBC|200,T002|Lipid|400")
+      document.getElementById("selectedTestsBody").innerHTML = "";
+      if (data.tests && typeof data.tests === "string") {
+        data.tests.split(",").forEach(t => {
+          const [code, name, price] = t.split("|");
+          if (code && name) {
+            document.getElementById("selectedTestsBody").innerHTML += `
+              <tr>
+                <td>${code}</td>
+                <td>${name}</td>
+                <td>${price || 0}</td>
+              </tr>`;
+          }
+        });
+      }
 
-// ✅ Render Packages (string like "P001|Basic|800")
-document.getElementById("selectedPackagesBody").innerHTML = "";
-if (data.packages && typeof data.packages === "string") {
-  data.packages.split(",").forEach(p => {
-    const [code, name, price] = p.split("|");
-    if (code && name) {
-      document.getElementById("selectedPackagesBody").innerHTML += `
-        <tr>
-          <td>${code}</td>
-          <td>${name}</td>
-          <td>${price || 0}</td>
-        </tr>`;
-    }
-  });
-}
+      // ✅ Render Packages (string like "P001|Basic|800")
+      document.getElementById("selectedPackagesBody").innerHTML = "";
+      if (data.packages && typeof data.packages === "string") {
+        data.packages.split(",").forEach(p => {
+          const [code, name, price] = p.split("|");
+          if (code && name) {
+            document.getElementById("selectedPackagesBody").innerHTML += `
+              <tr>
+                <td>${code}</td>
+                <td>${name}</td>
+                <td>${price || 0}</td>
+              </tr>`;
+          }
+        });
+      }
 
-
-      // Switch buttons
+      // ✅ Switch buttons
       document.getElementById("submitBtn").style.display = "none";
       document.getElementById("updateBtn").style.display = "inline-block";
 
-      // ✅ Freeze these fields in edit mode
-      document.getElementById("location").disabled   = true;
-      document.getElementById("city").disabled       = true;
-      document.getElementById("pincode").disabled    = true;
-      document.getElementById("phleboList").disabled = true;
-      document.getElementById("prefDate").disabled   = true;
-      document.getElementById("prefTime").disabled   = true;
+      // ✅ Freeze fields in edit mode
+      ["location", "city", "pincode", "phleboList", "prefDate", "prefTime"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.disabled = true;
+      });
 
-      // Show form
+      // ✅ Show form & hide history
       document.getElementById("bookingForm").style.display = "block";
       document.getElementById("history").style.display = "none";
     })
@@ -441,6 +438,7 @@ if (data.packages && typeof data.packages === "string") {
       alert("Error fetching booking details!");
     });
 }
+
 
 
 
