@@ -407,7 +407,8 @@ function addSelectedTest(code, name, cost) {
             <td>${name}</td>
             <td>₹${cost}</td>
             <td><button type="button" onclick="removeSelected('test_${code}')">Remove</button></td>
-            <input type="hidden" class="selected-test" value="${code}|${cost}">
+            <!-- Save full details -->
+            <input type="hidden" class="selected-test" value="${code}|${name}|${cost}">
         `;
         document.getElementById("selectedTestsBody").appendChild(tr);
     }
@@ -423,13 +424,15 @@ function addSelectedPackage(code, name, cost) {
             <td>${name}</td>
             <td>₹${cost}</td>
             <td><button type="button" onclick="removeSelected('package_${code}')">Remove</button></td>
-            <input type="hidden" class="selected-package" value="${code}|${cost}">
+            <!-- Save full details -->
+            <input type="hidden" class="selected-package" value="${code}|${name}|${cost}">
         `;
         document.getElementById("selectedPackagesBody").appendChild(tr);
     }
     document.getElementById("packageList").innerHTML = "";
     recalculateTotal();
 }
+
 
 function removeSelected(id) {
     document.getElementById(id).remove();
@@ -588,21 +591,21 @@ function createBooking() {
     if (!document.getElementById("prefDate").value) markInvalid("prefDate");
     if (!document.getElementById("prefTime").value) markInvalid("prefTime");
 
-    let tests = getSelectedTests();
-    let packages = getSelectedPackages();
-    if (!tests && !packages) {
-        document.querySelector("#testList")?.style.setProperty("border", "2px solid red", "important");
-        document.querySelector("#packageList")?.style.setProperty("border", "2px solid red", "important");
-        isValid = false;
-    }
+   function getSelectedTests() {
+    let tests = [];
+    document.querySelectorAll(".selected-test").forEach(item => {
+        tests.push(item.value);   // already has code|name|cost if we store it that way
+    });
+    return tests.join(",");
+}
 
-    if (!document.getElementById("discountList").value) markInvalid("discountList");
-    if (!document.getElementById("techCharge").value.trim()) markInvalid("techCharge");
-
-    if (!isValid) {
-        alert("Please fill all required fields.");
-        return;
-    }
+function getSelectedPackages() {
+    let packages = [];
+    document.querySelectorAll(".selected-package").forEach(item => {
+        packages.push(item.value);  // same logic
+    });
+    return packages.join(",");
+}
 
     // ✅ Always generate NEW bookingId (avoid overwrite)
     let newBookingId = "BKG_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
