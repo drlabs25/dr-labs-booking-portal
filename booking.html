@@ -782,45 +782,23 @@ function editBooking(bookingId) {
             }
 
             // Fill form fields
-            document.getElementById("bookingId").value    = bookingId;
-            document.getElementById("custNumber").value   = data.customerNumber || "";
-            document.getElementById("custName").value     = data.mainCustomerName || "";
-            document.getElementById("dob").value          = data.dob || "";
-            document.getElementById("age").value          = data.age || "";
-            document.getElementById("gender").value       = data.gender || "";
-            document.getElementById("address").value      = data.address || "";
-            document.getElementById("location").value     = data.location || "";
-            document.getElementById("city").value         = data.city || "";
-            document.getElementById("phleboList").value   = data.phleboName || "";
-            document.getElementById("pincode").value      = data.pincode || "";
-            document.getElementById("prefDate").value     = data.preferredDate || "";
-            document.getElementById("prefTime").value     = data.preferredTime || "";
-            document.getElementById("totalAmount").value  = data.totalAmount || "";
-            document.getElementById("discountList").value = data.discount || "0";
-            document.getElementById("techCharge").value   = data.techCharge || "";
-            document.getElementById("totalToPay").value   = data.totalToPay || "";
-
-            // ✅ Load Tests from codes into table
-            document.getElementById("selectedTestsBody").innerHTML = "";
-            if (data.testCodes && Array.isArray(data.testCodes)) {
-                data.testCodes.forEach(code => {
-                    const test = testsList.find(t => t.code === code);
-                    if (test) {
-                        addTestToTable(test.code, test.name, test.price);
-                    }
-                });
-            }
-
-            // ✅ Load Packages from codes into table
-            document.getElementById("selectedPackagesBody").innerHTML = "";
-            if (data.packageCodes && Array.isArray(data.packageCodes)) {
-                data.packageCodes.forEach(code => {
-                    const pkg = packagesList.find(p => p.code === code);
-                    if (pkg) {
-                        addPackageToTable(pkg.code, pkg.name, pkg.price);
-                    }
-                });
-            }
+            document.getElementById("bookingId").value   = bookingId;
+            document.getElementById("custNumber").value  = data.customerNumber || "";
+            document.getElementById("custName").value    = data.mainCustomerName || "";
+            document.getElementById("dob").value         = data.dob || "";
+            document.getElementById("age").value         = data.age || "";
+            document.getElementById("gender").value      = data.gender || "";
+            document.getElementById("address").value     = data.address || "";
+            document.getElementById("location").value    = data.location || "";
+            document.getElementById("city").value        = data.city || "";
+            document.getElementById("phleboList").value  = data.phleboName || "";
+            document.getElementById("pincode").value     = data.pincode || "";
+            document.getElementById("prefDate").value    = data.preferredDate || "";
+            document.getElementById("prefTime").value    = data.preferredTime || "";
+            document.getElementById("totalAmount").value = data.totalAmount || "";
+            document.getElementById("discountList").value= data.discount || "0";
+            document.getElementById("techCharge").value  = data.techCharge || "";
+            document.getElementById("totalToPay").value  = data.totalToPay || "";
 
             // Switch buttons
             document.getElementById("submitBtn").style.display = "none";
@@ -843,7 +821,6 @@ function editBooking(bookingId) {
             alert("Error fetching booking details!");
         });
 }
-
 
 
 
