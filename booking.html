@@ -781,6 +781,9 @@ function editBooking(bookingId) {
                 return;
             }
 
+            // 🔎 Debug log - check what backend is sending
+            console.log("Booking details from backend:", data);
+
             // Fill form fields
             document.getElementById("bookingId").value    = bookingId;
             document.getElementById("custNumber").value   = data.customerNumber || "";
@@ -811,6 +814,8 @@ function editBooking(bookingId) {
                     const test = testsList.find(t => t.code === code);
                     if (test) {
                         addTestToTable(test.code, test.name, test.price);
+                    } else {
+                        console.warn("Test code not found in testsList:", code);
                     }
                 });
             }
@@ -826,6 +831,8 @@ function editBooking(bookingId) {
                     const pkg = packagesList.find(p => p.code === code);
                     if (pkg) {
                         addPackageToTable(pkg.code, pkg.name, pkg.price);
+                    } else {
+                        console.warn("Package code not found in packagesList:", code);
                     }
                 });
             }
@@ -851,6 +858,7 @@ function editBooking(bookingId) {
             alert("Error fetching booking details!");
         });
 }
+
 
 
 
