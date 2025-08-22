@@ -390,30 +390,26 @@ function editBooking(bookingId) {
       document.getElementById("selectedTestsBody").innerHTML = "";
       document.getElementById("selectedPackagesBody").innerHTML = "";
 
-    // ✅ Re-fill Tests
-if (data.tests) {
-  const testItems = data.tests.split(",");
-  testItems.forEach(item => {
-    let parts = item.split("|"); // [code, name, cost]
-    if (parts.length === 3) {
-      addSelectedTest(parts[0], parts[1], parts[2]);
-    }
-  });
-}
+      // ✅ Re-fill Tests
+      if (data.tests) {
+        data.tests.split(",").forEach(item => {
+          let parts = item.split("|"); // should be [code, name, cost]
+          if (parts.length === 3) {
+            addSelectedTest(parts[0], parts[1], parts[2]);
+          }
+        });
+      }
 
-// ✅ Re-fill Packages
-if (data.packages) {
-  const pkgItems = data.packages.split(",");
-  pkgItems.forEach(item => {
-    let parts = item.split("|"); // [code, name, cost]
-    if (parts.length === 3) {
-      addSelectedPackage(parts[0], parts[1], parts[2]);
-    }
-  });
-}
+      // ✅ Re-fill Packages
+      if (data.packages) {
+        data.packages.split(",").forEach(item => {
+          let parts = item.split("|");
+          if (parts.length === 3) {
+            addSelectedPackage(parts[0], parts[1], parts[2]);
+          }
+        });
+      }
 
-
-      // ✅ Recalculate totals
       recalculateTotal();
 
       // ✅ Switch buttons
@@ -428,7 +424,6 @@ if (data.packages) {
       alert("Error fetching booking details!");
     });
 }
-
 
 
 function updateBookingFromForm() {
