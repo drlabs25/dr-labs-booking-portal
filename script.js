@@ -362,12 +362,14 @@ function editBooking(bookingId) {
   fetch(`${API_URL}?action=getBookingDetails&bookingId=${bookingId}`)
     .then(res => res.json())
     .then(data => {
+      console.log("Booking details from backend:", data);  // 👀 debug log
+
       if (!data || !data.bookingId) {
         alert("Booking not found!");
         return;
       }
 
-      // Fill form with existing booking data
+      // Fill form fields
       document.getElementById("custNumber").value   = data.customerNumber || "";
       document.getElementById("custName").value     = data.mainCustomerName || "";
       document.getElementById("dob").value          = data.dob || "";
@@ -385,42 +387,37 @@ function editBooking(bookingId) {
       document.getElementById("techCharge").value   = data.techCharge || 0;
       document.getElementById("totalToPay").value   = data.totalToPay || 0;
 
-      // ✅ Load Tests from backend (saved as "T001|CBC|200,T002|Lipid|400")
+      // ✅ Render Tests (string "T001|CBC|200,T002|Lipid|400")
       document.getElementById("selectedTestsBody").innerHTML = "";
-      if (data.tests) {
-        const testsArr = data.tests.split(",");
-        testsArr.forEach(t => {
-          const [code, name, cost] = t.split("|");
+      if (data.tests && typeof data.tests === "string") {
+        data.tests.split(",").forEach(t => {
+          const [code, name, price] = t.split("|");
           if (code && name) {
             document.getElementById("selectedTestsBody").innerHTML += `
               <tr>
                 <td>${code}</td>
                 <td>${name}</td>
-                <td>${cost || 0}</td>
+                <td>${price || 0}</td>
               </tr>`;
           }
         });
       }
 
-      // ✅ Load Packages from backend (saved as "P001|Basic|800")
+      // ✅ Render Packages (string "P001|Basic|800")
       document.getElementById("selectedPackagesBody").innerHTML = "";
-      if (data.packages) {
-        const pkgArr = data.packages.split(",");
-        pkgArr.forEach(p => {
-          const [code, name, cost] = p.split("|");
+      if (data.packages && typeof data.packages === "string") {
+        data.packages.split(",").forEach(p => {
+          const [code, name, price] = p.split("|");
           if (code && name) {
             document.getElementById("selectedPackagesBody").innerHTML += `
               <tr>
                 <td>${code}</td>
                 <td>${name}</td>
-                <td>${cost || 0}</td>
+                <td>${price || 0}</td>
               </tr>`;
           }
         });
       }
-
-      // Store bookingId for update
-      document.getElementById("updateBtn").setAttribute("data-booking-id", bookingId);
 
       // Switch buttons
       document.getElementById("submitBtn").style.display = "none";
@@ -443,6 +440,7 @@ function editBooking(bookingId) {
       alert("Error fetching booking details!");
     });
 }
+
 
 
 function updateBookingFromForm() {
