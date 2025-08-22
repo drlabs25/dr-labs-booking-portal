@@ -131,6 +131,51 @@
             <select id="prefTime" onchange="checkPhleboAvailability()" required></select>
         </div>
     </fieldset>
+    <!-- Step 3: Phlebo & Preferred Date/Time -->
+<div class="flex">
+  <select id="phleboList"></select>
+  <input type="date" id="prefDate">
+  <input type="time" id="prefTime">
+</div>
+
+<!-- ✅ INSERT HERE -->
+<h3>Selected Tests</h3>
+<table border="1" width="100%">
+  <thead>
+    <tr>
+      <th>Code</th>
+      <th>Test Name</th>
+      <th>Price</th>
+    </tr>
+  </thead>
+  <tbody id="selectedTestsBody"></tbody>
+</table>
+
+<h3>Selected Packages</h3>
+<table border="1" width="100%">
+  <thead>
+    <tr>
+      <th>Code</th>
+      <th>Package Name</th>
+      <th>Price</th>
+    </tr>
+  </thead>
+  <tbody id="selectedPackagesBody"></tbody>
+</table>
+<!-- ✅ END INSERT -->
+
+<!-- Step 4: Totals/Charges -->
+<div class="flex">
+  <input type="number" id="totalAmount" placeholder="Total Amount">
+  <select id="discountList">
+    <option value="0">0%</option>
+    <option value="5">5%</option>
+    <option value="10">10%</option>
+  </select>
+  <input type="number" id="techCharge" placeholder="Tech Charge">
+  <input type="number" id="totalToPay" placeholder="Total To Pay">
+</div>
+
 
     <!-- Test, Package & Amount Details -->
     <fieldset style="margin-bottom:15px; padding:10px; border:1px solid #ccc; border-radius:6px;">
