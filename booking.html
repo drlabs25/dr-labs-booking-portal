@@ -339,6 +339,7 @@ function validateAndShowBookingForm() {
 function showBookingForm() {
     let num = document.getElementById("searchCustNumber").value.trim();
 
+    // Validate customer number
     if (num.length !== 10 || !/^\d+$/.test(num)) {
         alert("Please enter a valid 10-digit Customer Number");
         return;
@@ -348,11 +349,12 @@ function showBookingForm() {
     document.getElementById("custNumber").value = num;
     document.getElementById("custNumber").readOnly = true; // freeze it
 
-    // Reset other fields
+    // Reset other fields except custNumber + bookingId
     document.querySelectorAll("#bookingForm input, #bookingForm select, #bookingForm textarea").forEach(el => {
         if (el.id !== "custNumber" && el.id !== "bookingId") el.value = "";
     });
 
+    // Reset tables + totals
     document.getElementById("selectedTestsBody").innerHTML = "";
     document.getElementById("selectedPackagesBody").innerHTML = "";
     document.getElementById("totalAmount").value = "";
@@ -360,10 +362,23 @@ function showBookingForm() {
     document.getElementById("totalToPay").value = "";
     document.getElementById("discountList").value = "0";
 
+    // Switch buttons for new booking
+    document.getElementById("submitBtn").style.display = "inline-block";
+    document.getElementById("updateBtn").style.display = "none";
+
+    // ✅ Unfreeze fields in new booking mode
+    document.getElementById("location").disabled   = false;
+    document.getElementById("city").disabled       = false;
+    document.getElementById("pincode").disabled    = false;
+    document.getElementById("phleboList").disabled = false;
+    document.getElementById("prefDate").disabled   = false;
+    document.getElementById("prefTime").disabled   = false;
+
     // ✅ Finally show the form
     document.getElementById("bookingForm").style.display = "block";
     document.getElementById("history").style.display = "none";
 }
+
 
 function loadTests(query) {
     query = (query || "").trim();
@@ -766,7 +781,7 @@ function editBooking(bookingId) {
                 return;
             }
 
-            // Fill form
+            // Fill form fields
             document.getElementById("bookingId").value   = bookingId;
             document.getElementById("custNumber").value  = data.customerNumber || "";
             document.getElementById("custName").value    = data.mainCustomerName || "";
@@ -789,7 +804,15 @@ function editBooking(bookingId) {
             document.getElementById("submitBtn").style.display = "none";
             document.getElementById("updateBtn").style.display = "inline-block";
 
-            // ✅ Show the form directly
+            // ✅ Freeze these fields in edit mode
+            document.getElementById("location").disabled   = true;
+            document.getElementById("city").disabled       = true;
+            document.getElementById("pincode").disabled    = true;
+            document.getElementById("phleboList").disabled = true;
+            document.getElementById("prefDate").disabled   = true;
+            document.getElementById("prefTime").disabled   = true;
+
+            // Show form, hide history
             document.getElementById("bookingForm").style.display = "block";
             document.getElementById("history").style.display = "none";
         })
@@ -798,6 +821,7 @@ function editBooking(bookingId) {
             alert("Error fetching booking details!");
         });
 }
+
 
 
 function updateBookingFromForm() {
