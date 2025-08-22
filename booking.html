@@ -136,6 +136,13 @@
     <fieldset style="margin-bottom:15px; padding:10px; border:1px solid #ccc; border-radius:6px;">
         <legend><b>Test, Package & Amount Details</b></legend>
         
+        <!-- ✅ Total Amount Payable Section -->
+<div id="grandTotalSection" class="summary-box">
+  <h3>Total Amount Payable</h3>
+  <input type="text" id="grandTotal" readonly value="0">
+</div>
+
+        
         <!-- Tests -->
         <label>Tests</label>
         <input type="text" placeholder="Search Test" oninput="loadTests(this.value)">
