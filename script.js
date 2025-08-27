@@ -198,6 +198,17 @@ function createBooking() {
         return;
     }
     if (!document.getElementById("custName").value.trim()) return alert("Enter customer name");
+      // ✅ DOB must be in the past (not today/future)
+    let dob = document.getElementById("dob").value;
+    if (dob) {
+        let dobDate = new Date(dob);
+        let today = new Date();
+        today.setHours(0,0,0,0); // normalize to midnight
+        if (dobDate >= today) {
+            markInvalid("dob");
+            alert("Date of Birth cannot be today or a future date");
+        }
+    }
     if (!document.getElementById("age").value) return alert("Enter age");
     if (!document.getElementById("gender").value) return alert("Select gender");
     if (!document.getElementById("address").value.trim()) return alert("Enter address");
