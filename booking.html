@@ -6,6 +6,23 @@
 <link rel="stylesheet" href="style.css">
 <script src="script.js"></script>
 <style>
+    .summary-panel{
+  position: fixed;
+  top: 90px;        /* below your header */
+  left: 20px;
+  width: 280px;
+  max-height: 70vh;
+  overflow:auto;
+  background:#f7fbff;
+  border:1px solid #cfe2ff;
+  border-radius:8px;
+  padding:10px 12px;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);
+  z-index: 998;     /* below your top-left nav (999) */
+}
+.summary-panel table td{ padding:6px 0; }
+.summary-panel td:last-child{ text-align:right; }
+
 .small-btn { padding: 5px 10px; font-size: 12px; border-radius: 50%; border: none; cursor: pointer; }
 .cancel { background: red; color: white; }
 .edit { background: orange; color: white; }
@@ -85,7 +102,27 @@
     </div>
 </div>
 
-<!-- Booking Form Fields -->
+<!-- LEFT SUMMARY: Pending bookings -->
+<div id="bookingSummary" class="summary-panel" style="display:none;">
+  <h3 style="margin:0 0 8px;">Pending Bookings</h3>
+  <div style="font-size:12px;color:#666;margin-bottom:6px;">(Review before confirming)</div>
+
+  <table style="width:100%; border-collapse:collapse;">
+    <thead>
+      <tr>
+        <th style="text-align:left; border-bottom:1px solid #ddd;">Customer</th>
+        <th style="text-align:right; border-bottom:1px solid #ddd;">Cost</th>
+      </tr>
+    </thead>
+    <tbody id="bookingSummaryBody"></tbody>
+  </table>
+
+  <div style="margin-top:8px; padding-top:8px; border-top:1px solid #eee; display:flex; justify-content:space-between;">
+    <strong>Total</strong>
+    <strong>₹<span id="bookingSummaryGrand">0.00</span></strong>
+  </div>
+</div>
+
 
 <!-- Booking Form Fields -->
 <div id="bookingForm" style="display:none; margin-top:20px;">
