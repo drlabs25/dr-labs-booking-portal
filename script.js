@@ -274,26 +274,28 @@ function createBooking() {
 function renderBookingTable() {
   const body = document.getElementById("mainBookingPreviewBody");
   body.innerHTML = "";
-
-  let grandTotal = 0;
-
   bookingList.forEach(b => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${b.type}: ${b.name}</td>
-      <td>${b.datetime}</td>
-      <td>₹${b.cost}</td>
+        <td>${b.type}: ${b.name}</td>
+        <td>${b.datetime}</td>
+        <td>₹${b.cost}</td>
     `;
     body.appendChild(tr);
-
-    grandTotal += parseFloat(b.cost) || 0;
   });
 
+  // ✅ NEW: compute & show grand total of all bookings
+  const grand = bookingList.reduce((sum, b) => sum + (parseFloat(b.cost) || 0), 0);
+  const grandEl = document.getElementById("grandTotalToPay");
+  if (grandEl) grandEl.value = grand.toFixed(2);
+
   document.getElementById("mainBookingPreview").style.display = "block";
+}
+
 
   // ✅ push the sum into the new field (if present in the page)
-  const grandField = document.getElementById("grandTotalToPay");
-  if (grandField) grandField.value = grandTotal.toFixed(2);
+  const grandEl = document.getElementById("grandTotalToPay");
+if (grandEl) grandEl.value = "";
 }
 
 
