@@ -783,7 +783,7 @@ function renderPendingSummary() {
       <td>
         <div style="font-weight:600">
           <!-- ✅ Always fetch from backend just like history edit -->
-          <a href="#" onclick="editBooking('${b.id}')">
+<a href="#" onclick="editBooking('${b.id}')">${b.name || "-"}</a>
             ${b.name || "-"}
           </a>
         </div>
