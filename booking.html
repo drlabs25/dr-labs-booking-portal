@@ -700,11 +700,13 @@ function createBooking() {
                   cost: parseFloat(document.getElementById("totalToPay").value) || 0
             });
 
-            // Render the table
-            renderBookingTable();
+           // Render the table
+renderBookingTable();
+renderPendingSummary();   // ⬅️ add this single line
 
-            // Hide booking form after submit
-            document.getElementById("bookingForm").style.display = "none";
+// Hide booking form after submit
+document.getElementById("bookingForm").style.display = "none";
+
 
             // Show buttons
             document.getElementById("addMoreBtn").style.display = "inline-block";
@@ -772,6 +774,20 @@ function confirmBooking() {
 
                 // ✅ Hide booking form
                 document.getElementById("bookingForm").style.display = "none";
+                // ⬇️ New: jump to Search section and focus the input
+document.getElementById("history").style.display = "none";
+const search = document.getElementById("searchCustNumber");
+if (search) {
+  search.value = "";                              // clear it
+  document.getElementById("createBookingBtn").disabled = true;  // keep disabled until user types
+  search.scrollIntoView({ behavior: "smooth", block: "start" }); // “redirect” to search area
+  search.focus();                                  // cursor ready
+}
+
+// ⬇️ New: hide the left-side summary (only if you added one)
+const wrap = document.getElementById("pendingSummaryWrap");
+if (wrap) wrap.style.display = "none";
+
 
                 // ✅ Reset booking state
                 bookingList = [];
