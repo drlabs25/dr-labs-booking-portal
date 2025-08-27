@@ -279,12 +279,13 @@ function createBooking() {
 
             // ✅ Push into bookingList WITH bookingId
             bookingList.push({
-                id: newBookingId,   // 👈 important fix
-                type: label,
-                name: document.getElementById("custName").value.trim(),
-                datetime: `${document.getElementById("prefDate").value} ${document.getElementById("prefTime").value}`,
-                cost: parseFloat(document.getElementById("totalToPay").value) || 0
-            });
+    id: newBookingId,   // ✅ always store the bookingId
+    type: label,
+    name: document.getElementById("custName").value.trim(),
+    datetime: `${document.getElementById("prefDate").value} ${document.getElementById("prefTime").value}`,
+    cost: parseFloat(document.getElementById("totalToPay").value) || 0
+});
+
 
             // Render the table
             renderBookingTable();
