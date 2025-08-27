@@ -831,12 +831,14 @@ window.onload = function () {
   // ✅ Show agent info (if header exists on this page)
   const agent = localStorage.getItem("agentName") || "Unknown";
   showHeaderInfo(agent);
-  
-// Hide these by default on first load
-["addMoreBtn","confirmBtn"].forEach(id => {
-  const el = document.getElementById(id);
-  if (el) el.style.display = "none";
-});
+
+  // Hide these by default on first load
+  ["addMoreBtn","confirmBtn"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = "none";
+  });
+};  // <-- THIS was missing
+
 
 
 /* Make functions available to inline HTML onclicks (especially on login page) */
