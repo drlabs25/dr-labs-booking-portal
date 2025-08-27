@@ -820,15 +820,13 @@ function renderPendingSummary() {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>
-        <div style="font-weight:600">
-          ${b.name || "-"}
-        </div>
+        <div style="font-weight:600">${b.name || "-"}</div>
         <div style="font-size:12px;color:#666;">
           ${b.type || ("Booking " + (idx+1))}
         </div>
         <div>
-          <a href="#" class="pending-edit" data-id="${b.id || ''}" 
-             style="font-size:12px;color:#007bff;cursor:pointer;text-decoration:underline;">
+          <a href="#" onclick="editBooking('${b.id}')" 
+             style="font-size:12px;color:#007bff;text-decoration:underline;">
             ✏️ Edit
           </a>
         </div>
@@ -841,7 +839,6 @@ function renderPendingSummary() {
   grandEl.textContent = grand.toFixed(2);
   wrap.style.display = bookingList.length ? "block" : "none";
 }
-
 
 window.onload = function () {
   // Min date for prefDate
