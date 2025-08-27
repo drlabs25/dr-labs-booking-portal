@@ -141,19 +141,29 @@ function loadPhlebos() {
 /** Phlebo Availability Check **/
 function checkPhleboAvailability() {
   const phlebo = document.getElementById("phleboList").value;
-  const date = document.getElementById("prefDate").value;
-  const time = document.getElementById("prefTime").value;
+  const date   = document.getElementById("prefDate").value;
+  const time   = document.getElementById("prefTime").value;
+
+  // ✅ Only check for Main bookings
+  if (bookingList.length > 0) {
+    return;  // skip check for sub bookings
+  }
+
   if (phlebo && date && time) {
-    fetch(`${API_URL}?action=checkPhleboSlot&phlebo=${encodeURIComponent(phlebo)}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}`)
+    fetch(`${API_URL}?action=checkAvailability&phlebo=${encodeURIComponent(phlebo)}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}`)
       .then(res => res.json())
       .then(data => {
         if (!data.available) {
-          alert("Preferred time not available");
+          alert("Preferred time not available for this phlebo!");
           document.getElementById("prefTime").value = "";
         }
+      })
+      .catch(err => {
+        console.error("Phlebo availability error:", err);
       });
   }
 }
+
 
 /** Search Booking History **/
 function searchCustomer() {
