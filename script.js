@@ -476,7 +476,7 @@ document.addEventListener('click', function (ev) {
   ev.preventDefault();
   const id = a.dataset.id;
   if (!id) return;
-  handlePendingEditClick(id);   // 👈 important
+  editBooking(id);
 });
 
 
