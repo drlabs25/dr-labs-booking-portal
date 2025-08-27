@@ -59,7 +59,7 @@
     <input type="number" id="searchCustNumber" placeholder="Customer Number (10 digits)" maxlength="10" oninput="validateCustomerNumber(this)">
 <button onclick="searchCustomer()">Search</button>
 <button id="createBookingBtn" onclick="showBookingForm()" disabled>Create Booking</button>
-    <button id="confirmBtn" style="display:none;" onclick="confirmBooking()">Confirm Booking</button>
+  
 </div>
 <!-- Booking History -->
 <div id="history" style="display:none;">
@@ -277,6 +277,7 @@
 
 <!-- ✅ Add More button OUTSIDE bookingForm -->
 <button type="button" id="addMoreBtn" style="display:none; margin-top:10px;" onclick="addSubBooking()">Add More</button>
+<button type="button" id="confirmBtn" style="display:none; margin-top:10px;" onclick="confirmBooking()">Confirm Booking</button>
 
 
 <script>
