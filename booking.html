@@ -656,7 +656,7 @@ function createBooking() {
                 type: label,
                 name: document.getElementById("custName").value.trim(),
                 datetime: `${document.getElementById("prefDate").value} ${document.getElementById("prefTime").value}`,
-                cost: document.getElementById("totalToPay").value
+                  cost: parseFloat(document.getElementById("totalToPay").value) || 0
             });
 
             // Render the table
