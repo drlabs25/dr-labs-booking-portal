@@ -193,14 +193,7 @@ function searchCustomer() {
 /** Save Booking with mandatory field check **/
 function createBooking() {
   let custNumber = document.getElementById("custNumber").value.trim();
-
-  // Debug check
-  console.log("custNumber:", custNumber, "length:", custNumber.length);
-
-  if (!/^\d{10}$/.test(custNumber)) {
-    alert("Enter valid 10-digit customer number");
-    return;
-  }
+  if (!/^\d{10}$/.test(custNumber)) return alert("Enter valid 10-digit customer number");
   if (!document.getElementById("custName").value.trim()) return alert("Enter customer name");
   if (!document.getElementById("age").value) return alert("Enter age");
   if (!document.getElementById("gender").value) return alert("Select gender");
@@ -242,43 +235,65 @@ function createBooking() {
   fetch(`${API_URL}?${query}`)
     .then(res => res.json())
     .then(data => {
-      if (data.success) {
-        let label;
-        if (bookingList.length === 0) {
-          label = "Main Booking";
-          // Save main booking values
-          mainBookingData = {
-            custNumber: params.customerNumber,
-            address: params.address,
-            location: params.location,
-            city: params.city,
-            phlebo: params.phleboName,
-            pincode: params.pincode,
-            prefDate: params.preferredDate,
-            prefTime: params.preferredTime
-          };
-        } else {
-          subBookingCounter++;
-          label = `Sub Booking ${subBookingCounter}`;
-        }
+      if (!data.success) return alert("Booking failed");
 
-        bookingList.push({
-          id: newBookingId,
-          type: label,
-          name: params.mainCustomerName,
-          datetime: `${params.preferredDate} ${params.preferredTime}`,
-          cost: parseFloat(params.totalToPay) || 0
-        });
+      // Use real backend ID if provided, fall back to our generated one
+      const realId = data.bookingId || newBookingId;
 
-        renderBookingTable();
-        renderPendingSummary();
-        document.getElementById("addMoreBtn").style.display = "inline-block";
-        addSubBooking();
+      let label;
+      if (bookingList.length === 0) {
+        label = "Main Booking";
+        // Save main booking values (for sub-booking locks)
+        mainBookingData = {
+          custNumber: params.customerNumber,
+          address: params.address,
+          location: params.location,
+          city: params.city,
+          phlebo: params.phleboName,
+          pincode: params.pincode,
+          prefDate: params.preferredDate,
+          prefTime: params.preferredTime
+        };
       } else {
-        alert("Booking failed");
+        subBookingCounter++;
+        label = `Sub Booking ${subBookingCounter}`;
       }
+
+      // Save EVERYTHING so we can reopen locally if needed
+      bookingList.push({
+        id: realId,
+        type: label,
+        name: params.mainCustomerName,
+        datetime: `${params.preferredDate} ${params.preferredTime}`,
+        cost: parseFloat(params.totalToPay) || 0,
+
+        // full payload for local edit
+        customerNumber: params.customerNumber,
+        dob: params.dob,
+        age: params.age,
+        gender: params.gender,
+        address: params.address,
+        location: params.location,
+        city: params.city,
+        pincode: params.pincode,
+        phleboName: params.phleboName,
+        preferredDate: params.preferredDate,
+        preferredTime: params.preferredTime,
+        tests: params.tests,
+        packages: params.packages,
+        totalAmount: params.totalAmount,
+        discount: params.discount,
+        techCharge: params.techCharge,
+        totalToPay: params.totalToPay
+      });
+
+      renderBookingTable();
+      renderPendingSummary();
+      document.getElementById("addMoreBtn").style.display = "inline-block";
+      addSubBooking();
     });
 }
+
 
 function renderBookingTable() {
   const body = document.getElementById("mainBookingPreviewBody");
@@ -443,8 +458,72 @@ document.addEventListener('click', function (ev) {
   if (!a) return;
   ev.preventDefault();
   const id = a.dataset.id;
-  if (id) editBooking(id);
+  if (!id) return;
+  handlePendingEditClick(id);   // 👈 instead of editBooking(id)
 });
+
+
+function handlePendingEditClick(id) {
+  // Try local (pending) list first
+  const pending = bookingList.find(x => x.id === id);
+  if (pending) {
+    populateFormFromBooking(pending);
+    return;
+  }
+  // Not found locally? Use backend (works for history table items)
+  editBooking(id);
+}
+
+function populateFormFromBooking(b) {
+  // tiny helper
+  const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v ?? ""; };
+
+  setVal("custNumber", b.customerNumber || mainBookingData?.custNumber || "");
+  setVal("custName", b.name || "");
+  setVal("dob", b.dob || "");
+  setVal("age", b.age || "");
+  setVal("gender", b.gender || "");
+  setVal("address", b.address || mainBookingData?.address || "");
+  setVal("location", b.location || mainBookingData?.location || "");
+  setVal("city", b.city || mainBookingData?.city || "");
+  setVal("pincode", b.pincode || mainBookingData?.pincode || "");
+  setVal("phleboList", b.phleboName || mainBookingData?.phlebo || "");
+  setVal("prefDate", b.preferredDate || mainBookingData?.prefDate || "");
+  setVal("prefTime", b.preferredTime || mainBookingData?.prefTime || "");
+  setVal("totalAmount", b.totalAmount || "");
+  setVal("discountList", b.discount || "0");
+  setVal("techCharge", b.techCharge || "");
+  setVal("totalToPay", b.totalToPay || b.cost || "");
+
+  // Restore tests
+  document.querySelectorAll('#testList input[type="checkbox"]').forEach(chk => chk.checked = false);
+  (b.tests || "").split(",").filter(Boolean).forEach(code => {
+    const chk = [...document.querySelectorAll('#testList input[type="checkbox"]')]
+      .find(c => c.value.split("|")[0] === code);
+    if (chk) chk.checked = true;
+  });
+
+  // Restore packages
+  document.querySelectorAll('#packageList input[type="checkbox"]').forEach(chk => chk.checked = false);
+  (b.packages || "").split(",").filter(Boolean).forEach(code => {
+    const chk = [...document.querySelectorAll('#packageList input[type="checkbox"]')]
+      .find(c => c.value.split("|")[0] === code);
+    if (chk) chk.checked = true;
+  });
+
+  // Store bookingId for update, switch buttons, show form
+  const updateBtn = document.getElementById("updateBtn");
+  if (updateBtn) updateBtn.setAttribute("data-booking-id", b.id);
+  const submitBtn = document.getElementById("submitBtn");
+  if (submitBtn) submitBtn.style.display = "none";
+  if (updateBtn) updateBtn.style.display = "inline-block";
+
+  document.getElementById("bookingForm").style.display = "block";
+
+  // Refresh totals after restoring selections
+  recalcTotalFromSelection();
+}
+
 
 function updateBookingFromForm() {
   const bookingId = document.getElementById("updateBtn").getAttribute("data-booking-id");
