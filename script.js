@@ -259,7 +259,7 @@ function createBooking() {
                 type: label,
                 name: params.mainCustomerName,
                 datetime: `${params.preferredDate} ${params.preferredTime}`,
-                cost: params.totalToPay
+                  cost: parseFloat(params.totalToPay) || 0
             });
 
             renderBookingTable();
