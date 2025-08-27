@@ -559,15 +559,24 @@ function showBookingForm() {
     document.getElementById("bookingForm").style.display = "block";
 }
 function confirmBooking() {
-  if (bookingList.length === 0) { alert("No bookings to confirm!"); return; }
+  if (bookingList.length === 0) {
+    alert("No bookings to confirm!");
+    return;
+  }
 
-  const customerNumber = document.getElementById("custNumber").value.trim();
-  if (!/^\d{10}$/.test(customerNumber)) { alert("Missing or invalid customer number!"); return; }
+  const customerNumber = (document.getElementById("custNumber")?.value || "").trim();
+  if (!/^\d{10}$/.test(customerNumber)) {
+    alert("Missing or invalid customer number!");
+    return;
+  }
 
   fetch(`${API_URL}?action=confirmBooking&customerNumber=${encodeURIComponent(customerNumber)}`)
     .then(res => res.json())
     .then(data => {
-      if (!data.success) { alert("Failed to confirm bookings"); return; }
+      if (!data || data.success !== true) {
+        alert("Failed to confirm bookings");
+        return;
+      }
 
       alert("All bookings confirmed successfully!");
 
@@ -575,10 +584,10 @@ function confirmBooking() {
       const search = document.getElementById("searchCustNumber");
       if (search) search.value = "";
       const cust = document.getElementById("custNumber");
-      if (cust) cust.value = "";
+      if (cust) { cust.value = ""; cust.readOnly = false; }
 
       // Hide action buttons
-      ["addMoreBtn","confirmBtn"].forEach(id => {
+      ["addMoreBtn","confirmBtn","submitBtn","updateBtn"].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = "none";
       });
@@ -591,33 +600,57 @@ function confirmBooking() {
       const form = document.getElementById("bookingForm");
       if (form) form.style.display = "none";
 
+      // Clear amount/grand total fields if present
+      ["totalAmount","techCharge","totalToPay","grandTotalToPay"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = "";
+      });
+
       // Hide/clear ANY pending summary regardless of id/class naming
-      document.querySelectorAll('[id*="pending"],[class*="pending"]').forEach(el => {
+      document.querySelectorAll('#pendingSummaryWrap, #pendingSummaryBody, #pendingList, #pendingBookings, .pending-summary, [id*="pendingSummary"], [id*="pendingBookings"]').forEach(el => {
         if ("innerHTML" in el) el.innerHTML = "";
         el.style.display = "none";
       });
+
+      // Hide history section
+      const hist = document.getElementById("history");
+      if (hist) hist.style.display = "none";
 
       // Reset state
       bookingList = [];
       subBookingCounter = 0;
       mainBookingData = null;
 
+      // Reset Create Booking button
       const createBtn = document.getElementById("createBookingBtn");
-      if (createBtn) { createBtn.textContent = "Create Booking"; createBtn.onclick = showBookingForm; }
+      if (createBtn) {
+        createBtn.textContent = "Create Booking";
+        createBtn.onclick = showBookingForm;
+      }
 
+      // Un-freeze any fields for next fresh main booking
       ["custNumber","address","location","city","phleboList","pincode","prefDate","prefTime"].forEach(id => {
         const el = document.getElementById(id);
         if (el) { el.readOnly = false; el.disabled = false; el.style.backgroundColor = ""; }
       });
 
-      // FINAL hard reset so nothing lingers
-      window.location.replace('booking.html');
+      // Scroll back to search + disable Create until a valid number is typed
+      if (search) {
+        const create = document.getElementById("createBookingBtn");
+        if (create) create.disabled = true;
+        search.scrollIntoView({ behavior: "smooth", block: "start" });
+        search.focus();
+      }
+
+      // If you want a guaranteed clean UI state, uncomment:
+      // window.location.replace('booking.html');
     })
     .catch(err => {
       console.error("Confirm booking error:", err);
       alert("Error confirming bookings. Please try again.");
     });
 }
+
 
 function showHeaderInfo(agentName) {
     document.getElementById("agentNameLabel").textContent = "Agent: " + agentName;
