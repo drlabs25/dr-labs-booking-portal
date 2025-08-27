@@ -782,7 +782,7 @@ function renderPendingSummary() {
     tr.innerHTML = `
       <td>
         <div style="font-weight:600">
-          <!-- ✅ Clicking link now calls editBooking directly -->
+          <!-- ✅ Always fetch from backend just like history edit -->
           <a href="#" onclick="editBooking('${b.id}')">
             ${b.name || "-"}
           </a>
@@ -799,6 +799,7 @@ function renderPendingSummary() {
   grandEl.textContent = grand.toFixed(2);
   wrap.style.display = bookingList.length ? "block" : "none";
 }
+
 window.onload = function () {
   // Min date for prefDate
   let prefDate = document.getElementById("prefDate");
