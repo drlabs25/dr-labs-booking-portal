@@ -833,17 +833,15 @@ window.onload = function () {
   showHeaderInfo(agent);
 
   // Hide these by default on first load
-  ["addMoreBtn","confirmBtn"].forEach(id => {
+  ["addMoreBtn", "confirmBtn"].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = "none";
   });
-};  // <-- THIS was missing
+}; // <-- CLOSE the onload function here. Nothing below is inside onload.
 
-
-
-/* Make functions available to inline HTML onclicks (especially on login page) */
-window.agentLogin = agentLogin;
+/* Make functions available to inline HTML onclicks (login pages, buttons, etc.) */
 window.adminLogin = adminLogin;
+window.agentLogin = agentLogin;
 window.showBookingForm = showBookingForm;
 window.createBooking = createBooking;
 window.addSubBooking = addSubBooking;
@@ -854,3 +852,6 @@ window.updateStatus = updateStatus;
 window.editBooking = editBooking;
 window.filterTests = filterTests;
 window.filterPackages = filterPackages;
+
+// Optional tiny sanity check:
+console.log("script.js loaded and globals exported");
