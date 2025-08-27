@@ -193,6 +193,7 @@ function searchCustomer() {
 /** Save Booking with mandatory field check **/
 function createBooking() {
   let custNumber = document.getElementById("custNumber").value.trim();
+
   if (!/^\d{10}$/.test(custNumber)) return alert("Enter valid 10-digit customer number");
   if (!document.getElementById("custName").value.trim()) return alert("Enter customer name");
   if (!document.getElementById("age").value) return alert("Enter age");
@@ -237,13 +238,13 @@ function createBooking() {
     .then(data => {
       if (!data.success) return alert("Booking failed");
 
-      // Use real backend ID if provided, fall back to our generated one
+      // Use backend’s id if it returns one, otherwise keep ours
       const realId = data.bookingId || newBookingId;
 
       let label;
       if (bookingList.length === 0) {
         label = "Main Booking";
-        // Save main booking values (for sub-booking locks)
+        // freeze-for-sub fields
         mainBookingData = {
           custNumber: params.customerNumber,
           address: params.address,
@@ -259,7 +260,7 @@ function createBooking() {
         label = `Sub Booking ${subBookingCounter}`;
       }
 
-      // Save EVERYTHING so we can reopen locally if needed
+      // Save everything so we can reopen from local without calling backend
       bookingList.push({
         id: realId,
         type: label,
@@ -267,7 +268,7 @@ function createBooking() {
         datetime: `${params.preferredDate} ${params.preferredTime}`,
         cost: parseFloat(params.totalToPay) || 0,
 
-        // full payload for local edit
+        // full payload for local edit:
         customerNumber: params.customerNumber,
         dob: params.dob,
         age: params.age,
@@ -291,8 +292,10 @@ function createBooking() {
       renderPendingSummary();
       document.getElementById("addMoreBtn").style.display = "inline-block";
       addSubBooking();
-    });
+    })
+    .catch(() => alert("Booking failed"));
 }
+
 
 
 function renderBookingTable() {
@@ -459,43 +462,43 @@ document.addEventListener('click', function (ev) {
   ev.preventDefault();
   const id = a.dataset.id;
   if (!id) return;
-  handlePendingEditClick(id);   // 👈 instead of editBooking(id)
+  handlePendingEditClick(id);   // 👈 important
 });
 
 
+
 function handlePendingEditClick(id) {
-  // Try local (pending) list first
-  const pending = bookingList.find(x => x.id === id);
-  if (pending) {
-    populateFormFromBooking(pending);
+  // 1) Try local pending list
+  const b = bookingList.find(x => x.id === id);
+  if (b) {
+    populateFormFromBooking(b);
     return;
   }
-  // Not found locally? Use backend (works for history table items)
+  // 2) Fall back to server (works for history table rows)
   editBooking(id);
 }
 
 function populateFormFromBooking(b) {
-  // tiny helper
-  const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v ?? ""; };
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v ?? ""; };
 
-  setVal("custNumber", b.customerNumber || mainBookingData?.custNumber || "");
-  setVal("custName", b.name || "");
-  setVal("dob", b.dob || "");
-  setVal("age", b.age || "");
-  setVal("gender", b.gender || "");
-  setVal("address", b.address || mainBookingData?.address || "");
-  setVal("location", b.location || mainBookingData?.location || "");
-  setVal("city", b.city || mainBookingData?.city || "");
-  setVal("pincode", b.pincode || mainBookingData?.pincode || "");
-  setVal("phleboList", b.phleboName || mainBookingData?.phlebo || "");
-  setVal("prefDate", b.preferredDate || mainBookingData?.prefDate || "");
-  setVal("prefTime", b.preferredTime || mainBookingData?.prefTime || "");
-  setVal("totalAmount", b.totalAmount || "");
-  setVal("discountList", b.discount || "0");
-  setVal("techCharge", b.techCharge || "");
-  setVal("totalToPay", b.totalToPay || b.cost || "");
+  set("custNumber", b.customerNumber || mainBookingData?.custNumber || "");
+  set("custName", b.name || "");
+  set("dob", b.dob || "");
+  set("age", b.age || "");
+  set("gender", b.gender || "");
+  set("address", b.address || mainBookingData?.address || "");
+  set("location", b.location || mainBookingData?.location || "");
+  set("city", b.city || mainBookingData?.city || "");
+  set("pincode", b.pincode || mainBookingData?.pincode || "");
+  set("phleboList", b.phleboName || mainBookingData?.phlebo || "");
+  set("prefDate", b.preferredDate || mainBookingData?.prefDate || "");
+  set("prefTime", b.preferredTime || mainBookingData?.prefTime || "");
+  set("totalAmount", b.totalAmount || "");
+  set("discountList", b.discount || "0");
+  set("techCharge", b.techCharge || "");
+  set("totalToPay", b.totalToPay || b.cost || "");
 
-  // Restore tests
+  // restore tests
   document.querySelectorAll('#testList input[type="checkbox"]').forEach(chk => chk.checked = false);
   (b.tests || "").split(",").filter(Boolean).forEach(code => {
     const chk = [...document.querySelectorAll('#testList input[type="checkbox"]')]
@@ -503,7 +506,7 @@ function populateFormFromBooking(b) {
     if (chk) chk.checked = true;
   });
 
-  // Restore packages
+  // restore packages
   document.querySelectorAll('#packageList input[type="checkbox"]').forEach(chk => chk.checked = false);
   (b.packages || "").split(",").filter(Boolean).forEach(code => {
     const chk = [...document.querySelectorAll('#packageList input[type="checkbox"]')]
@@ -511,18 +514,22 @@ function populateFormFromBooking(b) {
     if (chk) chk.checked = true;
   });
 
-  // Store bookingId for update, switch buttons, show form
+  // prepare update button + show form
   const updateBtn = document.getElementById("updateBtn");
   if (updateBtn) updateBtn.setAttribute("data-booking-id", b.id);
   const submitBtn = document.getElementById("submitBtn");
   if (submitBtn) submitBtn.style.display = "none";
   if (updateBtn) updateBtn.style.display = "inline-block";
 
-  document.getElementById("bookingForm").style.display = "block";
+  const form = document.getElementById("bookingForm");
+  if (form) {
+    form.style.display = "block";
+    form.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
-  // Refresh totals after restoring selections
   recalcTotalFromSelection();
 }
+
 
 
 function updateBookingFromForm() {
