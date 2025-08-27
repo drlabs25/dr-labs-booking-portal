@@ -632,6 +632,19 @@ function addSubBooking() {
 
   document.getElementById("bookingForm").style.display = "block";
   document.getElementById("addMoreBtn").style.display = "inline-block";
+  // Show the correct buttons after main booking is saved (and while adding subs)
+const createBtn = document.getElementById("createBookingBtn");
+if (createBtn) createBtn.style.display = "none";
+
+const submitBtn = document.getElementById("submitBtn");
+if (submitBtn) submitBtn.style.display = "inline-block";
+
+const addMoreBtn = document.getElementById("addMoreBtn");
+if (addMoreBtn) addMoreBtn.style.display = "inline-block";
+
+const confirmBtn = document.getElementById("confirmBtn");
+if (confirmBtn) confirmBtn.style.display = "inline-block";
+
 }
 
 function showBookingForm() {
@@ -818,7 +831,13 @@ window.onload = function () {
   // ✅ Show agent info (if header exists on this page)
   const agent = localStorage.getItem("agentName") || "Unknown";
   showHeaderInfo(agent);
-};
+  
+// Hide these by default on first load
+["addMoreBtn","confirmBtn"].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.style.display = "none";
+});
+
 
 /* Make functions available to inline HTML onclicks (especially on login page) */
 window.agentLogin = agentLogin;
