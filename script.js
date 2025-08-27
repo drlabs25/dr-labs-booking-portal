@@ -207,13 +207,10 @@ function createBooking() {
 
   const newBookingId = "BKG_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
 
-  // ✅ Decide booking type *before* the request
+  // ✅ Decide booking type *before* request
   const isMain = (bookingList.length === 0);
-  const nextSubIndex = subBookingCounter + 1;               // what the next sub will be called
+  const nextSubIndex = subBookingCounter + 1;
   const bookingTypeValue = isMain ? "Main" : `Sub ${nextSubIndex}`;
-
-  // (optional) quick debug so you can see what we send
-  console.log("createBooking -> bookingType:", bookingTypeValue);
 
   const params = {
     action: "saveBooking",
@@ -237,7 +234,6 @@ function createBooking() {
     techCharge: document.getElementById("techCharge").value,
     totalToPay: document.getElementById("totalToPay").value,
     agentName: localStorage.getItem("agentName") || "",
-    // ✅ send the final string the sheet should store
     bookingType: bookingTypeValue
   };
 
@@ -247,14 +243,13 @@ function createBooking() {
     .then(data => {
       if (!data.success) return alert("Booking failed");
 
-      // Use backend’s id if it returns one, otherwise keep ours
+      // ✅ Always capture backend’s ID (or fallback to generated one)
       const realId = data.bookingId || newBookingId;
 
-      // UI label + counters
+      // UI label + freeze rules
       let label;
       if (isMain) {
         label = "Main Booking";
-        // freeze-for-sub fields
         mainBookingData = {
           custNumber: params.customerNumber,
           address: params.address,
@@ -266,11 +261,11 @@ function createBooking() {
           prefTime: params.preferredTime
         };
       } else {
-        subBookingCounter = nextSubIndex;       // keep counter in sync with what we saved
+        subBookingCounter = nextSubIndex;
         label = `Sub Booking ${subBookingCounter}`;
       }
 
-      // Store for local edit/preview
+      // ✅ Store in bookingList with guaranteed ID
       bookingList.push({
         id: realId,
         type: label,
@@ -278,7 +273,7 @@ function createBooking() {
         datetime: `${params.preferredDate} ${params.preferredTime}`,
         cost: parseFloat(params.totalToPay) || 0,
 
-        // full payload (handy for local edit)
+        // full payload (not strictly needed if we always use backend editBooking)
         customerNumber: params.customerNumber,
         dob: params.dob,
         age: params.age,
@@ -303,14 +298,13 @@ function createBooking() {
       document.getElementById("addMoreBtn").style.display = "inline-block";
       addSubBooking();
 
-      // (optional) Inspect what the server says it saved
-      if (data.bookingType) {
-        console.log("server saved bookingType:", data.bookingType);
-      }
+      console.log("✅ Booking saved. Server ID:", realId, "Type:", data.bookingType || bookingTypeValue);
     })
-    .catch(() => alert("Booking failed"));
+    .catch(err => {
+      console.error("Booking save error:", err);
+      alert("Booking failed, please try again");
+    });
 }
-
 
 function renderBookingTable() {
   const body = document.getElementById("mainBookingPreviewBody");
