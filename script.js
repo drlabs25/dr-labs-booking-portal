@@ -284,7 +284,7 @@ function renderBookingTable() {
     body.appendChild(tr);
   });
 
-  // ✅ NEW: compute & show grand total of all bookings
+  // ✅ compute & show grand total of all bookings
   const grand = bookingList.reduce((sum, b) => sum + (parseFloat(b.cost) || 0), 0);
   const grandEl = document.getElementById("grandTotalToPay");
   if (grandEl) grandEl.value = grand.toFixed(2);
@@ -292,11 +292,6 @@ function renderBookingTable() {
   document.getElementById("mainBookingPreview").style.display = "block";
 }
 
-
-  // ✅ push the sum into the new field (if present in the page)
-  const grandEl = document.getElementById("grandTotalToPay");
-if (grandEl) grandEl.value = "";
-}
 
 
 function getSelectedCodes(containerId) {
