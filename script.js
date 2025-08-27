@@ -192,119 +192,122 @@ function searchCustomer() {
 
 /** Save Booking with mandatory field check **/
 function createBooking() {
-  const custNumber = document.getElementById("custNumber").value.trim();
+    // Reset all borders first
+    document.querySelectorAll("#bookingForm input, #bookingForm select, #bookingForm textarea")
+        .forEach(el => el.style.border = "");
 
-  if (!/^\d{10}$/.test(custNumber)) return alert("Enter valid 10-digit customer number");
-  if (!document.getElementById("custName").value.trim()) return alert("Enter customer name");
-  if (!document.getElementById("age").value) return alert("Enter age");
-  if (!document.getElementById("gender").value) return alert("Select gender");
-  if (!document.getElementById("address").value.trim()) return alert("Enter address");
-  if (!document.getElementById("location").value.trim()) return alert("Enter location");
-  if (!document.getElementById("city").value) return alert("Select city");
-  if (!document.getElementById("phleboList").value) return alert("Select phlebo");
-  if (!document.getElementById("prefDate").value) return alert("Select preferred date");
-  if (!document.getElementById("prefTime").value) return alert("Select preferred time");
+    let isValid = true;
+    function markInvalid(id) {
+        document.getElementById(id).style.border = "2px solid red";
+        isValid = false;
+    }
 
-  const newBookingId = "BKG_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+    let custNumber = document.getElementById("custNumber").value.trim();
+    if (custNumber.length !== 10 || !/^\d+$/.test(custNumber)) markInvalid("custNumber");
 
-  // ✅ Decide booking type *before* request
-  const isMain = (bookingList.length === 0);
-  const nextSubIndex = subBookingCounter + 1;
-  const bookingTypeValue = isMain ? "Main" : `Sub ${nextSubIndex}`;
+    if (!document.getElementById("custName").value.trim()) markInvalid("custName");
+    if (!document.getElementById("age").value.trim()) markInvalid("age");
+    if (!document.getElementById("gender").value) markInvalid("gender");
+    if (!document.getElementById("address").value.trim()) markInvalid("address");
+    if (!document.getElementById("location").value.trim()) markInvalid("location");
+    if (!document.getElementById("city").value) markInvalid("city");
+    if (!document.getElementById("phleboList").value) markInvalid("phleboList");
 
-  const params = {
-    action: "saveBooking",
-    bookingId: newBookingId,
-    customerNumber: document.getElementById("custNumber").value,
-    mainCustomerName: document.getElementById("custName").value,
-    dob: document.getElementById("dob").value,
-    age: document.getElementById("age").value,
-    gender: document.getElementById("gender").value,
-    address: document.getElementById("address").value,
-    location: document.getElementById("location").value,
-    city: document.getElementById("city").value,
-    phleboName: document.getElementById("phleboList").value,
-    pincode: document.getElementById("pincode").value,
-    preferredDate: document.getElementById("prefDate").value,
-    preferredTime: document.getElementById("prefTime").value,
-    tests: getSelectedCodes("testList"),
-    packages: getSelectedCodes("packageList"),
-    totalAmount: document.getElementById("totalAmount").value,
-    discount: document.getElementById("discountList").value,
-    techCharge: document.getElementById("techCharge").value,
-    totalToPay: document.getElementById("totalToPay").value,
-    agentName: localStorage.getItem("agentName") || "",
-    bookingType: bookingTypeValue
-  };
+    let pincode = document.getElementById("pincode").value.trim();
+    if (pincode.length !== 6 || !/^\d+$/.test(pincode)) markInvalid("pincode");
 
-  const query = new URLSearchParams(params).toString();
-  fetch(`${API_URL}?${query}`)
+    if (!document.getElementById("prefDate").value) markInvalid("prefDate");
+    if (!document.getElementById("prefTime").value) markInvalid("prefTime");
+
+    let tests = getSelectedTests();
+    let packages = getSelectedPackages();
+    if (!tests && !packages) {
+        document.querySelector("#testList")?.style.setProperty("border", "2px solid red", "important");
+        document.querySelector("#packageList")?.style.setProperty("border", "2px solid red", "important");
+        isValid = false;
+    }
+
+    if (!document.getElementById("discountList").value) markInvalid("discountList");
+    if (!document.getElementById("techCharge").value.trim()) markInvalid("techCharge");
+
+    if (!isValid) {
+        alert("Please fill all required fields.");
+        return;
+    }
+
+    // ✅ Always generate NEW bookingId
+    let newBookingId = "BKG_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+
+    let params = new URLSearchParams({
+        action: "saveBooking",
+        bookingId: newBookingId,
+        customerNumber: custNumber,
+        mainCustomerName: document.getElementById("custName").value.trim(),
+        dob: document.getElementById("dob").value,
+        age: document.getElementById("age").value.trim(),
+        gender: document.getElementById("gender").value,
+        address: document.getElementById("address").value.trim(),
+        location: document.getElementById("location").value.trim(),
+        city: document.getElementById("city").value,
+        phleboName: document.getElementById("phleboList").value,
+        pincode: pincode,
+        preferredDate: document.getElementById("prefDate").value,
+        preferredTime: document.getElementById("prefTime").value,
+        tests: tests,
+        packages: packages,
+        totalAmount: document.getElementById("totalAmount").value,
+        discount: document.getElementById("discountList").value,
+        techCharge: document.getElementById("techCharge").value,
+        totalToPay: document.getElementById("totalToPay").value,
+        agentName: localStorage.getItem("agentName") || "",
+    });
+
+    fetch(`${API_URL}?${params.toString()}`)
     .then(res => res.json())
     .then(data => {
-      if (!data.success) return alert("Booking failed");
+        if (data.success) {
+            document.getElementById("bookingId").value = newBookingId;
 
-      // ✅ Always capture backend’s ID (or fallback to generated one)
-      const realId = data.bookingId || newBookingId;
+            // Decide label (Main or Sub Booking)
+            let label;
+            if (bookingList.length === 0) {
+                label = "Main Booking";
+            } else {
+                subBookingCounter++;
+                label = `Sub Booking ${subBookingCounter}`;
+            }
 
-      // UI label + freeze rules
-      let label;
-      if (isMain) {
-        label = "Main Booking";
-        mainBookingData = {
-          custNumber: params.customerNumber,
-          address: params.address,
-          location: params.location,
-          city: params.city,
-          phlebo: params.phleboName,
-          pincode: params.pincode,
-          prefDate: params.preferredDate,
-          prefTime: params.preferredTime
-        };
-      } else {
-        subBookingCounter = nextSubIndex;
-        label = `Sub Booking ${subBookingCounter}`;
-      }
+            // ✅ Push into bookingList WITH bookingId
+            bookingList.push({
+                id: newBookingId,   // 👈 important fix
+                type: label,
+                name: document.getElementById("custName").value.trim(),
+                datetime: `${document.getElementById("prefDate").value} ${document.getElementById("prefTime").value}`,
+                cost: parseFloat(document.getElementById("totalToPay").value) || 0
+            });
 
-      // ✅ Store in bookingList with guaranteed ID
-      bookingList.push({
-        id: realId,
-        type: label,
-        name: params.mainCustomerName,
-        datetime: `${params.preferredDate} ${params.preferredTime}`,
-        cost: parseFloat(params.totalToPay) || 0,
+            // Render the table
+            renderBookingTable();
+            renderPendingSummary();
 
-        // full payload (not strictly needed if we always use backend editBooking)
-        customerNumber: params.customerNumber,
-        dob: params.dob,
-        age: params.age,
-        gender: params.gender,
-        address: params.address,
-        location: params.location,
-        city: params.city,
-        pincode: params.pincode,
-        phleboName: params.phleboName,
-        preferredDate: params.preferredDate,
-        preferredTime: params.preferredTime,
-        tests: params.tests,
-        packages: params.packages,
-        totalAmount: params.totalAmount,
-        discount: params.discount,
-        techCharge: params.techCharge,
-        totalToPay: params.totalToPay
-      });
+            // Hide booking form after submit
+            document.getElementById("bookingForm").style.display = "none";
 
-      renderBookingTable();
-      renderPendingSummary();
-      document.getElementById("addMoreBtn").style.display = "inline-block";
-      addSubBooking();
+            // Show buttons
+            document.getElementById("addMoreBtn").style.display = "inline-block";
+            document.getElementById("confirmBtn").style.display = "inline-block";
 
-      console.log("✅ Booking saved. Server ID:", realId, "Type:", data.bookingType || bookingTypeValue);
+            alert(label + " saved! ID: " + newBookingId);
+        } else {
+            alert("Failed to save booking.");
+        }
     })
     .catch(err => {
-      console.error("Booking save error:", err);
-      alert("Booking failed, please try again");
+        console.error("Booking save error:", err);
+        alert("Something went wrong while saving booking!");
     });
 }
+
 
 function renderBookingTable() {
   const body = document.getElementById("mainBookingPreviewBody");
