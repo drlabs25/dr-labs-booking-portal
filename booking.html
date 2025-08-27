@@ -774,6 +774,14 @@ function confirmBooking() {
 
                 // ✅ Hide booking form
                 document.getElementById("bookingForm").style.display = "none";
+
+                /* 👇 ADD THIS: clear & hide any left-side “pending bookings” panel */
+["pendingSummaryWrap","pendingSummaryBody","pendingList","pendingBookings"].forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if ("innerHTML" in el) el.innerHTML = "";   // clear rows/items
+  if (id.endsWith("Wrap") || el.tagName === "DIV") el.style.display = "none"; // hide wrapper
+});
                 // ⬇️ New: jump to Search section and focus the input
 document.getElementById("history").style.display = "none";
 const search = document.getElementById("searchCustNumber");
