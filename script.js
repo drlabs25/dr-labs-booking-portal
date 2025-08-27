@@ -814,15 +814,14 @@ function renderPendingSummary() {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>
-        <div style="font-weight:600">${b.name || "-"}</div>
+        <div style="font-weight:600">
+          <!-- ✅ Clicking link now calls editBooking directly -->
+          <a href="#" onclick="editBooking('${b.id}')">
+            ${b.name || "-"}
+          </a>
+        </div>
         <div style="font-size:12px;color:#666;">
           ${b.type || ("Booking " + (idx+1))}
-        </div>
-        <div>
-          <a href="#" onclick="editBooking('${b.id}')" 
-             style="font-size:12px;color:#007bff;text-decoration:underline;">
-            ✏️ Edit
-          </a>
         </div>
       </td>
       <td>₹${costNum.toFixed(2)}</td>
@@ -833,6 +832,7 @@ function renderPendingSummary() {
   grandEl.textContent = grand.toFixed(2);
   wrap.style.display = bookingList.length ? "block" : "none";
 }
+
 
 window.onload = function () {
   // Min date for prefDate
