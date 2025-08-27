@@ -271,21 +271,31 @@ function createBooking() {
     });
 }
 
-// ✅ keep this OUTSIDE
 function renderBookingTable() {
-    const body = document.getElementById("mainBookingPreviewBody");
-    body.innerHTML = "";
-    bookingList.forEach(b => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-            <td>${b.type}: ${b.name}</td>
-            <td>${b.datetime}</td>
-            <td>${b.cost}</td>
-        `;
-        body.appendChild(tr);
-    });
-    document.getElementById("mainBookingPreview").style.display = "block";
+  const body = document.getElementById("mainBookingPreviewBody");
+  body.innerHTML = "";
+
+  let grandTotal = 0;
+
+  bookingList.forEach(b => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${b.type}: ${b.name}</td>
+      <td>${b.datetime}</td>
+      <td>₹${b.cost}</td>
+    `;
+    body.appendChild(tr);
+
+    grandTotal += parseFloat(b.cost) || 0;
+  });
+
+  document.getElementById("mainBookingPreview").style.display = "block";
+
+  // ✅ push the sum into the new field (if present in the page)
+  const grandField = document.getElementById("grandTotalToPay");
+  if (grandField) grandField.value = grandTotal.toFixed(2);
 }
+
 
 function getSelectedCodes(containerId) {
     const checks = document.querySelectorAll(`#${containerId} input[type='checkbox']:checked`);
