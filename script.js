@@ -559,70 +559,69 @@ function showBookingForm() {
     document.getElementById("bookingForm").style.display = "block";
 }
 function confirmBooking() {
-    if (bookingList.length === 0) {
-        alert("No bookings to confirm!");
-        return;
-    }
+  if (bookingList.length === 0) { alert("No bookings to confirm!"); return; }
 
-    // ✅ Take customer number from the form
-    const customerNumber = document.getElementById("custNumber").value.trim();
+  const customerNumber = document.getElementById("custNumber").value.trim();
+  if (!/^\d{10}$/.test(customerNumber)) { alert("Missing or invalid customer number!"); return; }
 
-    if (!/^\d{10}$/.test(customerNumber)) {
-        alert("Missing or invalid customer number!");
-        return;
-    }
+  fetch(`${API_URL}?action=confirmBooking&customerNumber=${encodeURIComponent(customerNumber)}`)
+    .then(res => res.json())
+    .then(data => {
+      if (!data.success) { alert("Failed to confirm bookings"); return; }
 
-    // 🔹 Call backend
-    fetch(`${API_URL}?action=confirmBooking&customerNumber=${encodeURIComponent(customerNumber)}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                alert("All bookings confirmed successfully!");
+      alert("All bookings confirmed successfully!");
 
-                // ✅ Clear both search + form numbers
-                document.getElementById("searchCustNumber").value = "";
-                document.getElementById("custNumber").value = "";
+      // Clear search + form
+      document.getElementById("searchCustNumber").value = "";
+      document.getElementById("custNumber").value = "";
 
-                // ✅ Hide Add More + Confirm buttons
-                document.getElementById("addMoreBtn").style.display = "none";
-                document.getElementById("confirmBtn").style.display = "none";
+      // Hide buttons
+      document.getElementById("addMoreBtn").style.display = "none";
+      document.getElementById("confirmBtn").style.display = "none";
 
-                // ✅ Clear booking preview
-                document.getElementById("mainBookingPreviewBody").innerHTML = "";
-                document.getElementById("mainBookingPreview").style.display = "none";
+      // Clear preview + hide form
+      document.getElementById("mainBookingPreviewBody").innerHTML = "";
+      document.getElementById("mainBookingPreview").style.display = "none";
+      document.getElementById("bookingForm").style.display = "none";
 
-                // ✅ Hide booking form
-                document.getElementById("bookingForm").style.display = "none";
+      // Hard remove any pending-summary elements
+      document.querySelectorAll(
+        '#pendingSummaryWrap, #pendingSummaryBody, #pendingList, #pendingBookings, ' +
+        '[id*="pendingSummary"], [id*="PendingSummary"], [id*="pendingBookings"], ' +
+        '.pending-summary, .pending'
+      ).forEach(el => {
+        if ("innerHTML" in el) el.innerHTML = "";
+        el.remove();
+      });
 
-                // ✅ Reset booking state
-                bookingList = [];
-                subBookingCounter = 0;
-                mainBookingData = null;
+      // Jump back to Search section
+      document.getElementById("history").style.display = "none";
+      const search = document.getElementById("searchCustNumber");
+      if (search) {
+        search.value = "";
+        document.getElementById("createBookingBtn").disabled = true;
+        search.scrollIntoView({ behavior: "smooth", block: "start" });
+        search.focus();
+      }
 
-                // ✅ Reset button back to Main Booking mode
-                const createBtn = document.getElementById("createBookingBtn");
-                if (createBtn) {
-                    createBtn.textContent = "Create Booking";
-                    createBtn.onclick = showBookingForm;
-                }
+      // Reset state
+      bookingList = [];
+      subBookingCounter = 0;
+      mainBookingData = null;
 
-                // ✅ Unfreeze all fields for fresh Main Booking
-                ["custNumber","address","location","city","phleboList","pincode","prefDate","prefTime"].forEach(id => {
-                    let el = document.getElementById(id);
-                    if (!el) return;
-                    el.readOnly = false;
-                    el.disabled = false;
-                    el.style.backgroundColor = ""; // reset styling
-                });
+      const createBtn = document.getElementById("createBookingBtn");
+      if (createBtn) { createBtn.textContent = "Create Booking"; createBtn.onclick = showBookingForm; }
 
-            } else {
-                alert("Failed to confirm bookings");
-            }
-        })
-        .catch(err => {
-            console.error("Confirm booking error:", err);
-            alert("Error confirming bookings. Please try again.");
-        });
+      ["custNumber","address","location","city","phleboList","pincode","prefDate","prefTime"].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.readOnly = false; el.disabled = false; el.style.backgroundColor = "";
+      });
+    })
+    .catch(err => {
+      console.error("Confirm booking error:", err);
+      alert("Error confirming bookings. Please try again.");
+    });
 }
 function showHeaderInfo(agentName) {
     document.getElementById("agentNameLabel").textContent = "Agent: " + agentName;
