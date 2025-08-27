@@ -482,69 +482,74 @@ document.addEventListener('click', function (ev) {
 
 
 function handlePendingEditClick(id) {
-  // 1) Try local pending list
-  const b = bookingList.find(x => x.id === id);
-  if (b) {
-    populateFormFromBooking(b);
+  // ✅ First, try to find this booking in local pending list
+  const pending = bookingList.find(x => x.id === id);
+  if (pending) {
+    populateFormFromBooking(pending);   // fill form from local data
     return;
   }
-  // 2) Fall back to server (works for history table rows)
+
+  // ❌ Not found locally? → Fetch from backend (for already saved bookings)
   editBooking(id);
 }
 
 function populateFormFromBooking(b) {
-  const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v ?? ""; };
+  // tiny helper to safely set values
+  const setVal = (id, v) => {
+    const el = document.getElementById(id);
+    if (el) el.value = v ?? "";
+  };
 
-  set("custNumber", b.customerNumber || mainBookingData?.custNumber || "");
-  set("custName", b.name || "");
-  set("dob", b.dob || "");
-  set("age", b.age || "");
-  set("gender", b.gender || "");
-  set("address", b.address || mainBookingData?.address || "");
-  set("location", b.location || mainBookingData?.location || "");
-  set("city", b.city || mainBookingData?.city || "");
-  set("pincode", b.pincode || mainBookingData?.pincode || "");
-  set("phleboList", b.phleboName || mainBookingData?.phlebo || "");
-  set("prefDate", b.preferredDate || mainBookingData?.prefDate || "");
-  set("prefTime", b.preferredTime || mainBookingData?.prefTime || "");
-  set("totalAmount", b.totalAmount || "");
-  set("discountList", b.discount || "0");
-  set("techCharge", b.techCharge || "");
-  set("totalToPay", b.totalToPay || b.cost || "");
+  // Basic info
+  setVal("custNumber", b.customerNumber || mainBookingData?.custNumber || "");
+  setVal("custName", b.name || "");
+  setVal("dob", b.dob || "");
+  setVal("age", b.age || "");
+  setVal("gender", b.gender || "");
+  setVal("address", b.address || mainBookingData?.address || "");
+  setVal("location", b.location || mainBookingData?.location || "");
+  setVal("city", b.city || mainBookingData?.city || "");
+  setVal("pincode", b.pincode || mainBookingData?.pincode || "");
+  setVal("phleboList", b.phleboName || mainBookingData?.phlebo || "");
+  setVal("prefDate", b.preferredDate || mainBookingData?.prefDate || "");
+  setVal("prefTime", b.preferredTime || mainBookingData?.prefTime || "");
+  setVal("totalAmount", b.totalAmount || "");
+  setVal("discountList", b.discount || "0");
+  setVal("techCharge", b.techCharge || "");
+  setVal("totalToPay", b.totalToPay || b.cost || "");
 
-  // restore tests
+  // ✅ Clear all current selections first
   document.querySelectorAll('#testList input[type="checkbox"]').forEach(chk => chk.checked = false);
+  document.querySelectorAll('#packageList input[type="checkbox"]').forEach(chk => chk.checked = false);
+
+  // ✅ Restore Tests
   (b.tests || "").split(",").filter(Boolean).forEach(code => {
     const chk = [...document.querySelectorAll('#testList input[type="checkbox"]')]
       .find(c => c.value.split("|")[0] === code);
     if (chk) chk.checked = true;
   });
 
-  // restore packages
-  document.querySelectorAll('#packageList input[type="checkbox"]').forEach(chk => chk.checked = false);
+  // ✅ Restore Packages
   (b.packages || "").split(",").filter(Boolean).forEach(code => {
     const chk = [...document.querySelectorAll('#packageList input[type="checkbox"]')]
       .find(c => c.value.split("|")[0] === code);
     if (chk) chk.checked = true;
   });
 
-  // prepare update button + show form
+  // ✅ Switch to update mode
   const updateBtn = document.getElementById("updateBtn");
   if (updateBtn) updateBtn.setAttribute("data-booking-id", b.id);
+
   const submitBtn = document.getElementById("submitBtn");
   if (submitBtn) submitBtn.style.display = "none";
   if (updateBtn) updateBtn.style.display = "inline-block";
 
-  const form = document.getElementById("bookingForm");
-  if (form) {
-    form.style.display = "block";
-    form.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
+  // ✅ Show the booking form
+  document.getElementById("bookingForm").style.display = "block";
 
+  // ✅ Recalculate totals after restoring selections
   recalcTotalFromSelection();
 }
-
-
 
 function updateBookingFromForm() {
   const bookingId = document.getElementById("updateBtn").getAttribute("data-booking-id");
@@ -816,12 +821,16 @@ function renderPendingSummary() {
     tr.innerHTML = `
       <td>
         <div style="font-weight:600">
-          <a href="#" class="pending-edit" data-id="${b.id || ''}">
-            ${b.name || "-"}
-          </a>
+          ${b.name || "-"}
         </div>
         <div style="font-size:12px;color:#666;">
           ${b.type || ("Booking " + (idx+1))}
+        </div>
+        <div>
+          <a href="#" class="pending-edit" data-id="${b.id || ''}" 
+             style="font-size:12px;color:#007bff;cursor:pointer;text-decoration:underline;">
+            ✏️ Edit
+          </a>
         </div>
       </td>
       <td>₹${costNum.toFixed(2)}</td>
@@ -832,6 +841,7 @@ function renderPendingSummary() {
   grandEl.textContent = grand.toFixed(2);
   wrap.style.display = bookingList.length ? "block" : "none";
 }
+
 
 window.onload = function () {
   // Min date for prefDate
