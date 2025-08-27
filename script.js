@@ -444,7 +444,6 @@ document.addEventListener('click', function (ev) {
   if (id) editBooking(id);
 });
 
-}
 
 
 function updateBookingFromForm() {
