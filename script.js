@@ -125,10 +125,10 @@ function loadPhlebos() {
         .then(phlebos => {
             const sel = document.getElementById("phleboList");
             sel.innerHTML = `<option value="">--Select Phlebo--</option>`;
-            phlebos.forEach(name => {
+            phlebos.forEach(p => { 
                 let opt = document.createElement("option");
-                opt.value = name;
-                opt.textContent = name;
+                opt.value = p.name;                 // 👈 p.name
+      opt.textContent = p.name;           // 👈 p.name
                 sel.appendChild(opt);
             });
         });
@@ -206,9 +206,11 @@ function createBooking() {
     if (!document.getElementById("phleboList").value) return alert("Select phlebo");
     if (!document.getElementById("prefDate").value) return alert("Select preferred date");
     if (!document.getElementById("prefTime").value) return alert("Select preferred time");
+const newBookingId = "BKG_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
 
     const params = {
     action: "saveBooking",
+      bookingId: newBookingId,            // 👈 add this
     customerNumber: document.getElementById("custNumber").value,
     mainCustomerName: document.getElementById("custName").value,
     dob: document.getElementById("dob").value,
@@ -256,6 +258,7 @@ function createBooking() {
 }
 
             bookingList.push({
+              id: newBookingId,  // 👈 add this
                 type: label,
                 name: params.mainCustomerName,
                 datetime: `${params.preferredDate} ${params.preferredTime}`,
@@ -263,6 +266,7 @@ function createBooking() {
             });
 
             renderBookingTable();
+          renderPendingSummary();   // 👈 add this call
             document.getElementById("addMoreBtn").style.display = "inline-block";
             addSubBooking();
         } else {
@@ -276,27 +280,19 @@ function renderBookingTable() {
   body.innerHTML = "";
 
   bookingList.forEach(b => {
-    const costNum = parseFloat(b.cost) || 0;
+    const costNum = Number(b.cost) || 0;
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${b.type}: ${b.name}</td>
+      <td><a href="#" class="pending-edit" data-id="${b.id || ''}">${b.type}: ${b.name}</a></td>
       <td>${b.datetime}</td>
       <td>₹${costNum.toFixed(2)}</td>
     `;
     body.appendChild(tr);
   });
 
-  // compute & show grand total of all bookings
-  const grand = bookingList.reduce((sum, item) => {
-    const n = parseFloat(item.cost);
-    return sum + (isNaN(n) ? 0 : n);
-  }, 0);
-
-  const grandEl = document.getElementById("grandTotalToPay");
-  if (grandEl) grandEl.value = grand.toFixed(2);
-
   document.getElementById("mainBookingPreview").style.display = "block";
 }
+
 
 
 
@@ -438,6 +434,16 @@ function editBooking(bookingId) {
       console.error("Error fetching booking details:", err);
       alert("Error fetching booking details!");
     });
+}
+  // Make any <a class="pending-edit" data-id="..."> open the same edit flow
+document.addEventListener('click', function (ev) {
+  const a = ev.target.closest('a.pending-edit');
+  if (!a) return;
+  ev.preventDefault();
+  const id = a.dataset.id;
+  if (id) editBooking(id);
+});
+
 }
 
 
@@ -600,6 +606,16 @@ function confirmBooking() {
       const form = document.getElementById("bookingForm");
       if (form) form.style.display = "none";
 
+      const sumWrap = document.getElementById("bookingSummary");
+const sumBody = document.getElementById("bookingSummaryBody");
+const sumGrand = document.getElementById("bookingSummaryGrand");
+if (sumWrap && sumBody && sumGrand) {
+  sumBody.innerHTML = "";
+  sumGrand.textContent = "0.00";
+  sumWrap.style.display = "none";
+}
+
+
       // Clear amount/grand total fields if present
       ["totalAmount","techCharge","totalToPay","grandTotalToPay"].forEach(id => {
         const el = document.getElementById(id);
@@ -680,14 +696,21 @@ function renderPendingSummary() {
     grand += costNum;
 
     const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>
-        <div style="font-weight:600">${b.name || "-"}</div>
-        <div style="font-size:12px;color:#666;">${b.type || ("Booking " + (idx+1))}</div>
-      </td>
-      <td>₹${costNum.toFixed(2)}</td>
-    `;
-    body.appendChild(tr);
+tr.innerHTML = `
+  <td>
+    <div style="font-weight:600">
+      <a href="#" class="pending-edit" data-id="${b.id || ''}">
+        ${b.name || "-"}
+      </a>
+    </div>
+    <div style="font-size:12px;color:#666;">
+      ${b.type || ("Booking " + (idx+1))}
+    </div>
+  </td>
+  <td>₹${costNum.toFixed(2)}</td>
+`;
+body.appendChild(tr);
+
   });
 
   grandEl.textContent = grand.toFixed(2);
