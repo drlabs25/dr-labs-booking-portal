@@ -207,6 +207,11 @@ function createBooking() {
 
   const newBookingId = "BKG_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
 
+  // ✅ Compute bookingType for the sheet: main / sub 1 / sub 2 / ...
+  const isMain = (bookingList.length === 0);
+  const nextSubNo = subBookingCounter + 1;        // first sub will be 1
+  const bookingTypeForSheet = isMain ? "main" : `sub ${nextSubNo}`;
+
   const params = {
     action: "saveBooking",
     bookingId: newBookingId,
@@ -229,7 +234,7 @@ function createBooking() {
     techCharge: document.getElementById("techCharge").value,
     totalToPay: document.getElementById("totalToPay").value,
     agentName: localStorage.getItem("agentName") || "",
-    bookingType: (bookingList.length === 0) ? "Main" : "Sub"
+    bookingType: bookingTypeForSheet               // <-- main / sub 1 / sub 2 ...
   };
 
   const query = new URLSearchParams(params).toString();
@@ -242,7 +247,7 @@ function createBooking() {
       const realId = data.bookingId || newBookingId;
 
       let label;
-      if (bookingList.length === 0) {
+      if (isMain) {
         label = "Main Booking";
         // freeze-for-sub fields
         mainBookingData = {
@@ -256,7 +261,7 @@ function createBooking() {
           prefTime: params.preferredTime
         };
       } else {
-        subBookingCounter++;
+        subBookingCounter++;                       // now 1, 2, ...
         label = `Sub Booking ${subBookingCounter}`;
       }
 
@@ -268,7 +273,7 @@ function createBooking() {
         datetime: `${params.preferredDate} ${params.preferredTime}`,
         cost: parseFloat(params.totalToPay) || 0,
 
-        // full payload for local edit:
+        // keep a copy of payload for local edit
         customerNumber: params.customerNumber,
         dob: params.dob,
         age: params.age,
@@ -285,18 +290,22 @@ function createBooking() {
         totalAmount: params.totalAmount,
         discount: params.discount,
         techCharge: params.techCharge,
-        totalToPay: params.totalToPay
+        totalToPay: params.totalToPay,
+
+        // optional: store exact type sent to sheet too
+        bookingType: bookingTypeForSheet
       });
 
       renderBookingTable();
       renderPendingSummary();
+
+      // after a successful main booking, your existing addSubBooking()
+      // will reveal Submit/Add More/Confirm and hide Create
       document.getElementById("addMoreBtn").style.display = "inline-block";
       addSubBooking();
     })
     .catch(() => alert("Booking failed"));
 }
-
-
 
 function renderBookingTable() {
   const body = document.getElementById("mainBookingPreviewBody");
