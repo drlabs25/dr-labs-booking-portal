@@ -192,120 +192,105 @@ function searchCustomer() {
 
 /** Save Booking with mandatory field check **/
 function createBooking() {
-    // Reset all borders first
-    document.querySelectorAll("#bookingForm input, #bookingForm select, #bookingForm textarea")
-        .forEach(el => el.style.border = "");
+  let custNumber = document.getElementById("custNumber").value.trim();
+  if (!/^\d{10}$/.test(custNumber)) return alert("Enter valid 10-digit customer number");
+  if (!document.getElementById("custName").value.trim()) return alert("Enter customer name");
+  if (!document.getElementById("age").value) return alert("Enter age");
+  if (!document.getElementById("gender").value) return alert("Select gender");
+  if (!document.getElementById("address").value.trim()) return alert("Enter address");
+  if (!document.getElementById("location").value.trim()) return alert("Enter location");
+  if (!document.getElementById("city").value) return alert("Select city");
+  if (!document.getElementById("phleboList").value) return alert("Select phlebo");
+  if (!document.getElementById("prefDate").value) return alert("Select preferred date");
+  if (!document.getElementById("prefTime").value) return alert("Select preferred time");
 
-    let isValid = true;
-    function markInvalid(id) {
-        document.getElementById(id).style.border = "2px solid red";
-        isValid = false;
-    }
+  const newBookingId = "BKG_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
 
-    let custNumber = document.getElementById("custNumber").value.trim();
-    if (custNumber.length !== 10 || !/^\d+$/.test(custNumber)) markInvalid("custNumber");
+  const params = {
+    action: "saveBooking",
+    bookingId: newBookingId,
+    customerNumber: document.getElementById("custNumber").value,
+    mainCustomerName: document.getElementById("custName").value,
+    dob: document.getElementById("dob").value,
+    age: document.getElementById("age").value,
+    gender: document.getElementById("gender").value,
+    address: document.getElementById("address").value,
+    location: document.getElementById("location").value,
+    city: document.getElementById("city").value,
+    phleboName: document.getElementById("phleboList").value,
+    pincode: document.getElementById("pincode").value,
+    preferredDate: document.getElementById("prefDate").value,
+    preferredTime: document.getElementById("prefTime").value,
+    tests: getSelectedCodes("testList"),
+    packages: getSelectedCodes("packageList"),
+    totalAmount: document.getElementById("totalAmount").value,
+    discount: document.getElementById("discountList").value,
+    techCharge: document.getElementById("techCharge").value,
+    totalToPay: document.getElementById("totalToPay").value,
+    agentName: localStorage.getItem("agentName") || "",
+    bookingType: (bookingList.length === 0) ? "Main" : "Sub"
+  };
 
-    if (!document.getElementById("custName").value.trim()) markInvalid("custName");
-    if (!document.getElementById("age").value.trim()) markInvalid("age");
-    if (!document.getElementById("gender").value) markInvalid("gender");
-    if (!document.getElementById("address").value.trim()) markInvalid("address");
-    if (!document.getElementById("location").value.trim()) markInvalid("location");
-    if (!document.getElementById("city").value) markInvalid("city");
-    if (!document.getElementById("phleboList").value) markInvalid("phleboList");
-
-    let pincode = document.getElementById("pincode").value.trim();
-    if (pincode.length !== 6 || !/^\d+$/.test(pincode)) markInvalid("pincode");
-
-    if (!document.getElementById("prefDate").value) markInvalid("prefDate");
-    if (!document.getElementById("prefTime").value) markInvalid("prefTime");
-
-    let tests = getSelectedTests();
-    let packages = getSelectedPackages();
-    if (!tests && !packages) {
-        document.querySelector("#testList")?.style.setProperty("border", "2px solid red", "important");
-        document.querySelector("#packageList")?.style.setProperty("border", "2px solid red", "important");
-        isValid = false;
-    }
-
-    if (!document.getElementById("discountList").value) markInvalid("discountList");
-    if (!document.getElementById("techCharge").value.trim()) markInvalid("techCharge");
-
-    if (!isValid) {
-        alert("Please fill all required fields.");
-        return;
-    }
-
-    // ✅ Always generate NEW bookingId
-    let newBookingId = "BKG_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
-
-    let params = new URLSearchParams({
-        action: "saveBooking",
-        bookingId: newBookingId,
-        customerNumber: custNumber,
-        mainCustomerName: document.getElementById("custName").value.trim(),
-        dob: document.getElementById("dob").value,
-        age: document.getElementById("age").value.trim(),
-        gender: document.getElementById("gender").value,
-        address: document.getElementById("address").value.trim(),
-        location: document.getElementById("location").value.trim(),
-        city: document.getElementById("city").value,
-        phleboName: document.getElementById("phleboList").value,
-        pincode: pincode,
-        preferredDate: document.getElementById("prefDate").value,
-        preferredTime: document.getElementById("prefTime").value,
-        tests: tests,
-        packages: packages,
-        totalAmount: document.getElementById("totalAmount").value,
-        discount: document.getElementById("discountList").value,
-        techCharge: document.getElementById("techCharge").value,
-        totalToPay: document.getElementById("totalToPay").value,
-        agentName: localStorage.getItem("agentName") || "",
-    });
-
-    fetch(`${API_URL}?${params.toString()}`)
+  const query = new URLSearchParams(params).toString();
+  fetch(`${API_URL}?${query}`)
     .then(res => res.json())
     .then(data => {
-        if (data.success) {
-            document.getElementById("bookingId").value = newBookingId;
+      if (!data.success) return alert("Booking failed");
 
-            // Decide label (Main or Sub Booking)
-            let label;
-            if (bookingList.length === 0) {
-                label = "Main Booking";
-            } else {
-                subBookingCounter++;
-                label = `Sub Booking ${subBookingCounter}`;
-            }
+      // Use real backend ID if provided, fall back to our generated one
+      const realId = data.bookingId || newBookingId;
 
-            // ✅ Push into bookingList WITH bookingId
-            bookingList.push({
-    id: newBookingId,   // ✅ always store the bookingId
-    type: label,
-    name: document.getElementById("custName").value.trim(),
-    datetime: `${document.getElementById("prefDate").value} ${document.getElementById("prefTime").value}`,
-    cost: parseFloat(document.getElementById("totalToPay").value) || 0
-});
+      let label;
+      if (bookingList.length === 0) {
+        label = "Main Booking";
+        // Save main booking values (for sub-booking locks)
+        mainBookingData = {
+          custNumber: params.customerNumber,
+          address: params.address,
+          location: params.location,
+          city: params.city,
+          phlebo: params.phleboName,
+          pincode: params.pincode,
+          prefDate: params.preferredDate,
+          prefTime: params.preferredTime
+        };
+      } else {
+        subBookingCounter++;
+        label = `Sub Booking ${subBookingCounter}`;
+      }
 
+      // Save EVERYTHING so we can reopen locally if needed
+      bookingList.push({
+        id: realId,
+        type: label,
+        name: params.mainCustomerName,
+        datetime: `${params.preferredDate} ${params.preferredTime}`,
+        cost: parseFloat(params.totalToPay) || 0,
 
-            // Render the table
-            renderBookingTable();
-            renderPendingSummary();
+        // full payload for local edit
+        customerNumber: params.customerNumber,
+        dob: params.dob,
+        age: params.age,
+        gender: params.gender,
+        address: params.address,
+        location: params.location,
+        city: params.city,
+        pincode: params.pincode,
+        phleboName: params.phleboName,
+        preferredDate: params.preferredDate,
+        preferredTime: params.preferredTime,
+        tests: params.tests,
+        packages: params.packages,
+        totalAmount: params.totalAmount,
+        discount: params.discount,
+        techCharge: params.techCharge,
+        totalToPay: params.totalToPay
+      });
 
-            // Hide booking form after submit
-            document.getElementById("bookingForm").style.display = "none";
-
-            // Show buttons
-            document.getElementById("addMoreBtn").style.display = "inline-block";
-            document.getElementById("confirmBtn").style.display = "inline-block";
-
-            alert(label + " saved! ID: " + newBookingId);
-        } else {
-            alert("Failed to save booking.");
-        }
-    })
-    .catch(err => {
-        console.error("Booking save error:", err);
-        alert("Something went wrong while saving booking!");
+      renderBookingTable();
+      renderPendingSummary();
+      document.getElementById("addMoreBtn").style.display = "inline-block";
+      addSubBooking();
     });
 }
 
@@ -474,31 +459,25 @@ document.addEventListener('click', function (ev) {
   ev.preventDefault();
   const id = a.dataset.id;
   if (!id) return;
-  editBooking(id);
+  handlePendingEditClick(id);   // 👈 instead of editBooking(id)
 });
 
 
-
 function handlePendingEditClick(id) {
-  // ✅ First, try to find this booking in local pending list
+  // Try local (pending) list first
   const pending = bookingList.find(x => x.id === id);
   if (pending) {
-    populateFormFromBooking(pending);   // fill form from local data
+    populateFormFromBooking(pending);
     return;
   }
-
-  // ❌ Not found locally? → Fetch from backend (for already saved bookings)
+  // Not found locally? Use backend (works for history table items)
   editBooking(id);
 }
 
 function populateFormFromBooking(b) {
-  // tiny helper to safely set values
-  const setVal = (id, v) => {
-    const el = document.getElementById(id);
-    if (el) el.value = v ?? "";
-  };
+  // tiny helper
+  const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v ?? ""; };
 
-  // Basic info
   setVal("custNumber", b.customerNumber || mainBookingData?.custNumber || "");
   setVal("custName", b.name || "");
   setVal("dob", b.dob || "");
@@ -516,38 +495,35 @@ function populateFormFromBooking(b) {
   setVal("techCharge", b.techCharge || "");
   setVal("totalToPay", b.totalToPay || b.cost || "");
 
-  // ✅ Clear all current selections first
+  // Restore tests
   document.querySelectorAll('#testList input[type="checkbox"]').forEach(chk => chk.checked = false);
-  document.querySelectorAll('#packageList input[type="checkbox"]').forEach(chk => chk.checked = false);
-
-  // ✅ Restore Tests
   (b.tests || "").split(",").filter(Boolean).forEach(code => {
     const chk = [...document.querySelectorAll('#testList input[type="checkbox"]')]
       .find(c => c.value.split("|")[0] === code);
     if (chk) chk.checked = true;
   });
 
-  // ✅ Restore Packages
+  // Restore packages
+  document.querySelectorAll('#packageList input[type="checkbox"]').forEach(chk => chk.checked = false);
   (b.packages || "").split(",").filter(Boolean).forEach(code => {
     const chk = [...document.querySelectorAll('#packageList input[type="checkbox"]')]
       .find(c => c.value.split("|")[0] === code);
     if (chk) chk.checked = true;
   });
 
-  // ✅ Switch to update mode
+  // Store bookingId for update, switch buttons, show form
   const updateBtn = document.getElementById("updateBtn");
   if (updateBtn) updateBtn.setAttribute("data-booking-id", b.id);
-
   const submitBtn = document.getElementById("submitBtn");
   if (submitBtn) submitBtn.style.display = "none";
   if (updateBtn) updateBtn.style.display = "inline-block";
 
-  // ✅ Show the booking form
   document.getElementById("bookingForm").style.display = "block";
 
-  // ✅ Recalculate totals after restoring selections
+  // Refresh totals after restoring selections
   recalcTotalFromSelection();
 }
+
 
 function updateBookingFromForm() {
   const bookingId = document.getElementById("updateBtn").getAttribute("data-booking-id");
@@ -649,19 +625,6 @@ function addSubBooking() {
 
   document.getElementById("bookingForm").style.display = "block";
   document.getElementById("addMoreBtn").style.display = "inline-block";
-  // Show the correct buttons after main booking is saved (and while adding subs)
-const createBtn = document.getElementById("createBookingBtn");
-if (createBtn) createBtn.style.display = "none";
-
-const submitBtn = document.getElementById("submitBtn");
-if (submitBtn) submitBtn.style.display = "inline-block";
-
-const addMoreBtn = document.getElementById("addMoreBtn");
-if (addMoreBtn) addMoreBtn.style.display = "inline-block";
-
-const confirmBtn = document.getElementById("confirmBtn");
-if (confirmBtn) confirmBtn.style.display = "inline-block";
-
 }
 
 function showBookingForm() {
@@ -836,8 +799,6 @@ function renderPendingSummary() {
   grandEl.textContent = grand.toFixed(2);
   wrap.style.display = bookingList.length ? "block" : "none";
 }
-
-
 window.onload = function () {
   // Min date for prefDate
   let prefDate = document.getElementById("prefDate");
@@ -850,17 +811,11 @@ window.onload = function () {
   // ✅ Show agent info (if header exists on this page)
   const agent = localStorage.getItem("agentName") || "Unknown";
   showHeaderInfo(agent);
+};
 
-  // Hide these by default on first load
-  ["addMoreBtn", "confirmBtn"].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = "none";
-  });
-}; // <-- CLOSE the onload function here. Nothing below is inside onload.
-
-/* Make functions available to inline HTML onclicks (login pages, buttons, etc.) */
-window.adminLogin = adminLogin;
+/* Make functions available to inline HTML onclicks (especially on login page) */
 window.agentLogin = agentLogin;
+window.adminLogin = adminLogin;
 window.showBookingForm = showBookingForm;
 window.createBooking = createBooking;
 window.addSubBooking = addSubBooking;
@@ -871,6 +826,3 @@ window.updateStatus = updateStatus;
 window.editBooking = editBooking;
 window.filterTests = filterTests;
 window.filterPackages = filterPackages;
-
-// Optional tiny sanity check:
-console.log("script.js loaded and globals exported");
