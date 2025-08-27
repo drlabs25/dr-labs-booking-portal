@@ -638,6 +638,34 @@ function showHeaderInfo(agentName) {
     });
     document.getElementById("dateTimeLabel").textContent = dateTimeString;
 }
+function renderPendingSummary() {
+  const wrap = document.getElementById("bookingSummary");
+  const body = document.getElementById("bookingSummaryBody");
+  const grandEl = document.getElementById("bookingSummaryGrand");
+  if (!wrap || !body || !grandEl) return;
+
+  body.innerHTML = "";
+  let grand = 0;
+
+  bookingList.forEach((b, idx) => {
+    const costNum = parseFloat(b.cost) || 0;
+    grand += costNum;
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>
+        <div style="font-weight:600">${b.name || "-"}</div>
+        <div style="font-size:12px;color:#666;">${b.type || ("Booking " + (idx+1))}</div>
+      </td>
+      <td>₹${costNum.toFixed(2)}</td>
+    `;
+    body.appendChild(tr);
+  });
+
+  grandEl.textContent = grand.toFixed(2);
+  wrap.style.display = bookingList.length ? "block" : "none";
+}
+
 
 window.onload = function () {
     // Existing code for prefDate & phleboList…
@@ -652,3 +680,4 @@ window.onload = function () {
    const agent = localStorage.getItem("agentName") || "Unknown";
     showHeaderInfo(agent);
 };
+
