@@ -95,21 +95,8 @@
         <legend><b>Customer Information</b></legend>
         <div class="flex">
             <input type="text" id="custNumber" placeholder="Customer Number (10 digits)" maxlength="10" required>
-           <input 
-  type="text" 
-  id="custName" 
-  placeholder="Customer Name" 
-  required 
-  pattern="[A-Za-z\s]+" 
-  title="Only letters allowed"
-/>
-<input 
-  type="date" 
-  id="dob" 
-  placeholder="Date of Birth" 
-  onchange="calcAge()" 
-  max="<?php echo date('Y-m-d'); ?>"
->
+            <input type="text" id="custName" placeholder="Customer Name" required>
+            <input type="date" id="dob" placeholder="Date of Birth" onchange="calcAge()">
             <input type="number" id="age" placeholder="Age" required>
             <select id="gender" required>
                 <option value="">--Gender--</option>
@@ -149,13 +136,6 @@
     <fieldset style="margin-bottom:15px; padding:10px; border:1px solid #ccc; border-radius:6px;">
         <legend><b>Test, Package & Amount Details</b></legend>
         
-        <!-- ✅ Total Amount Payable Section -->
-<div id="grandTotalSection" class="summary-box">
-  <h3>Total Amount Payable</h3>
-  <input type="text" id="grandTotal" readonly value="0">
-</div>
-
-        
         <!-- Tests -->
         <label>Tests</label>
         <input type="text" placeholder="Search Test" oninput="loadTests(this.value)">
@@ -179,37 +159,19 @@
         </table>
 
         <!-- Amounts -->
-        <!-- Payment Summary -->
-<fieldset style="margin-top:20px; padding:10px; border:1px solid #ccc; border-radius:6px;">
-  <legend><b>Payment Summary</b></legend>
-  <table style="width:100%; border-collapse:collapse;">
-    <tr>
-      <th style="text-align:left; padding:6px;">Total Amount</th>
-      <td><input type="number" id="totalAmount" placeholder="Total Amount" readonly></td>
-    </tr>
-    <tr>
-      <th style="text-align:left; padding:6px;">Discount</th>
-      <td>
-        <select id="discountList" onchange="recalculateTotal()">
-          <option value="0">No Discount</option>
-          <option value="5">5%</option>
-          <option value="10">10%</option>
-          <option value="15">15%</option>
-          <option value="20">20%</option>
-        </select>
-      </td>
-    </tr>
-    <tr>
-      <th style="text-align:left; padding:6px;">Technician Charge</th>
-      <td><input type="number" id="techCharge" placeholder="Technician Charge" oninput="recalculateTotal()"></td>
-    </tr>
-    <tr style="background:#eef; font-weight:bold;">
-      <th style="text-align:left; padding:6px;">Total Payable</th>
-      <td><input type="number" id="totalToPay" placeholder="Total To Pay" readonly></td>
-    </tr>
-  </table>
-</fieldset>
-
+        <div class="flex">
+            <input type="number" id="totalAmount" placeholder="Total Amount" readonly>
+            <select id="discountList" onchange="recalculateTotal()">
+                <option value="0">No Discount</option>
+                <option value="5">5%</option>
+                <option value="10">10%</option>
+                <option value="15">15%</option>
+                <option value="20">20%</option>
+            </select>
+            <input type="number" id="techCharge" placeholder="Technician Charge" oninput="recalculateTotal()">
+            <input type="number" id="totalToPay" placeholder="Total To Pay" readonly>
+        </div>
+    </fieldset>
 
     <!-- Submit -->
 
@@ -231,14 +193,8 @@
   required
 >
     <input type="text" id="custName" placeholder="Main Customer Name" required>
-<input 
-  type="date" 
-  id="dob" 
-  placeholder="Date of Birth" 
-  onchange="calcAge()" 
-  max="<?php echo date('Y-m-d'); ?>"
->
-   <input type="number" id="age" placeholder="Age" required>
+    <input type="date" id="dob" placeholder="Date of Birth" onchange="calcAge()">
+    <input type="number" id="age" placeholder="Age" required>
     <select id="gender" required>
     <option value="">--Select Gender--</option>
     <option value="Male">Male</option>
