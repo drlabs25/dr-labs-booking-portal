@@ -192,7 +192,7 @@ function searchCustomer() {
 
 /** Save Booking with mandatory field check **/
 function createBooking() {
-  let custNumber = document.getElementById("custNumber").value.trim();
+  const custNumber = document.getElementById("custNumber").value.trim();
 
   if (!/^\d{10}$/.test(custNumber)) return alert("Enter valid 10-digit customer number");
   if (!document.getElementById("custName").value.trim()) return alert("Enter customer name");
@@ -207,10 +207,13 @@ function createBooking() {
 
   const newBookingId = "BKG_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
 
-  // ✅ Compute bookingType for the sheet: main / sub 1 / sub 2 / ...
+  // ✅ Decide booking type *before* the request
   const isMain = (bookingList.length === 0);
-  const nextSubNo = subBookingCounter + 1;        // first sub will be 1
-  const bookingTypeForSheet = isMain ? "main" : `sub ${nextSubNo}`;
+  const nextSubIndex = subBookingCounter + 1;               // what the next sub will be called
+  const bookingTypeValue = isMain ? "Main" : `Sub ${nextSubIndex}`;
+
+  // (optional) quick debug so you can see what we send
+  console.log("createBooking -> bookingType:", bookingTypeValue);
 
   const params = {
     action: "saveBooking",
@@ -234,7 +237,8 @@ function createBooking() {
     techCharge: document.getElementById("techCharge").value,
     totalToPay: document.getElementById("totalToPay").value,
     agentName: localStorage.getItem("agentName") || "",
-    bookingType: bookingTypeForSheet               // <-- main / sub 1 / sub 2 ...
+    // ✅ send the final string the sheet should store
+    bookingType: bookingTypeValue
   };
 
   const query = new URLSearchParams(params).toString();
@@ -246,6 +250,7 @@ function createBooking() {
       // Use backend’s id if it returns one, otherwise keep ours
       const realId = data.bookingId || newBookingId;
 
+      // UI label + counters
       let label;
       if (isMain) {
         label = "Main Booking";
@@ -261,11 +266,11 @@ function createBooking() {
           prefTime: params.preferredTime
         };
       } else {
-        subBookingCounter++;                       // now 1, 2, ...
+        subBookingCounter = nextSubIndex;       // keep counter in sync with what we saved
         label = `Sub Booking ${subBookingCounter}`;
       }
 
-      // Save everything so we can reopen from local without calling backend
+      // Store for local edit/preview
       bookingList.push({
         id: realId,
         type: label,
@@ -273,7 +278,7 @@ function createBooking() {
         datetime: `${params.preferredDate} ${params.preferredTime}`,
         cost: parseFloat(params.totalToPay) || 0,
 
-        // keep a copy of payload for local edit
+        // full payload (handy for local edit)
         customerNumber: params.customerNumber,
         dob: params.dob,
         age: params.age,
@@ -290,22 +295,22 @@ function createBooking() {
         totalAmount: params.totalAmount,
         discount: params.discount,
         techCharge: params.techCharge,
-        totalToPay: params.totalToPay,
-
-        // optional: store exact type sent to sheet too
-        bookingType: bookingTypeForSheet
+        totalToPay: params.totalToPay
       });
 
       renderBookingTable();
       renderPendingSummary();
-
-      // after a successful main booking, your existing addSubBooking()
-      // will reveal Submit/Add More/Confirm and hide Create
       document.getElementById("addMoreBtn").style.display = "inline-block";
       addSubBooking();
+
+      // (optional) Inspect what the server says it saved
+      if (data.bookingType) {
+        console.log("server saved bookingType:", data.bookingType);
+      }
     })
     .catch(() => alert("Booking failed"));
 }
+
 
 function renderBookingTable() {
   const body = document.getElementById("mainBookingPreviewBody");
