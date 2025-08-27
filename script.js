@@ -274,23 +274,30 @@ function createBooking() {
 function renderBookingTable() {
   const body = document.getElementById("mainBookingPreviewBody");
   body.innerHTML = "";
+
   bookingList.forEach(b => {
+    const costNum = parseFloat(b.cost) || 0;
     const tr = document.createElement("tr");
     tr.innerHTML = `
-        <td>${b.type}: ${b.name}</td>
-        <td>${b.datetime}</td>
-        <td>₹${b.cost}</td>
+      <td>${b.type}: ${b.name}</td>
+      <td>${b.datetime}</td>
+      <td>₹${costNum.toFixed(2)}</td>
     `;
     body.appendChild(tr);
   });
 
-  // ✅ compute & show grand total of all bookings
-  const grand = bookingList.reduce((sum, b) => sum + (parseFloat(b.cost) || 0), 0);
+  // compute & show grand total of all bookings
+  const grand = bookingList.reduce((sum, item) => {
+    const n = parseFloat(item.cost);
+    return sum + (isNaN(n) ? 0 : n);
+  }, 0);
+
   const grandEl = document.getElementById("grandTotalToPay");
   if (grandEl) grandEl.value = grand.toFixed(2);
 
   document.getElementById("mainBookingPreview").style.display = "block";
 }
+
 
 
 
