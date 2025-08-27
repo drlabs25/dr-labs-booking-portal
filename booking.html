@@ -268,18 +268,7 @@
         </table>
     </div>
 
-    <input type="number" id="totalAmount" placeholder="Total Amount" readonly>
-
-    <select id="discountList" onchange="recalculateTotal()">
-        <option value="0">No Discount</option>
-        <option value="5">5%</option>
-        <option value="10">10%</option>
-        <option value="15">15%</option>
-        <option value="20">20%</option>
-    </select>
-
-    <input type="number" id="techCharge" placeholder="Technician Charge" oninput="recalculateTotal()">
-    <input type="number" id="totalToPay" placeholder="Total Amount to be Paid" readonly>
+   
 
     <!-- ✅ Only one pair of buttons -->
     <button type="button" onclick="createBooking()">Submit</button>
