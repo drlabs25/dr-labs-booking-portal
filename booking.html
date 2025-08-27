@@ -166,19 +166,37 @@
         </table>
 
         <!-- Amounts -->
-        <div class="flex">
-            <input type="number" id="totalAmount" placeholder="Total Amount" readonly>
-            <select id="discountList" onchange="recalculateTotal()">
-                <option value="0">No Discount</option>
-                <option value="5">5%</option>
-                <option value="10">10%</option>
-                <option value="15">15%</option>
-                <option value="20">20%</option>
-            </select>
-            <input type="number" id="techCharge" placeholder="Technician Charge" oninput="recalculateTotal()">
-            <input type="number" id="totalToPay" placeholder="Total To Pay" readonly>
-        </div>
-    </fieldset>
+        <!-- Payment Summary -->
+<fieldset style="margin-top:20px; padding:10px; border:1px solid #ccc; border-radius:6px;">
+  <legend><b>Payment Summary</b></legend>
+  <table style="width:100%; border-collapse:collapse;">
+    <tr>
+      <th style="text-align:left; padding:6px;">Total Amount</th>
+      <td><input type="number" id="totalAmount" placeholder="Total Amount" readonly></td>
+    </tr>
+    <tr>
+      <th style="text-align:left; padding:6px;">Discount</th>
+      <td>
+        <select id="discountList" onchange="recalculateTotal()">
+          <option value="0">No Discount</option>
+          <option value="5">5%</option>
+          <option value="10">10%</option>
+          <option value="15">15%</option>
+          <option value="20">20%</option>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <th style="text-align:left; padding:6px;">Technician Charge</th>
+      <td><input type="number" id="techCharge" placeholder="Technician Charge" oninput="recalculateTotal()"></td>
+    </tr>
+    <tr style="background:#eef; font-weight:bold;">
+      <th style="text-align:left; padding:6px;">Total Payable</th>
+      <td><input type="number" id="totalToPay" placeholder="Total To Pay" readonly></td>
+    </tr>
+  </table>
+</fieldset>
+
 
     <!-- Submit -->
 
