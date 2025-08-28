@@ -86,9 +86,9 @@ th {
   font-size: 13px;
 }
 
-/* Add this new rule */
+/* Push page content down so it's not hidden under header */
 body {
-  padding-top: 120px;  /* Push main content down so it's not hidden behind the fixed header */
+  padding-top: 90px;  
 }
 
 #agentInfoPanel input {
@@ -97,30 +97,21 @@ body {
   font-weight: bold;
   width: 90px;
 }
-#breakControls button {
-  padding: 4px 8px;
-  font-size: 12px;
-  margin-left: 6px;
+
+/* Small buttons (Back, Logout, Break controls) */
+#agentInfoPanel button {
+  border: none;
+  background: #007bff;
+  color: white;
+  padding: 4px 6px;
+  margin-left: 4px;
   border-radius: 4px;
   cursor: pointer;
+  font-size: 13px;
 }
 
-/* Fix Back + Logout buttons visibility */
-#topLeftBtns {
-  position: fixed;
-  top: 130px;
-  left: 20px;
-  display: flex;
-  gap: 6px;
-  z-index: 2000;
+#agentInfoPanel button:hover {
+  background: #0056b3;
 }
-#topLeftBtns button {
-    padding: 4px 8px;      
-    font-size: 11px;       
-    border-radius: 4px;    
-    border: 1px solid #007bff;
-    background: #e6f0ff;   
-    color: #007bff;        
-    cursor: pointer;
-}
+
 
