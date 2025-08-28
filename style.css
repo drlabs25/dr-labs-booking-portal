@@ -68,6 +68,7 @@ th {
     background: #eee;
 }
 /* === Agent Info Panel === */
+
 #agentInfoPanel {
   position: fixed;
   top: 0;
@@ -86,9 +87,9 @@ th {
   font-size: 13px;
 }
 
-/* Push page content down so it's not hidden under header */
+/* Push content down so it doesn’t hide under header */
 body {
-  padding-top: 90px;  
+  padding-top: 90px;
 }
 
 #agentInfoPanel input {
@@ -98,7 +99,7 @@ body {
   width: 90px;
 }
 
-/* Small buttons (Back, Logout, Break controls) */
+/* Small buttons for Break / Nav */
 #agentInfoPanel button {
   border: none;
   background: #007bff;
@@ -109,7 +110,6 @@ body {
   cursor: pointer;
   font-size: 13px;
 }
-
 #agentInfoPanel button:hover {
   background: #0056b3;
 }
