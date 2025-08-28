@@ -867,28 +867,7 @@ function renderPendingSummary() {
   wrap.style.display = bookingList.length ? "block" : "none";
 }
 // ✅ Function to fetch agent daily status from backend (Agent Dashboard)
-function refreshAgentPanel() {
-  const agentName = localStorage.getItem("agentName") || "";
-  if (!agentName) return;
 
-  fetch(`${API_URL}?action=getAgentDailyStatus&agent=${encodeURIComponent(agentName)}&t=${Date.now()}`)
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        const setText = (id, val) => {
-          const el = document.getElementById(id);
-          if (el) el.innerText = val || "-";
-        };
-        setText("agentNameLabel", "Agent: " + agentName);
-        setText("firstLoginTime", data.firstLogin);
-        setText("lastLogoutTime", data.lastLogout);
-        setText("loggedinHours", data.totalLoginHours || "0");
-        setText("breakHours", data.breakHours || "0");
-        setText("productionHours", data.productionHours || "0");
-      }
-    })
-    .catch(err => console.error("Panel refresh error:", err));
-}
 
 // ✅ Logout: record last logout then redirect
 function logout() {
@@ -974,20 +953,21 @@ function refreshAgentPanel() {
     .then(res => res.json())
     .then(data => {
       if (data.success) {
-        const setText = (id, val) => {
-          const el = document.getElementById(id);
-          if (el) el.innerText = val || "-";
-        };
-        setText("agentNameLabel", "Agent: " + agentName);
-        setText("firstLoginTime", data.firstLogin);
-        setText("lastLogoutTime", data.lastLogout);
-        setText("loggedinHours", data.totalLoginHours || "0");
-        setText("breakHours", data.breakHours || "0");
-        setText("productionHours", data.productionHours || "0");
+        document.getElementById("firstLoginTime").innerText = data.firstLogin || "-";
+        document.getElementById("loggedinHours").innerText = data.totalLoginHours + "h";
+        document.getElementById("breakHours").innerText = data.breakHours + "h";
+        document.getElementById("productionHours").innerText = data.productionHours + "h";
       }
     })
     .catch(err => console.error("Panel refresh error:", err));
 }
+
+// Run immediately + every 1 min
+window.addEventListener("DOMContentLoaded", () => {
+  refreshAgentPanel();
+  setInterval(refreshAgentPanel, 60000);
+});
+
 
 // ✅ Refresh agent panel immediately + every 1 min
 window.addEventListener("DOMContentLoaded", () => {
