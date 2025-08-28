@@ -57,6 +57,7 @@ function adminLogin() {
 }
 
 /** Agent Login **/
+/** Agent Login **/
 function agentLogin() {
   const user = document.getElementById("agentUser").value.trim();
   const pass = document.getElementById("agentPass").value.trim();
@@ -65,7 +66,17 @@ function agentLogin() {
     .then(res => res.json())
     .then(data => {
       if (data.success) {
+        // ✅ Save agent details
         localStorage.setItem("agentName", data.agentName || user);
+        localStorage.setItem("role", "Agent");
+
+        // ✅ Track first login of the day
+        const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+        if (!localStorage.getItem("firstLogin_" + today)) {
+          localStorage.setItem("firstLogin_" + today, new Date().toLocaleTimeString());
+        }
+
+        // Redirect
         window.location.href = "booking.html";
       } else {
         alert(data.message || "Invalid login!");
@@ -76,6 +87,73 @@ function agentLogin() {
       alert("Error during login!");
     });
 }
+
+/** Agent Logout **/
+function logout() {
+  const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+  localStorage.setItem("lastLogout_" + today, new Date().toLocaleTimeString());
+
+  // clear session info
+  localStorage.removeItem("agentName");
+  localStorage.removeItem("role");
+
+  // redirect to login page
+  window.location.href = "index.html";
+}
+
+/** On Page Load: Populate Agent Info Panel **/
+window.onload = function () {
+  // existing date min, phlebo load, etc.
+  let prefDate = document.getElementById("prefDate");
+  if (prefDate) {
+    let today = new Date().toISOString().split("T")[0];
+    prefDate.min = today;
+  }
+  if (document.getElementById("phleboList")) loadPhlebos();
+
+  // ✅ Show agent info (only if Agent logged in)
+  const role = localStorage.getItem("role");
+  const agent = localStorage.getItem("agentName") || "Unknown";
+  showHeaderInfo(agent);
+
+  if (role === "Agent") {
+    const today = new Date().toISOString().split("T")[0];
+
+    // Fill top panel fields
+    const firstLogin = localStorage.getItem("firstLogin_" + today) || "-";
+    const lastLogout = localStorage.getItem("lastLogout_" + today) || "-";
+
+    if (document.getElementById("firstLoginTime"))
+      document.getElementById("firstLoginTime").value = firstLogin;
+
+    if (document.getElementById("lastLogoutTime"))
+      document.getElementById("lastLogoutTime").value = lastLogout;
+
+    // Break Hours placeholder until break tracking is added
+    if (document.getElementById("breakHours"))
+      document.getElementById("breakHours").value = "0h 00m";
+
+    // Calculate total logged-in hours
+    if (firstLogin && firstLogin !== "-") {
+      const now = new Date();
+      const loginDate = new Date(today + " " + firstLogin);
+      let diffMs = now - loginDate;
+      let diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+      let diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      if (document.getElementById("loggedinHours"))
+        document.getElementById("loggedinHours").value = `${diffHrs}h ${diffMins}m`;
+
+      // Production Hours = Logged-in - Break Hours (for now = same as logged-in)
+      if (document.getElementById("productionHours"))
+        document.getElementById("productionHours").value = `${diffHrs}h ${diffMins}m`;
+    } else {
+      if (document.getElementById("loggedinHours"))
+        document.getElementById("loggedinHours").value = "-";
+      if (document.getElementById("productionHours"))
+        document.getElementById("productionHours").value = "-";
+    }
+  }
+};
 
 /** Load Tests with live search from Google Sheet **/
 function loadTests(searchTerm = "") {
