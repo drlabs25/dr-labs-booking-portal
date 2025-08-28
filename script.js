@@ -93,10 +93,15 @@ function agentLogin() {
         const today = new Date().toISOString().split("T")[0];
         const firstKey = "firstLogin_" + agentName + "_" + today;
 
+        // ✅ Capture locally (for header panel)
         if (!localStorage.getItem(firstKey)) {
           localStorage.setItem(firstKey, new Date().toLocaleTimeString());
         }
 
+        // ✅ Tell backend to record first login in Agent Dashboard sheet
+        fetch(`${API_URL}?action=recordFirstLogin&agent=${encodeURIComponent(agentName)}`);
+
+        // Redirect
         window.location.href = "booking.html";
       } else {
         alert(data.message || "Invalid login!");
@@ -114,14 +119,25 @@ function logout() {
   const today = new Date().toISOString().split("T")[0];
   const lastKey = "lastLogout_" + agentName + "_" + today;
 
-  // Always overwrite last logout
+  // ✅ Always overwrite last logout locally
   localStorage.setItem(lastKey, new Date().toLocaleTimeString());
 
+  // ✅ Calculate break hours to send to backend
+  const breakHrs = document.getElementById("breakHours")
+    ? document.getElementById("breakHours").value
+    : "0h 0m";
+
+  // ✅ Tell backend to record last logout in Agent Dashboard sheet
+  fetch(`${API_URL}?action=recordLastLogout&agent=${encodeURIComponent(agentName)}&breakHours=${encodeURIComponent(breakHrs)}`);
+
+  // Clear local session
   localStorage.removeItem("agentName");
   localStorage.removeItem("role");
 
+  // Redirect
   window.location.href = "index.html";
 }
+
 
 
 function startBreak() {
