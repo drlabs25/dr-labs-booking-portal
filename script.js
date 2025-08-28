@@ -353,12 +353,15 @@ function recalcTotalFromSelection() {
 function filterReport() {
   const params = {
     action: "getReport",
-    startDate: document.getElementById("startDate").value,
-    endDate: document.getElementById("endDate").value,
+    startDate: document.getElementById("prefStartDate").value,   // Preferred date range
+    endDate: document.getElementById("prefEndDate").value,
+    createdStart: document.getElementById("createdStartDate").value, // Created date range
+    createdEnd: document.getElementById("createdEndDate").value,
     phleboName: document.getElementById("repPhlebo").value,
     agentName: document.getElementById("repAgent").value,
     location: document.getElementById("repLocation").value
   };
+
   const query = new URLSearchParams(params).toString();
   fetch(`${API_URL}?${query}`)
     .then(res => res.json())
@@ -369,6 +372,7 @@ function filterReport() {
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${r.agentName}</td>
+          <td>${r.phleboName}</td>
           <td>${r.totalBookings}</td>
           <td>${r.totalCancelled}</td>
           <td>${r.totalPaid}</td>
@@ -378,6 +382,7 @@ function filterReport() {
       });
     });
 }
+
 
 function updateStatus(bookingId, status) {
   fetch(`${API_URL}?action=updateBookingStatus&bookingId=${encodeURIComponent(bookingId)}&status=${encodeURIComponent(status)}`)
