@@ -114,26 +114,6 @@ function agentLogin() {
 }
 
 
-function logout() {
-  const agentName = localStorage.getItem("agentName");
-  const today = new Date().toISOString().split("T")[0];
-  const lastKey  = "lastLogout_" + agentName + "_" + today;
-  const breakTotalKey = "breakTotal_" + agentName + "_" + today;
-
-  const now = new Date().toLocaleTimeString();
-  localStorage.setItem(lastKey, now);
-
-  const breakMs = parseInt(localStorage.getItem(breakTotalKey) || "0", 10);
-  const breakMins = Math.floor(breakMs / (1000 * 60));
-
-  fetch(`${API_URL}?action=recordLastLogout&agent=${encodeURIComponent(agentName)}&breakHours=${breakMins}`);
-  
-  window.location.href = "agent-login.html";
-}
-
-
-
-
 function startBreak(agentName) {
   const today = new Date().toISOString().split("T")[0];
   localStorage.setItem("breakStart_" + agentName + "_" + today, new Date().getTime());
@@ -886,20 +866,68 @@ function renderPendingSummary() {
   grandEl.textContent = grand.toFixed(2);
   wrap.style.display = bookingList.length ? "block" : "none";
 }
-function refreshAgentPanel(agentName) {
-  fetch(`${API_URL}?action=getAgentDailyStatus&agent=${encodeURIComponent(agentName)}`)
+// ✅ Function to fetch agent daily status from backend (Agent Dashboard)
+function refreshAgentPanel() {
+  const agentName = localStorage.getItem("agentName") || "";
+  if (!agentName) return;
+
+  fetch(`${API_URL}?action=getAgentDailyStatus&agent=${encodeURIComponent(agentName)}&t=${Date.now()}`)
     .then(res => res.json())
     .then(data => {
       if (data.success) {
-        document.getElementById("firstLoginTime").innerText = data.firstLogin || "-";
-        document.getElementById("lastLogoutTime").innerText = data.lastLogout || "-";
-        document.getElementById("loggedinHours").innerText = data.totalLoginHours + "h";
-        document.getElementById("breakHours").innerText = data.breakHours + "h";
-        document.getElementById("productionHours").innerText = data.productionHours + "h";
+        const setText = (id, val) => {
+          const el = document.getElementById(id);
+          if (el) el.innerText = val || "-";
+        };
+        setText("agentNameLabel", "Agent: " + agentName);
+        setText("firstLoginTime", data.firstLogin);
+        setText("lastLogoutTime", data.lastLogout);
+        setText("loggedinHours", data.totalLoginHours || "0");
+        setText("breakHours", data.breakHours || "0");
+        setText("productionHours", data.productionHours || "0");
       }
     })
-    .catch(err => console.error("Error fetching daily status:", err));
+    .catch(err => console.error("Panel refresh error:", err));
 }
+
+// ✅ Logout: record last logout then redirect
+function logout() {
+  const agentName = localStorage.getItem("agentName") || "";
+  if (!agentName || agentName === "Unknown Agent") {
+    alert("Invalid agent, please login again.");
+    localStorage.clear();
+    window.location.href = "agent-login.html";
+    return;
+  }
+
+  const today = new Date().toISOString().split("T")[0];
+  const lastKey = "lastLogout_" + agentName + "_" + today;
+  const breakTotalKey = "breakTotal_" + agentName + "_" + today;
+
+  // Save locally
+  const now = new Date().toLocaleTimeString();
+  localStorage.setItem(lastKey, now);
+
+  // Break time in minutes
+  const breakMs = parseInt(localStorage.getItem(breakTotalKey) || "0", 10);
+  const breakMins = Math.floor(breakMs / (1000 * 60));
+
+  fetch(`${API_URL}?action=recordLastLogout&agent=${encodeURIComponent(agentName)}&breakMinutes=${breakMins}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        localStorage.clear();
+        window.location.href = "agent-login.html";
+      } else {
+        alert("Logout failed: " + (data.message || "Please try again."));
+      }
+    })
+    .catch(err => {
+      console.error("Logout error:", err);
+      alert("Error during logout. Please try again.");
+    });
+}
+
 
 
 
