@@ -69,6 +69,7 @@ th {
 }
 /* === Agent Info Panel === */
 
+/* === Agent Info Panel === */
 #agentInfoPanel {
   position: fixed;
   top: 0;
@@ -87,31 +88,34 @@ th {
   font-size: 13px;
 }
 
-/* Push content down so it doesn’t hide under header */
 body {
-  padding-top: 90px;
+  padding-top: 100px; /* Push content down so it's not hidden under fixed header */
 }
 
 #agentInfoPanel input {
   border: none;
   background: transparent;
   font-weight: bold;
-  width: 90px;
+  width: 110px;
 }
 
-/* Small buttons for Break / Nav */
 #agentInfoPanel button {
   border: none;
   background: #007bff;
   color: white;
-  padding: 4px 6px;
+  padding: 4px 8px;
   margin-left: 4px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 12px;
 }
-#agentInfoPanel button:hover {
+#agentInfoPanel button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+#agentInfoPanel button:hover:not(:disabled) {
   background: #0056b3;
 }
+
 
 
