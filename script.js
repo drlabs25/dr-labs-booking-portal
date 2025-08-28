@@ -934,30 +934,44 @@ window.onload = function () {
   fetch(`${API_URL}?action=recordFirstLogin&agent=${encodeURIComponent(agentName)}`);
 
   // ✅ Function to fetch agent daily status from backend
-  function refreshAgentPanel() {
-    fetch(`${API_URL}?action=getAgentDailyStatus&agent=${encodeURIComponent(agentName)}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          if (document.getElementById("firstLoginTime"))
-            document.getElementById("firstLoginTime").innerText = data.firstLogin || "-";
-          if (document.getElementById("lastLogoutTime"))
-            document.getElementById("lastLogoutTime").innerText = data.lastLogout || "-";
-          if (document.getElementById("loggedinHours"))
-            document.getElementById("loggedinHours").innerText = data.totalLoginHours + "h";
-          if (document.getElementById("breakHours"))
-            document.getElementById("breakHours").innerText = data.breakHours + "h";
-          if (document.getElementById("productionHours"))
-            document.getElementById("productionHours").innerText = data.productionHours + "h";
-        }
-      })
-      .catch(err => console.error("Error fetching daily status:", err));
-  }
+  // ✅ Refresh Agent Info Panel
+function refreshAgentPanel() {
+  const agentName = localStorage.getItem("agentName") || "";
+  if (!agentName) return;
 
-  // Initial load + update every 1 min
+  fetch(`${API_URL}?action=getAgentDailyStatus&agent=${encodeURIComponent(agentName)}&t=${Date.now()}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        document.getElementById("agentNameLabel").innerText = "Agent: " + agentName;
+        document.getElementById("firstLoginTime").innerText = data.firstLogin || "-";
+        document.getElementById("lastLogoutTime").innerText = data.lastLogout || "-";
+        document.getElementById("loggedinHours").innerText = data.totalLoginHours || "0";
+        document.getElementById("breakHours").innerText = data.breakHours || "0";
+        document.getElementById("productionHours").innerText = data.productionHours || "0";
+      }
+    })
+    .catch(err => console.error("Panel refresh error:", err));
+}
+
+// ✅ On load: update immediately and every 1 min
+window.addEventListener("DOMContentLoaded", () => {
   refreshAgentPanel();
-  setInterval(refreshAgentPanel, 60000);
-};
+  setInterval(refreshAgentPanel, 60000); // refresh every 1 min
+});
+
+// ✅ Logout: store lastLogout in backend before clearing
+function logout() {
+  const agentName = localStorage.getItem("agentName") || "";
+  const breakMinutes = parseInt(localStorage.getItem("breakTotal") || "0", 10) / 60000;
+
+  fetch(`${API_URL}?action=recordLastLogout&agent=${encodeURIComponent(agentName)}&breakHours=${breakMinutes}`)
+    .then(() => {
+      localStorage.clear();
+      window.location.href = "agent-login.html";
+    });
+}
+
 
 
 
