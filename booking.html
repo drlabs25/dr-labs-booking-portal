@@ -61,7 +61,8 @@
 
 <!-- ✅ Agent Info Panel -->
 <div id="agentInfoPanel">
-  <div><span id="agentNameLabel"></span></div>
+  <!-- Agent Info -->
+  <div><span id="agentNameLabel">Agent: -</span></div>
   <div><strong>Date/Time:</strong> <span id="dateTimeLabel">-</span></div>
   <div><strong>First Login:</strong> <span id="firstLoginTime">-</span></div>
   <div><strong>Last Logout:</strong> <span id="lastLogoutTime">-</span></div>
@@ -70,20 +71,17 @@
   <div><strong>Production Hours:</strong> <span id="productionHours">-</span></div>
 
   <!-- Break controls -->
-  <div>
+  <div style="margin-top:8px;">
     <button id="startBreakBtn" onclick="startBreak()" title="Start Break">☕ Start</button>
     <button id="endBreakBtn" onclick="endBreak()" title="End Break" disabled>⏱ End</button>
   </div>
 
   <!-- Navigation controls -->
-  <div>
+  <div style="margin-top:8px;">
     <button id="backBtn" onclick="goBack()" title="Back">⬅ Back</button>
     <button id="logoutBtn" onclick="logout()" title="Logout">🚪 Logout</button>
   </div>
 </div>
-
-
-
 
 
 </header>
