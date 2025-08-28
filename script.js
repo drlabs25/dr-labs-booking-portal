@@ -140,38 +140,51 @@ function logout() {
 
 
 
+// --- Start Break ---
 function startBreak() {
-  const agentName = localStorage.getItem("agentName") || "Unknown";
+  const agentName = localStorage.getItem("agentName");
   const today = new Date().toISOString().split("T")[0];
   const startKey = "breakStart_" + agentName + "_" + today;
 
+  // Only start if not already on break
   if (!localStorage.getItem(startKey)) {
-    localStorage.setItem(startKey, new Date().getTime());
-    alert("You are on break. Please End the break to continue work.");
-    document.getElementById("startBreakBtn").disabled = true;
-    document.getElementById("endBreakBtn").disabled = false;
+    localStorage.setItem(startKey, new Date().getTime()); // store timestamp
+    alert("Break started!");
+  } else {
+    alert("You are already on break.");
   }
+
+  updatePanel();
 }
 
+// --- End Break ---
 function endBreak() {
-  const agentName = localStorage.getItem("agentName") || "Unknown";
+  const agentName = localStorage.getItem("agentName");
   const today = new Date().toISOString().split("T")[0];
   const startKey = "breakStart_" + agentName + "_" + today;
   const totalKey = "breakTotal_" + agentName + "_" + today;
 
-  const start = localStorage.getItem(startKey);
+  const start = parseInt(localStorage.getItem(startKey), 10);
   if (start) {
-    const prev = parseInt(localStorage.getItem(totalKey) || "0", 10);
-    const end = new Date().getTime();
-    const duration = end - parseInt(start, 10);
-    localStorage.setItem(totalKey, prev + duration);
+    const now = new Date().getTime();
+    const duration = now - start; // duration of this break
+
+    // Add to total
+    let total = parseInt(localStorage.getItem(totalKey) || "0", 10);
+    total += duration;
+    localStorage.setItem(totalKey, total.toString());
+
+    // Clear start key
     localStorage.removeItem(startKey);
 
-    alert("Break ended. You can continue working.");
-    document.getElementById("startBreakBtn").disabled = false;
-    document.getElementById("endBreakBtn").disabled = true;
+    alert("Break ended!");
+  } else {
+    alert("No break in progress.");
   }
+
+  updatePanel();
 }
+
 
 
 /** Load Tests with live search from Google Sheet **/
@@ -933,73 +946,88 @@ window.onload = function () {
     const breakTotalKey = "breakTotal_" + agentName + "_" + today;
 
     function updatePanel() {
-      // First / Last login
-      const firstLogin = localStorage.getItem(firstKey) || "-";
-      const lastLogout = localStorage.getItem(lastKey) || "-";
+  const agentName = localStorage.getItem("agentName");
+  const today = new Date().toISOString().split("T")[0];
 
-      if (document.getElementById("firstLoginTime"))
-        document.getElementById("firstLoginTime").value = firstLogin;
+  // Keys
+  const firstKey = "firstLogin_" + agentName + "_" + today;
+  const lastKey = "lastLogout_" + agentName + "_" + today;
+  const startKey = "breakStart_" + agentName + "_" + today;
+  const totalKey = "breakTotal_" + agentName + "_" + today;
 
-      if (document.getElementById("lastLogoutTime"))
-        document.getElementById("lastLogoutTime").value = lastLogout;
+  // --- First / Last login ---
+  const firstLogin = localStorage.getItem(firstKey) || "-";
+  const lastLogout = localStorage.getItem(lastKey) || "-";
 
-      // Break Hours
-      const breakMs = parseInt(localStorage.getItem(breakTotalKey) || "0", 10);
-      let breakHrs = Math.floor(breakMs / (1000 * 60 * 60));
-      let breakMins = Math.floor((breakMs % (1000 * 60 * 60)) / (1000 * 60));
-      if (document.getElementById("breakHours"))
-        document.getElementById("breakHours").value = `${breakHrs}h ${breakMins}m`;
+  if (document.getElementById("firstLoginTime"))
+    document.getElementById("firstLoginTime").value = firstLogin;
 
-      // Total login hours
-      if (firstLogin && firstLogin !== "-") {
-        const now = new Date();
-        const loginDate = new Date(today + " " + firstLogin);
-        let diffMs = now - loginDate;
-        let diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
-        let diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+  if (document.getElementById("lastLogoutTime"))
+    document.getElementById("lastLogoutTime").value = lastLogout;
 
-        if (document.getElementById("loggedinHours"))
-          document.getElementById("loggedinHours").value = `${diffHrs}h ${diffMins}m`;
+  // --- Break Hours (live ticking if on break) ---
+  let breakMs = parseInt(localStorage.getItem(totalKey) || "0", 10);
 
-        // Production Hours = Login – Break
-        let prodHrs = diffHrs - breakHrs;
-        let prodMins = diffMins - breakMins;
-        if (prodMins < 0) { prodHrs -= 1; prodMins += 60; }
-
-        if (document.getElementById("productionHours"))
-          document.getElementById("productionHours").value =
-            `${Math.max(prodHrs,0)}h ${Math.max(prodMins,0)}m`;
-      } else {
-        if (document.getElementById("loggedinHours"))
-          document.getElementById("loggedinHours").value = "-";
-        if (document.getElementById("productionHours"))
-          document.getElementById("productionHours").value = "-";
-      }
-    }
-
-    // ✅ Run once immediately
-    updatePanel();
-    // ✅ Refresh every minute
-    setInterval(updatePanel, 60000);
-
-    // ✅ Replace Home with Logout for Agent
-    const homeBtn = document.getElementById("homeBtn");
-    if (homeBtn) {
-      homeBtn.textContent = "🚪 Logout";
-      homeBtn.onclick = logout;
-    }
-  } else {
-    // ✅ Admin sees normal Home
-    const homeBtn = document.getElementById("homeBtn");
-    if (homeBtn) {
-      homeBtn.textContent = "🏠 Home";
-      homeBtn.onclick = goHome;
-    }
+  if (localStorage.getItem(startKey)) {
+    // Agent currently on break → add live time
+    const start = parseInt(localStorage.getItem(startKey), 10);
+    const now = new Date().getTime();
+    breakMs += (now - start);
   }
-};
 
+  let breakHrs = Math.floor(breakMs / (1000 * 60 * 60));
+  let breakMins = Math.floor((breakMs % (1000 * 60 * 60)) / (1000 * 60));
 
+  if (document.getElementById("breakHours"))
+    document.getElementById("breakHours").value = `${breakHrs}h ${breakMins}m`;
 
+  // --- Total login hours ---
+  if (firstLogin && firstLogin !== "-") {
+    const now = new Date();
+
+    // First login is stored as time string → build Date object
+    const loginDate = new Date(today + " " + firstLogin);
+    let diffMs = now - loginDate;
+    let diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+    let diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (document.getElementById("loggedinHours"))
+      document.getElementById("loggedinHours").value = `${diffHrs}h ${diffMins}m`;
+
+    // --- Production Hours = Login – Break ---
+    let prodMs = diffMs - breakMs;
+    if (prodMs < 0) prodMs = 0;
+
+    let prodHrs = Math.floor(prodMs / (1000 * 60 * 60));
+    let prodMins = Math.floor((prodMs % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (document.getElementById("productionHours"))
+      document.getElementById("productionHours").value = `${prodHrs}h ${prodMins}m`;
+
+  } else {
+    if (document.getElementById("loggedinHours"))
+      document.getElementById("loggedinHours").value = "-";
+    if (document.getElementById("productionHours"))
+      document.getElementById("productionHours").value = "-";
+  }
+}
+
+// ✅ Run once immediately
+updatePanel();
+// ✅ Refresh every minute
+setInterval(updatePanel, 60000);
+
+// ✅ Replace Home with Logout for Agent
+const homeBtn = document.getElementById("homeBtn");
+if (homeBtn) {
+  if (localStorage.getItem("role") === "Agent") {
+    homeBtn.textContent = "🚪 Logout";
+    homeBtn.onclick = logout;
+  } else {
+    homeBtn.textContent = "🏠 Home";
+    homeBtn.onclick = goHome;
+  }
+}
 
 /* Make functions available to inline HTML onclicks (especially on login page) */
 window.agentLogin = agentLogin;
