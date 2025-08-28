@@ -23,9 +23,17 @@ th { background: #eef; }
 
     <!-- Filters -->
     <div class="flex">
+        <!-- Preferred Date Range -->
+        <label>Preferred Date:</label>
+        <input type="date" id="prefFrom">
+        <input type="date" id="prefTo">
+
+        <!-- Created Date Range -->
+        <label>Created Date:</label>
         <input type="date" id="createdFrom">
         <input type="date" id="createdTo">
 
+        <!-- Dropdowns -->
         <select id="phleboFilter">
           <option value="">-- Select Phlebo --</option>
         </select>
@@ -39,12 +47,13 @@ th { background: #eef; }
         </select>
 
         <button onclick="filterReport()">Search</button>
+        <button onclick="resetFilters()">Reset</button>
     </div>
     <hr>
 
     <!-- Report Table -->
     <div class="table-container">
-        <table>
+        <table id="reportTable">
             <thead>
                 <tr>
                     <th>Agent Name</th>
@@ -65,8 +74,8 @@ th { background: #eef; }
 // ✅ Load dropdowns from backend endpoints
 document.addEventListener("DOMContentLoaded", function() {
   loadDropdown("phleboFilter", "getPhlebos", "name");
-  loadDropdown("agentFilter", "getAgents", "name");
-  loadDropdown("locationFilter", "getLocations", "location");
+  loadDropdown("agentFilter", "getAgents", "name");      // implement getAgents in Code.gs
+  loadDropdown("locationFilter", "getLocations", "name"); // implement getLocations in Code.gs
 });
 
 // Generic loader
@@ -77,10 +86,12 @@ function loadDropdown(elementId, action, key) {
       const select = document.getElementById(elementId);
       data.forEach(item => {
         const value = key ? item[key] : item;
-        const opt = document.createElement("option");
-        opt.value = value;
-        opt.textContent = value;
-        select.appendChild(opt);
+        if (value) {
+          const opt = document.createElement("option");
+          opt.value = value;
+          opt.textContent = value;
+          select.appendChild(opt);
+        }
       });
     })
     .catch(err => console.error("Dropdown load failed:", err));
@@ -88,13 +99,26 @@ function loadDropdown(elementId, action, key) {
 
 // ✅ Fetch report summary
 function filterReport() {
-    const createdFrom = document.getElementById("createdFrom").value;
-    const createdTo   = document.getElementById("createdTo").value;
-    const phlebo      = document.getElementById("phleboFilter").value;
-    const agent       = document.getElementById("agentFilter").value;
-    const location    = document.getElementById("locationFilter").value;
+    const prefFrom   = document.getElementById("prefFrom").value;
+    const prefTo     = document.getElementById("prefTo").value;
+    const createdFrom= document.getElementById("createdFrom").value;
+    const createdTo  = document.getElementById("createdTo").value;
+    const phlebo     = document.getElementById("phleboFilter").value;
+    const agent      = document.getElementById("agentFilter").value;
+    const location   = document.getElementById("locationFilter").value;
 
-    fetch(`${API_URL}?action=getReportSummary&createdFrom=${createdFrom}&createdTo=${createdTo}&phlebo=${phlebo}&agent=${agent}&location=${location}`)
+    const params = new URLSearchParams({
+      action: "getReport",
+      prefStart: prefFrom,
+      prefEnd: prefTo,
+      createdStart: createdFrom,
+      createdEnd: createdTo,
+      phleboName: phlebo,
+      agentName: agent,
+      location: location
+    });
+
+    fetch(`${API_URL}?${params.toString()}`)
         .then(res => res.json())
         .then(data => {
             const body = document.getElementById("reportBody");
@@ -108,13 +132,20 @@ function filterReport() {
                     <tr>
                         <td>${row.agentName}</td>
                         <td>${row.totalBookings}</td>
-                        <td>${row.cancelled}</td>
-                        <td>${row.paid}</td>
-                        <td>${row.confirmed}</td>
+                        <td>${row.totalCancelled}</td>
+                        <td>${row.totalPaid}</td>
+                        <td>${row.confirmedBookings}</td>
                     </tr>`;
             });
         })
         .catch(err => alert("Error loading report: " + err));
+}
+
+// ✅ Reset filters
+function resetFilters() {
+  ["prefFrom","prefTo","createdFrom","createdTo","phleboFilter","agentFilter","locationFilter"]
+    .forEach(id => document.getElementById(id).value = "");
+  document.getElementById("reportBody").innerHTML = "";
 }
 </script>
 
