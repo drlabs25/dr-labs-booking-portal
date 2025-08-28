@@ -122,8 +122,6 @@ function endBreak() {
   }
 }
 
-
-
 /** Load Tests with live search from Google Sheet **/
 function loadTests(searchTerm = "") {
   fetch(`${API_URL}?action=getTests&search=${encodeURIComponent(searchTerm)}`)
@@ -875,47 +873,48 @@ window.onload = function () {
   if (role === "Agent") {
     const today = new Date().toISOString().split("T")[0];
 
-    // Fill top panel fields
-    const firstLogin = localStorage.getItem("firstLogin_" + today) || "-";
-    const lastLogout = localStorage.getItem("lastLogout_" + today) || "-";
+    function updatePanel() {
+      // First / Last login
+      const firstLogin = localStorage.getItem("firstLogin_" + today) || "-";
+      const lastLogout = localStorage.getItem("lastLogout_" + today) || "-";
 
-    if (document.getElementById("firstLoginTime"))
-      document.getElementById("firstLoginTime").value = firstLogin;
+      if (document.getElementById("firstLoginTime"))
+        document.getElementById("firstLoginTime").value = firstLogin;
 
-    if (document.getElementById("lastLogoutTime"))
-      document.getElementById("lastLogoutTime").value = lastLogout;
+      if (document.getElementById("lastLogoutTime"))
+        document.getElementById("lastLogoutTime").value = lastLogout;
 
-    // Break Hours from localStorage
-    const breakMs = parseInt(localStorage.getItem("breakTotal_" + today) || "0", 10);
-    let breakHrs = Math.floor(breakMs / (1000*60*60));
-    let breakMins = Math.floor((breakMs % (1000*60*60)) / (1000*60));
-    if (document.getElementById("breakHours"))
-      document.getElementById("breakHours").value = `${breakHrs}h ${breakMins}m`;
-
-    // Calculate total logged-in hours
-    if (firstLogin && firstLogin !== "-") {
-      const now = new Date();
-      const loginDate = new Date(today + " " + firstLogin);
-      let diffMs = now - loginDate;
-      let diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
-      let diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-
-      if (document.getElementById("loggedinHours"))
-        document.getElementById("loggedinHours").value = `${diffHrs}h ${diffMins}m`;
+      // Break Hours from localStorage
+      const breakMs = parseInt(localStorage.getItem("breakTotal_" + today) || "0", 10);
+      let breakHrs = Math.floor(breakMs / (1000*60*60));
+      let breakMins = Math.floor((breakMs % (1000*60*60)) / (1000*60));
+      if (document.getElementById("breakHours"))
+        document.getElementById("breakHours").value = `${breakHrs}h ${breakMins}m`;
 
       // Production Hours = Logged-in – Break
-      if (document.getElementById("productionHours")) {
+      if (firstLogin && firstLogin !== "-") {
+        const now = new Date();
+        const loginDate = new Date(today + " " + firstLogin);
+        let diffMs = now - loginDate;
+        let diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+        let diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
         let prodHrs = diffHrs - breakHrs;
         let prodMins = diffMins - breakMins;
         if (prodMins < 0) { prodHrs -= 1; prodMins += 60; }
-        document.getElementById("productionHours").value = `${Math.max(prodHrs,0)}h ${Math.max(prodMins,0)}m`;
+
+        if (document.getElementById("productionHours"))
+          document.getElementById("productionHours").value = `${Math.max(prodHrs,0)}h ${Math.max(prodMins,0)}m`;
+      } else {
+        if (document.getElementById("productionHours"))
+          document.getElementById("productionHours").value = "-";
       }
-    } else {
-      if (document.getElementById("loggedinHours"))
-        document.getElementById("loggedinHours").value = "-";
-      if (document.getElementById("productionHours"))
-        document.getElementById("productionHours").value = "-";
     }
+
+    // ✅ Run once immediately
+    updatePanel();
+    // ✅ Refresh every minute
+    setInterval(updatePanel, 60000);
 
     // ✅ Replace Home with Logout for Agent
     const homeBtn = document.getElementById("homeBtn");
@@ -932,6 +931,7 @@ window.onload = function () {
     }
   }
 };
+
 
 
 /* Make functions available to inline HTML onclicks (especially on login page) */
