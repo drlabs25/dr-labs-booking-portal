@@ -67,3 +67,45 @@ th, td {
 th {
     background: #eee;
 }
+/* === Agent Info Panel === */
+#agentInfoPanel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #f7fbff;
+  border: 1px solid #cfe2ff;
+  border-radius: 0 0 8px 8px;
+  padding: 8px 12px;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 15px;
+  align-items: center;
+  z-index: 1500;
+  font-size: 13px;
+}
+#agentInfoPanel input {
+  border: none;
+  background: transparent;
+  font-weight: bold;
+  width: 90px;
+}
+#breakControls button {
+  padding: 4px 8px;
+  font-size: 12px;
+  margin-left: 6px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Fix Back + Logout buttons visibility */
+#topLeftBtns {
+  position: fixed;
+  top: 80px; /* push below top panel */
+  left: 20px;
+  display: flex;
+  gap: 6px;
+  z-index: 2000;
+}
+
