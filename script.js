@@ -56,7 +56,7 @@ function adminLogin() {
     });
 }
 
-/** Agent Login **/
+
 /** Agent Login **/
 function agentLogin() {
   const user = document.getElementById("agentUser").value.trim();
@@ -101,6 +101,26 @@ function logout() {
   window.location.href = "index.html";
 }
 
+function startBreak() {
+  const today = new Date().toISOString().split("T")[0];
+  if (!localStorage.getItem("breakStart_" + today)) {
+    localStorage.setItem("breakStart_" + today, new Date().getTime());
+    alert("Break started!");
+  }
+}
+
+function endBreak() {
+  const today = new Date().toISOString().split("T")[0];
+  const start = localStorage.getItem("breakStart_" + today);
+  if (start) {
+    const prev = parseInt(localStorage.getItem("breakTotal_" + today) || "0", 10);
+    const end = new Date().getTime();
+    const duration = end - parseInt(start, 10);
+    localStorage.setItem("breakTotal_" + today, prev + duration);
+    localStorage.removeItem("breakStart_" + today);
+    alert("Break ended!");
+  }
+}
 
 
 
@@ -847,11 +867,10 @@ window.onload = function () {
   }
   if (document.getElementById("phleboList")) loadPhlebos();
 
-  // ✅ Show agent info (if header exists on this page)
+  // ✅ Show agent info
   const agent = localStorage.getItem("agentName") || "Unknown";
   showHeaderInfo(agent);
 
-  // ✅ Check role
   const role = localStorage.getItem("role");
   if (role === "Agent") {
     const today = new Date().toISOString().split("T")[0];
@@ -866,9 +885,12 @@ window.onload = function () {
     if (document.getElementById("lastLogoutTime"))
       document.getElementById("lastLogoutTime").value = lastLogout;
 
-    // Break Hours placeholder until break tracking is added
+    // Break Hours from localStorage
+    const breakMs = parseInt(localStorage.getItem("breakTotal_" + today) || "0", 10);
+    let breakHrs = Math.floor(breakMs / (1000*60*60));
+    let breakMins = Math.floor((breakMs % (1000*60*60)) / (1000*60));
     if (document.getElementById("breakHours"))
-      document.getElementById("breakHours").value = "0h 00m";
+      document.getElementById("breakHours").value = `${breakHrs}h ${breakMins}m`;
 
     // Calculate total logged-in hours
     if (firstLogin && firstLogin !== "-") {
@@ -877,12 +899,17 @@ window.onload = function () {
       let diffMs = now - loginDate;
       let diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
       let diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
       if (document.getElementById("loggedinHours"))
         document.getElementById("loggedinHours").value = `${diffHrs}h ${diffMins}m`;
 
-      // Production Hours = Logged-in - Break Hours (for now = same as logged-in)
-      if (document.getElementById("productionHours"))
-        document.getElementById("productionHours").value = `${diffHrs}h ${diffMins}m`;
+      // Production Hours = Logged-in – Break
+      if (document.getElementById("productionHours")) {
+        let prodHrs = diffHrs - breakHrs;
+        let prodMins = diffMins - breakMins;
+        if (prodMins < 0) { prodHrs -= 1; prodMins += 60; }
+        document.getElementById("productionHours").value = `${Math.max(prodHrs,0)}h ${Math.max(prodMins,0)}m`;
+      }
     } else {
       if (document.getElementById("loggedinHours"))
         document.getElementById("loggedinHours").value = "-";
@@ -897,7 +924,7 @@ window.onload = function () {
       homeBtn.onclick = logout;
     }
   } else {
-    // ✅ Admin sees normal Home button
+    // ✅ Admin sees normal Home
     const homeBtn = document.getElementById("homeBtn");
     if (homeBtn) {
       homeBtn.textContent = "🏠 Home";
@@ -905,6 +932,7 @@ window.onload = function () {
     }
   }
 };
+
 
 /* Make functions available to inline HTML onclicks (especially on login page) */
 window.agentLogin = agentLogin;
