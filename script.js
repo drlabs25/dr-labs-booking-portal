@@ -115,63 +115,43 @@ function agentLogin() {
 
 
 function logout() {
-  const agentName = localStorage.getItem("agentName") || "Unknown";
+  const agentName = localStorage.getItem("agentName");
   const today = new Date().toISOString().split("T")[0];
-  const lastKey = "lastLogout_" + agentName + "_" + today;
+  const lastKey  = "lastLogout_" + agentName + "_" + today;
+  const breakTotalKey = "breakTotal_" + agentName + "_" + today;
 
-  // ✅ Always overwrite last logout locally
-  localStorage.setItem(lastKey, new Date().toLocaleTimeString());
+  const now = new Date().toLocaleTimeString();
+  localStorage.setItem(lastKey, now);
 
-  // ✅ Calculate break hours to send to backend
-  const breakHrs = document.getElementById("breakHours")
-    ? document.getElementById("breakHours").value
-    : "0h 0m";
+  const breakMs = parseInt(localStorage.getItem(breakTotalKey) || "0", 10);
+  const breakMins = Math.floor(breakMs / (1000 * 60));
 
-  // ✅ Tell backend to record last logout in Agent Dashboard sheet
-  fetch(`${API_URL}?action=recordLastLogout&agent=${encodeURIComponent(agentName)}&breakHours=${encodeURIComponent(breakHrs)}`);
-
-  // Clear local session
-  localStorage.removeItem("agentName");
-  localStorage.removeItem("role");
-
-  // Redirect
-  window.location.href = "index.html";
+  fetch(`${API_URL}?action=recordLastLogout&agent=${encodeURIComponent(agentName)}&breakHours=${breakMins}`);
+  
+  window.location.href = "agent-login.html";
 }
 
 
 
-function startBreak() {
-  const agentName = localStorage.getItem("agentName") || "Unknown";
-  const today = new Date().toISOString().split("T")[0];
-  const startKey = "breakStart_" + agentName + "_" + today;
 
-  if (!localStorage.getItem(startKey)) {
-    localStorage.setItem(startKey, new Date().getTime());
-    alert("You are on break. Please End the break to continue work.");
-    document.getElementById("startBreakBtn").disabled = true;
-    document.getElementById("endBreakBtn").disabled = false;
-  }
+function startBreak(agentName) {
+  const today = new Date().toISOString().split("T")[0];
+  localStorage.setItem("breakStart_" + agentName + "_" + today, new Date().getTime());
 }
 
-function endBreak() {
-  const agentName = localStorage.getItem("agentName") || "Unknown";
+function endBreak(agentName) {
   const today = new Date().toISOString().split("T")[0];
-  const startKey = "breakStart_" + agentName + "_" + today;
-  const totalKey = "breakTotal_" + agentName + "_" + today;
-
-  const start = localStorage.getItem(startKey);
+  const start = parseInt(localStorage.getItem("breakStart_" + agentName + "_" + today) || "0", 10);
   if (start) {
-    const prev = parseInt(localStorage.getItem(totalKey) || "0", 10);
-    const end = new Date().getTime();
-    const duration = end - parseInt(start, 10);
-    localStorage.setItem(totalKey, prev + duration);
-    localStorage.removeItem(startKey);
-
-    alert("Break ended. You can continue working.");
-    document.getElementById("startBreakBtn").disabled = false;
-    document.getElementById("endBreakBtn").disabled = true;
+    const diff = new Date().getTime() - start;
+    const key = "breakTotal_" + agentName + "_" + today;
+    let total = parseInt(localStorage.getItem(key) || "0", 10);
+    total += diff;
+    localStorage.setItem(key, total);
+    localStorage.removeItem("breakStart_" + agentName + "_" + today);
   }
 }
+
 
 
 /** Load Tests with live search from Google Sheet **/
@@ -909,94 +889,57 @@ function renderPendingSummary() {
 
 
 window.onload = function () {
-  // ✅ Reset daily data at new day
-  resetDailyData();
-
-  // Min date for prefDate
-  let prefDate = document.getElementById("prefDate");
-  if (prefDate) {
-    let today = new Date().toISOString().split("T")[0];
-    prefDate.min = today;
-  }
-  if (document.getElementById("phleboList")) loadPhlebos();
-
-  // ✅ Show agent info
   const agentName = localStorage.getItem("agentName") || "Unknown";
-  showHeaderInfo(agentName);
+  const today = new Date().toISOString().split("T")[0];
 
-  const role = localStorage.getItem("role");
-  if (role === "Agent") {
-    const today = new Date().toISOString().split("T")[0];
+  const firstKey = "firstLogin_" + agentName + "_" + today;
+  const lastKey  = "lastLogout_" + agentName + "_" + today;
+  const breakStartKey = "breakStart_" + agentName + "_" + today;
+  const breakTotalKey = "breakTotal_" + agentName + "_" + today;
 
-    const firstKey = "firstLogin_" + agentName + "_" + today;
-    const lastKey  = "lastLogout_" + agentName + "_" + today;
-    const breakTotalKey = "breakTotal_" + agentName + "_" + today;
+  // First login (store once + backend sync)
+  if (!localStorage.getItem(firstKey)) {
+    const now = new Date().toLocaleTimeString();
+    localStorage.setItem(firstKey, now);
+    fetch(`${API_URL}?action=recordFirstLogin&agent=${encodeURIComponent(agentName)}`);
+  }
 
-    function updatePanel() {
-      // First / Last login
-      const firstLogin = localStorage.getItem(firstKey) || "-";
-      const lastLogout = localStorage.getItem(lastKey) || "-";
+  function updatePanel() {
+    const firstLogin = localStorage.getItem(firstKey) || "-";
+    const lastLogout = localStorage.getItem(lastKey) || "-";
+    const breakMs = parseInt(localStorage.getItem(breakTotalKey) || "0", 10);
 
-      if (document.getElementById("firstLoginTime"))
-        document.getElementById("firstLoginTime").value = firstLogin;
+    // First & Last
+    document.getElementById("firstLoginTime").value = firstLogin;
+    document.getElementById("lastLogoutTime").value = lastLogout;
 
-      if (document.getElementById("lastLogoutTime"))
-        document.getElementById("lastLogoutTime").value = lastLogout;
+    // Break hours
+    let breakHrs = Math.floor(breakMs / (1000 * 60 * 60));
+    let breakMins = Math.floor((breakMs % (1000 * 60 * 60)) / (1000 * 60));
+    document.getElementById("breakHours").value = `${breakHrs}h ${breakMins}m`;
 
-      // Break Hours
-      const breakMs = parseInt(localStorage.getItem(breakTotalKey) || "0", 10);
-      let breakHrs = Math.floor(breakMs / (1000 * 60 * 60));
-      let breakMins = Math.floor((breakMs % (1000 * 60 * 60)) / (1000 * 60));
-      if (document.getElementById("breakHours"))
-        document.getElementById("breakHours").value = `${breakHrs}h ${breakMins}m`;
+    // Total login hours
+    if (firstLogin !== "-") {
+      const now = new Date();
+      const loginDate = new Date(today + " " + firstLogin);
+      let diffMs = now - loginDate;
+      let diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+      let diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
 
-      // Total login hours
-      if (firstLogin && firstLogin !== "-") {
-        const now = new Date();
-        const loginDate = new Date(today + " " + firstLogin);
-        let diffMs = now - loginDate;
-        let diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
-        let diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      document.getElementById("loggedinHours").value = `${diffHrs}h ${diffMins}m`;
 
-        if (document.getElementById("loggedinHours"))
-          document.getElementById("loggedinHours").value = `${diffHrs}h ${diffMins}m`;
-
-        // Production Hours = Login – Break
-        let prodHrs = diffHrs - breakHrs;
-        let prodMins = diffMins - breakMins;
-        if (prodMins < 0) { prodHrs -= 1; prodMins += 60; }
-
-        if (document.getElementById("productionHours"))
-          document.getElementById("productionHours").value =
-            `${Math.max(prodHrs,0)}h ${Math.max(prodMins,0)}m`;
-      } else {
-        if (document.getElementById("loggedinHours"))
-          document.getElementById("loggedinHours").value = "-";
-        if (document.getElementById("productionHours"))
-          document.getElementById("productionHours").value = "-";
-      }
-    }
-
-    // ✅ Run once immediately
-    updatePanel();
-    // ✅ Refresh every minute
-    setInterval(updatePanel, 60000);
-
-    // ✅ Replace Home with Logout for Agent
-    const homeBtn = document.getElementById("homeBtn");
-    if (homeBtn) {
-      homeBtn.textContent = "🚪 Logout";
-      homeBtn.onclick = logout;
-    }
-  } else {
-    // ✅ Admin sees normal Home
-    const homeBtn = document.getElementById("homeBtn");
-    if (homeBtn) {
-      homeBtn.textContent = "🏠 Home";
-      homeBtn.onclick = goHome;
+      // Production = Login – Break
+      let prodHrs = diffHrs - breakHrs;
+      let prodMins = diffMins - breakMins;
+      if (prodMins < 0) { prodHrs -= 1; prodMins += 60; }
+      document.getElementById("productionHours").value = `${Math.max(prodHrs,0)}h ${Math.max(prodMins,0)}m`;
     }
   }
+
+  updatePanel();
+  setInterval(updatePanel, 60000); // refresh every 1 min
 };
+
 
 
 
