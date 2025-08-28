@@ -1029,7 +1029,7 @@ if (homeBtn) {
   }
 }
 
-/* Make functions available to inline HTML onclicks (especially on login page) */
+// Make functions available to inline HTML onclicks
 window.agentLogin = agentLogin;
 window.adminLogin = adminLogin;
 window.showBookingForm = showBookingForm;
@@ -1042,3 +1042,5 @@ window.updateStatus = updateStatus;
 window.editBooking = editBooking;
 window.filterTests = filterTests;
 window.filterPackages = filterPackages;
+
+}; // ✅ closes window.onload
