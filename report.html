@@ -203,6 +203,34 @@ function resetFilters() {
   document.getElementById("reportBody").innerHTML = "";
   document.querySelector("#reportTable thead").innerHTML = "<tr><th>Report</th></tr>";
 }
+    function downloadReportCSV() {
+    const prefFrom   = document.getElementById("prefFrom")?.value || "";
+    const prefTo     = document.getElementById("prefTo")?.value || "";
+    const createdFrom= document.getElementById("createdFrom").value;
+    const createdTo  = document.getElementById("createdTo").value;
+    const phlebo     = document.getElementById("phleboFilter").value;
+    const agent      = document.getElementById("agentFilter").value;
+    const location   = document.getElementById("locationFilter").value;
+
+    const params = new URLSearchParams({
+      action: "getReportCSV",
+      prefStart: prefFrom,
+      prefEnd: prefTo,
+      createdStart: createdFrom,
+      createdEnd: createdTo,
+      phleboName: phlebo,
+      agentName: agent,
+      location: location
+    });
+
+    const link = document.createElement("a");
+    link.href = `${API_URL}?${params.toString()}`;
+    link.download = "Filtered_Report.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
 </script>
 
 </body>
