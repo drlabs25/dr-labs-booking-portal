@@ -58,27 +58,30 @@
 </head>
 <body>
     <header>
+
 <!-- ✅ Agent Info Panel -->
 <div id="agentInfoPanel">
   <div><span id="agentNameLabel"></span></div>
   <div><strong>Date/Time:</strong> <span id="dateTimeLabel"></span></div>
   <div><strong>First Login:</strong> <input type="text" id="firstLoginTime" readonly></div>
   <div><strong>Last Logout:</strong> <input type="text" id="lastLogoutTime" readonly></div>
-  <div><strong>Break Hours:</strong> <input type="text" id="breakHours" readonly></div>
+  <div><strong>Total Login Hours:</strong> <input type="text" id="loggedinHours" readonly></div>
+  <div><strong>Total Break Hours:</strong> <input type="text" id="breakHours" readonly></div>
   <div><strong>Production Hours:</strong> <input type="text" id="productionHours" readonly></div>
 
   <!-- Break controls -->
   <div>
-    <button id="startBreakBtn" onclick="startBreak()" title="Start Break">☕</button>
-    <button id="endBreakBtn" onclick="endBreak()" title="End Break">⏱</button>
+    <button id="startBreakBtn" onclick="startBreak()" title="Start Break">☕ Start</button>
+    <button id="endBreakBtn" onclick="endBreak()" title="End Break" disabled>⏱ End</button>
   </div>
 
   <!-- Navigation controls -->
   <div>
-    <button id="backBtn" onclick="goBack()" title="Back">⬅</button>
-    <button id="logoutBtn" onclick="logout()" title="Logout">🚪</button>
+    <button id="backBtn" onclick="goBack()" title="Back">⬅ Back</button>
+    <button id="logoutBtn" onclick="logout()" title="Logout">🚪 Logout</button>
   </div>
 </div>
+
 
 
 
