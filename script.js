@@ -886,60 +886,78 @@ function renderPendingSummary() {
   grandEl.textContent = grand.toFixed(2);
   wrap.style.display = bookingList.length ? "block" : "none";
 }
+function refreshAgentPanel(agentName) {
+  fetch(`${API_URL}?action=getAgentDailyStatus&agent=${encodeURIComponent(agentName)}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        document.getElementById("firstLoginTime").innerText = data.firstLogin || "-";
+        document.getElementById("lastLogoutTime").innerText = data.lastLogout || "-";
+        document.getElementById("loggedinHours").innerText = data.totalLoginHours + "h";
+        document.getElementById("breakHours").innerText = data.breakHours + "h";
+        document.getElementById("productionHours").innerText = data.productionHours + "h";
+      }
+    })
+    .catch(err => console.error("Error fetching daily status:", err));
+}
+
 
 
 window.onload = function () {
-  const agentName = localStorage.getItem("agentName") || "Unknown";
-  const today = new Date().toISOString().split("T")[0];
+  const agentName = localStorage.getItem("agentName") || "Unknown Agent";
 
-  const firstKey = "firstLogin_" + agentName + "_" + today;
-  const lastKey  = "lastLogout_" + agentName + "_" + today;
-  const breakStartKey = "breakStart_" + agentName + "_" + today;
-  const breakTotalKey = "breakTotal_" + agentName + "_" + today;
-
-  // First login (store once + backend sync)
-  if (!localStorage.getItem(firstKey)) {
-    const now = new Date().toLocaleTimeString();
-    localStorage.setItem(firstKey, now);
-    fetch(`${API_URL}?action=recordFirstLogin&agent=${encodeURIComponent(agentName)}`);
+  // Show agent name in header
+  if (document.getElementById("agentNameLabel")) {
+    document.getElementById("agentNameLabel").innerText = "Agent: " + agentName;
   }
 
-  function updatePanel() {
-    const firstLogin = localStorage.getItem(firstKey) || "-";
-    const lastLogout = localStorage.getItem(lastKey) || "-";
-    const breakMs = parseInt(localStorage.getItem(breakTotalKey) || "0", 10);
-
-    // First & Last
-    document.getElementById("firstLoginTime").value = firstLogin;
-    document.getElementById("lastLogoutTime").value = lastLogout;
-
-    // Break hours
-    let breakHrs = Math.floor(breakMs / (1000 * 60 * 60));
-    let breakMins = Math.floor((breakMs % (1000 * 60 * 60)) / (1000 * 60));
-    document.getElementById("breakHours").value = `${breakHrs}h ${breakMins}m`;
-
-    // Total login hours
-    if (firstLogin !== "-") {
-      const now = new Date();
-      const loginDate = new Date(today + " " + firstLogin);
-      let diffMs = now - loginDate;
-      let diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
-      let diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-
-      document.getElementById("loggedinHours").value = `${diffHrs}h ${diffMins}m`;
-
-      // Production = Login – Break
-      let prodHrs = diffHrs - breakHrs;
-      let prodMins = diffMins - breakMins;
-      if (prodMins < 0) { prodHrs -= 1; prodMins += 60; }
-      document.getElementById("productionHours").value = `${Math.max(prodHrs,0)}h ${Math.max(prodMins,0)}m`;
+  // Show live date/time
+  function updateDateTime() {
+    const now = new Date();
+    const formatted = now.toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true
+    });
+    if (document.getElementById("dateTimeLabel")) {
+      document.getElementById("dateTimeLabel").innerText = formatted;
     }
   }
+  updateDateTime();
+  setInterval(updateDateTime, 1000);
 
-  updatePanel();
-  setInterval(updatePanel, 60000); // refresh every 1 min
+  // ✅ Record first login once per day (backend only, no duplicate rows)
+  fetch(`${API_URL}?action=recordFirstLogin&agent=${encodeURIComponent(agentName)}`);
+
+  // ✅ Function to fetch agent daily status from backend
+  function refreshAgentPanel() {
+    fetch(`${API_URL}?action=getAgentDailyStatus&agent=${encodeURIComponent(agentName)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          if (document.getElementById("firstLoginTime"))
+            document.getElementById("firstLoginTime").innerText = data.firstLogin || "-";
+          if (document.getElementById("lastLogoutTime"))
+            document.getElementById("lastLogoutTime").innerText = data.lastLogout || "-";
+          if (document.getElementById("loggedinHours"))
+            document.getElementById("loggedinHours").innerText = data.totalLoginHours + "h";
+          if (document.getElementById("breakHours"))
+            document.getElementById("breakHours").innerText = data.breakHours + "h";
+          if (document.getElementById("productionHours"))
+            document.getElementById("productionHours").innerText = data.productionHours + "h";
+        }
+      })
+      .catch(err => console.error("Error fetching daily status:", err));
+  }
+
+  // Initial load + update every 1 min
+  refreshAgentPanel();
+  setInterval(refreshAgentPanel, 60000);
 };
-
 
 
 
