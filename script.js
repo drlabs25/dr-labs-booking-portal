@@ -101,59 +101,8 @@ function logout() {
   window.location.href = "index.html";
 }
 
-/** On Page Load: Populate Agent Info Panel **/
-window.onload = function () {
-  // existing date min, phlebo load, etc.
-  let prefDate = document.getElementById("prefDate");
-  if (prefDate) {
-    let today = new Date().toISOString().split("T")[0];
-    prefDate.min = today;
-  }
-  if (document.getElementById("phleboList")) loadPhlebos();
 
-  // ✅ Show agent info (only if Agent logged in)
-  const role = localStorage.getItem("role");
-  const agent = localStorage.getItem("agentName") || "Unknown";
-  showHeaderInfo(agent);
 
-  if (role === "Agent") {
-    const today = new Date().toISOString().split("T")[0];
-
-    // Fill top panel fields
-    const firstLogin = localStorage.getItem("firstLogin_" + today) || "-";
-    const lastLogout = localStorage.getItem("lastLogout_" + today) || "-";
-
-    if (document.getElementById("firstLoginTime"))
-      document.getElementById("firstLoginTime").value = firstLogin;
-
-    if (document.getElementById("lastLogoutTime"))
-      document.getElementById("lastLogoutTime").value = lastLogout;
-
-    // Break Hours placeholder until break tracking is added
-    if (document.getElementById("breakHours"))
-      document.getElementById("breakHours").value = "0h 00m";
-
-    // Calculate total logged-in hours
-    if (firstLogin && firstLogin !== "-") {
-      const now = new Date();
-      const loginDate = new Date(today + " " + firstLogin);
-      let diffMs = now - loginDate;
-      let diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
-      let diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-      if (document.getElementById("loggedinHours"))
-        document.getElementById("loggedinHours").value = `${diffHrs}h ${diffMins}m`;
-
-      // Production Hours = Logged-in - Break Hours (for now = same as logged-in)
-      if (document.getElementById("productionHours"))
-        document.getElementById("productionHours").value = `${diffHrs}h ${diffMins}m`;
-    } else {
-      if (document.getElementById("loggedinHours"))
-        document.getElementById("loggedinHours").value = "-";
-      if (document.getElementById("productionHours"))
-        document.getElementById("productionHours").value = "-";
-    }
-  }
-};
 
 /** Load Tests with live search from Google Sheet **/
 function loadTests(searchTerm = "") {
@@ -901,6 +850,60 @@ window.onload = function () {
   // ✅ Show agent info (if header exists on this page)
   const agent = localStorage.getItem("agentName") || "Unknown";
   showHeaderInfo(agent);
+
+  // ✅ Check role
+  const role = localStorage.getItem("role");
+  if (role === "Agent") {
+    const today = new Date().toISOString().split("T")[0];
+
+    // Fill top panel fields
+    const firstLogin = localStorage.getItem("firstLogin_" + today) || "-";
+    const lastLogout = localStorage.getItem("lastLogout_" + today) || "-";
+
+    if (document.getElementById("firstLoginTime"))
+      document.getElementById("firstLoginTime").value = firstLogin;
+
+    if (document.getElementById("lastLogoutTime"))
+      document.getElementById("lastLogoutTime").value = lastLogout;
+
+    // Break Hours placeholder until break tracking is added
+    if (document.getElementById("breakHours"))
+      document.getElementById("breakHours").value = "0h 00m";
+
+    // Calculate total logged-in hours
+    if (firstLogin && firstLogin !== "-") {
+      const now = new Date();
+      const loginDate = new Date(today + " " + firstLogin);
+      let diffMs = now - loginDate;
+      let diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+      let diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      if (document.getElementById("loggedinHours"))
+        document.getElementById("loggedinHours").value = `${diffHrs}h ${diffMins}m`;
+
+      // Production Hours = Logged-in - Break Hours (for now = same as logged-in)
+      if (document.getElementById("productionHours"))
+        document.getElementById("productionHours").value = `${diffHrs}h ${diffMins}m`;
+    } else {
+      if (document.getElementById("loggedinHours"))
+        document.getElementById("loggedinHours").value = "-";
+      if (document.getElementById("productionHours"))
+        document.getElementById("productionHours").value = "-";
+    }
+
+    // ✅ Replace Home with Logout for Agent
+    const homeBtn = document.getElementById("homeBtn");
+    if (homeBtn) {
+      homeBtn.textContent = "🚪 Logout";
+      homeBtn.onclick = logout;
+    }
+  } else {
+    // ✅ Admin sees normal Home button
+    const homeBtn = document.getElementById("homeBtn");
+    if (homeBtn) {
+      homeBtn.textContent = "🏠 Home";
+      homeBtn.onclick = goHome;
+    }
+  }
 };
 
 /* Make functions available to inline HTML onclicks (especially on login page) */
