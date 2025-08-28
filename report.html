@@ -23,17 +23,9 @@ th { background: #eef; }
 
     <!-- Filters -->
     <div class="flex">
-        <!-- Preferred Date Range -->
-        <label>Preferred Date:</label>
-        <input type="date" id="prefFrom">
-        <input type="date" id="prefTo">
-
-        <!-- Created Date Range -->
-        <label>Created Date:</label>
         <input type="date" id="createdFrom">
         <input type="date" id="createdTo">
 
-        <!-- Dropdowns -->
         <select id="phleboFilter">
           <option value="">-- Select Phlebo --</option>
         </select>
@@ -47,13 +39,12 @@ th { background: #eef; }
         </select>
 
         <button onclick="filterReport()">Search</button>
-        <button onclick="resetFilters()">Reset</button>
     </div>
     <hr>
 
     <!-- Report Table -->
     <div class="table-container">
-        <table id="reportTable">
+        <table>
             <thead>
                 <tr>
                     <th>Agent Name</th>
@@ -71,54 +62,79 @@ th { background: #eef; }
 </div>
 
 <script>
-// ✅ Load dropdowns from backend endpoints
+// ✅ Load dropdowns on page load
 document.addEventListener("DOMContentLoaded", function() {
-  loadDropdown("phleboFilter", "getPhlebos", "name");
-  loadDropdown("agentFilter", "getAgents", "name");      // implement getAgents in Code.gs
-  loadDropdown("locationFilter", "getLocations", "name"); // implement getLocations in Code.gs
+  loadPhleboFilter();
+  loadAgentFilter();
+  loadLocationFilter();
 });
 
-// Generic loader
-function loadDropdown(elementId, action, key) {
-  fetch(`${API_URL}?action=${action}`)
+// --- Load Phlebo dropdown (same pattern as booking form) ---
+function loadPhleboFilter() {
+  fetch(`${API_URL}?action=getPhlebos`)
     .then(res => res.json())
-    .then(data => {
-      const select = document.getElementById(elementId);
-      data.forEach(item => {
-        const value = key ? item[key] : item;
-        if (value) {
-          const opt = document.createElement("option");
-          opt.value = value;
-          opt.textContent = value;
-          select.appendChild(opt);
-        }
+    .then(phlebos => {
+      const sel = document.getElementById("phleboFilter");
+      sel.innerHTML = `<option value="">-- Select Phlebo --</option>`;
+      phlebos.forEach(p => {
+        const name = (typeof p === "string") ? p : p.name;
+        if (!name) return;
+        const opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = name;
+        sel.appendChild(opt);
       });
     })
-    .catch(err => console.error("Dropdown load failed:", err));
+    .catch(err => console.error("Phlebo load failed:", err));
+}
+
+// --- Load Agent dropdown ---
+function loadAgentFilter() {
+  fetch(`${API_URL}?action=getAgents`)
+    .then(res => res.json())
+    .then(agents => {
+      const sel = document.getElementById("agentFilter");
+      sel.innerHTML = `<option value="">-- Select Agent --</option>`;
+      agents.forEach(a => {
+        const name = (typeof a === "string") ? a : a.name;
+        if (!name) return;
+        const opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = name;
+        sel.appendChild(opt);
+      });
+    })
+    .catch(err => console.error("Agent load failed:", err));
+}
+
+// --- Load Location dropdown ---
+function loadLocationFilter() {
+  fetch(`${API_URL}?action=getLocations`)
+    .then(res => res.json())
+    .then(locs => {
+      const sel = document.getElementById("locationFilter");
+      sel.innerHTML = `<option value="">-- Select Location --</option>`;
+      locs.forEach(l => {
+        const name = (typeof l === "string") ? l : l.name;
+        if (!name) return;
+        const opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = name;
+        sel.appendChild(opt);
+      });
+    })
+    .catch(err => console.error("Location load failed:", err));
 }
 
 // ✅ Fetch report summary
 function filterReport() {
-    const prefFrom   = document.getElementById("prefFrom").value;
-    const prefTo     = document.getElementById("prefTo").value;
-    const createdFrom= document.getElementById("createdFrom").value;
-    const createdTo  = document.getElementById("createdTo").value;
-    const phlebo     = document.getElementById("phleboFilter").value;
-    const agent      = document.getElementById("agentFilter").value;
-    const location   = document.getElementById("locationFilter").value;
+    const createdFrom = document.getElementById("createdFrom").value;
+    const createdTo   = document.getElementById("createdTo").value;
+    const phlebo      = document.getElementById("phleboFilter").value;
+    const agent       = document.getElementById("agentFilter").value;
+    const location    = document.getElementById("locationFilter").value;
 
-    const params = new URLSearchParams({
-      action: "getReport",
-      prefStart: prefFrom,
-      prefEnd: prefTo,
-      createdStart: createdFrom,
-      createdEnd: createdTo,
-      phleboName: phlebo,
-      agentName: agent,
-      location: location
-    });
-
-    fetch(`${API_URL}?${params.toString()}`)
+    fetch(`${API_URL}?action=getReport&createdFrom=${createdFrom}&createdTo=${createdTo}&phleboName=${phlebo}&agentName=${agent}&location=${location}`)
         .then(res => res.json())
         .then(data => {
             const body = document.getElementById("reportBody");
@@ -139,13 +155,6 @@ function filterReport() {
             });
         })
         .catch(err => alert("Error loading report: " + err));
-}
-
-// ✅ Reset filters
-function resetFilters() {
-  ["prefFrom","prefTo","createdFrom","createdTo","phleboFilter","agentFilter","locationFilter"]
-    .forEach(id => document.getElementById(id).value = "");
-  document.getElementById("reportBody").innerHTML = "";
 }
 </script>
 
