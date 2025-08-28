@@ -974,18 +974,17 @@ function logout() {
   const lastKey = "lastLogout_" + agentName + "_" + today;
   const breakTotalKey = "breakTotal_" + agentName + "_" + today;
 
-  // Save last logout locally
+  // Save locally
   const now = new Date().toLocaleTimeString();
   localStorage.setItem(lastKey, now);
 
-  // Calculate total break in minutes
+  // Break time in minutes
   const breakMs = parseInt(localStorage.getItem(breakTotalKey) || "0", 10);
   const breakMins = Math.floor(breakMs / (1000 * 60));
 
-  // ✅ Tell backend to record logout + hours
-  fetch(`${API_URL}?action=recordLastLogout&agent=${encodeURIComponent(agentName)}&breakHours=${breakMins}`)
+  // ✅ Call backend with correct param name
+  fetch(`${API_URL}?action=recordLastLogout&agent=${encodeURIComponent(agentName)}&breakMinutes=${breakMins}`)
     .then(() => {
-      // Clear local data and redirect
       localStorage.clear();
       window.location.href = "agent-login.html";
     })
@@ -994,6 +993,7 @@ function logout() {
       alert("Error during logout. Please try again.");
     });
 }
+
 
 
 /* ✅ Make functions globally available for inline HTML onclick */
