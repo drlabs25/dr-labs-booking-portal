@@ -903,12 +903,14 @@ function refreshAgentPanel(agentName) {
 
 
 
+// ✅ On page load: show agent info, date/time, and record first login
 window.onload = function () {
   const agentName = localStorage.getItem("agentName") || "Unknown Agent";
 
   // Show agent name in header
-  if (document.getElementById("agentNameLabel")) {
-    document.getElementById("agentNameLabel").innerText = "Agent: " + agentName;
+  const agentLabel = document.getElementById("agentNameLabel");
+  if (agentLabel) {
+    agentLabel.innerText = "Agent: " + agentName;
   }
 
   // Show live date/time
@@ -923,8 +925,9 @@ window.onload = function () {
       second: "2-digit",
       hour12: true
     });
-    if (document.getElementById("dateTimeLabel")) {
-      document.getElementById("dateTimeLabel").innerText = formatted;
+    const dtLabel = document.getElementById("dateTimeLabel");
+    if (dtLabel) {
+      dtLabel.innerText = formatted;
     }
   }
   updateDateTime();
@@ -934,8 +937,7 @@ window.onload = function () {
   fetch(`${API_URL}?action=recordFirstLogin&agent=${encodeURIComponent(agentName)}`);
 };
 
-  // ✅ Function to fetch agent daily status from backend
-  // ✅ Refresh Agent Info Panel
+// ✅ Function to fetch agent daily status from backend (Agent Dashboard)
 function refreshAgentPanel() {
   const agentName = localStorage.getItem("agentName") || "";
   if (!agentName) return;
@@ -944,24 +946,28 @@ function refreshAgentPanel() {
     .then(res => res.json())
     .then(data => {
       if (data.success) {
-        document.getElementById("agentNameLabel").innerText = "Agent: " + agentName;
-        document.getElementById("firstLoginTime").innerText = data.firstLogin || "-";
-        document.getElementById("lastLogoutTime").innerText = data.lastLogout || "-";
-        document.getElementById("loggedinHours").innerText = data.totalLoginHours || "0";
-        document.getElementById("breakHours").innerText = data.breakHours || "0";
-        document.getElementById("productionHours").innerText = data.productionHours || "0";
+        const setText = (id, val) => {
+          const el = document.getElementById(id);
+          if (el) el.innerText = val || "-";
+        };
+        setText("agentNameLabel", "Agent: " + agentName);
+        setText("firstLoginTime", data.firstLogin);
+        setText("lastLogoutTime", data.lastLogout);
+        setText("loggedinHours", data.totalLoginHours || "0");
+        setText("breakHours", data.breakHours || "0");
+        setText("productionHours", data.productionHours || "0");
       }
     })
     .catch(err => console.error("Panel refresh error:", err));
 }
 
-// ✅ On load: update immediately and every 1 min
+// ✅ Refresh agent panel immediately + every 1 min
 window.addEventListener("DOMContentLoaded", () => {
   refreshAgentPanel();
-  setInterval(refreshAgentPanel, 60000); // refresh every 1 min
+  setInterval(refreshAgentPanel, 60000);
 });
 
-// ✅ Logout: store lastLogout in backend before clearing
+// ✅ Logout: record last logout then redirect
 function logout() {
   const agentName = localStorage.getItem("agentName") || "";
   const breakMinutes = parseInt(localStorage.getItem("breakTotal") || "0", 10) / 60000;
@@ -973,8 +979,7 @@ function logout() {
     });
 }
 
-
-/* Make functions available to inline HTML onclicks (especially on login page) */
+/* ✅ Make functions globally available for inline HTML onclick */
 window.agentLogin = agentLogin;
 window.adminLogin = adminLogin;
 window.showBookingForm = showBookingForm;
@@ -987,3 +992,4 @@ window.updateStatus = updateStatus;
 window.editBooking = editBooking;
 window.filterTests = filterTests;
 window.filterPackages = filterPackages;
+
