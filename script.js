@@ -970,14 +970,31 @@ window.addEventListener("DOMContentLoaded", () => {
 // ✅ Logout: record last logout then redirect
 function logout() {
   const agentName = localStorage.getItem("agentName") || "";
-  const breakMinutes = parseInt(localStorage.getItem("breakTotal") || "0", 10) / 60000;
+  const today = new Date().toISOString().split("T")[0];
+  const lastKey = "lastLogout_" + agentName + "_" + today;
+  const breakTotalKey = "breakTotal_" + agentName + "_" + today;
 
-  fetch(`${API_URL}?action=recordLastLogout&agent=${encodeURIComponent(agentName)}&breakHours=${breakMinutes}`)
+  // Save last logout locally
+  const now = new Date().toLocaleTimeString();
+  localStorage.setItem(lastKey, now);
+
+  // Calculate total break in minutes
+  const breakMs = parseInt(localStorage.getItem(breakTotalKey) || "0", 10);
+  const breakMins = Math.floor(breakMs / (1000 * 60));
+
+  // ✅ Tell backend to record logout + hours
+  fetch(`${API_URL}?action=recordLastLogout&agent=${encodeURIComponent(agentName)}&breakHours=${breakMins}`)
     .then(() => {
+      // Clear local data and redirect
       localStorage.clear();
       window.location.href = "agent-login.html";
+    })
+    .catch(err => {
+      console.error("Logout error:", err);
+      alert("Error during logout. Please try again.");
     });
 }
+
 
 /* ✅ Make functions globally available for inline HTML onclick */
 window.agentLogin = agentLogin;
