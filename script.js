@@ -937,101 +937,27 @@ window.onload = function () {
   const agentName = localStorage.getItem("agentName") || "Unknown";
   showHeaderInfo(agentName);
 
-  const role = localStorage.getItem("role");
-  if (role === "Agent") {
-    const today = new Date().toISOString().split("T")[0];
+  // ✅ Run once immediately + refresh panel
+  updatePanel();
+  setInterval(updatePanel, 60000);
 
-    const firstKey = "firstLogin_" + agentName + "_" + today;
-    const lastKey  = "lastLogout_" + agentName + "_" + today;
-    const breakTotalKey = "breakTotal_" + agentName + "_" + today;
-
-    function updatePanel() {
-  const agentName = localStorage.getItem("agentName");
-  const today = new Date().toISOString().split("T")[0];
-
-  // Keys
-  const firstKey = "firstLogin_" + agentName + "_" + today;
-  const lastKey = "lastLogout_" + agentName + "_" + today;
-  const startKey = "breakStart_" + agentName + "_" + today;
-  const totalKey = "breakTotal_" + agentName + "_" + today;
-
-  // --- First / Last login ---
-  const firstLogin = localStorage.getItem(firstKey) || "-";
-  const lastLogout = localStorage.getItem(lastKey) || "-";
-
-  if (document.getElementById("firstLoginTime"))
-    document.getElementById("firstLoginTime").value = firstLogin;
-
-  if (document.getElementById("lastLogoutTime"))
-    document.getElementById("lastLogoutTime").value = lastLogout;
-
-  // --- Break Hours (live ticking if on break) ---
-  let breakMs = parseInt(localStorage.getItem(totalKey) || "0", 10);
-
-  if (localStorage.getItem(startKey)) {
-    // Agent currently on break → add live time
-    const start = parseInt(localStorage.getItem(startKey), 10);
-    const now = new Date().getTime();
-    breakMs += (now - start);
+  // ✅ Replace Home with Logout for Agent
+  const homeBtn = document.getElementById("homeBtn");
+  if (homeBtn) {
+    if (localStorage.getItem("role") === "Agent") {
+      homeBtn.textContent = "🚪 Logout";
+      homeBtn.onclick = logout;
+    } else {
+      homeBtn.textContent = "🏠 Home";
+      homeBtn.onclick = goHome;
+    }
   }
+};
 
-  let breakHrs = Math.floor(breakMs / (1000 * 60 * 60));
-  let breakMins = Math.floor((breakMs % (1000 * 60 * 60)) / (1000 * 60));
-
-  if (document.getElementById("breakHours"))
-    document.getElementById("breakHours").value = `${breakHrs}h ${breakMins}m`;
-
-  // --- Total login hours ---
-  if (firstLogin && firstLogin !== "-") {
-    const now = new Date();
-
-    // First login is stored as time string → build Date object
-    const loginDate = new Date(today + " " + firstLogin);
-    let diffMs = now - loginDate;
-    let diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
-    let diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-
-    if (document.getElementById("loggedinHours"))
-      document.getElementById("loggedinHours").value = `${diffHrs}h ${diffMins}m`;
-
-    // --- Production Hours = Login – Break ---
-    let prodMs = diffMs - breakMs;
-    if (prodMs < 0) prodMs = 0;
-
-    let prodHrs = Math.floor(prodMs / (1000 * 60 * 60));
-    let prodMins = Math.floor((prodMs % (1000 * 60 * 60)) / (1000 * 60));
-
-    if (document.getElementById("productionHours"))
-      document.getElementById("productionHours").value = `${prodHrs}h ${prodMins}m`;
-
-  } else {
-    if (document.getElementById("loggedinHours"))
-      document.getElementById("loggedinHours").value = "-";
-    if (document.getElementById("productionHours"))
-      document.getElementById("productionHours").value = "-";
-  }
-}
-
-// ✅ Run once immediately
-updatePanel();
-// ✅ Refresh every minute
-setInterval(updatePanel, 60000);
-
-// ✅ Replace Home with Logout for Agent
-const homeBtn = document.getElementById("homeBtn");
-if (homeBtn) {
-  if (localStorage.getItem("role") === "Agent") {
-    homeBtn.textContent = "🚪 Logout";
-    homeBtn.onclick = logout;
-  } else {
-    homeBtn.textContent = "🏠 Home";
-    homeBtn.onclick = goHome;
-  }
-}
-
-// Make functions available to inline HTML onclicks
+// ✅ Expose functions for inline HTML onclick
 window.agentLogin = agentLogin;
 window.adminLogin = adminLogin;
+window.logout = logout;
 window.showBookingForm = showBookingForm;
 window.createBooking = createBooking;
 window.addSubBooking = addSubBooking;
@@ -1043,4 +969,3 @@ window.editBooking = editBooking;
 window.filterTests = filterTests;
 window.filterPackages = filterPackages;
 
-}; // ✅ closes window.onload
