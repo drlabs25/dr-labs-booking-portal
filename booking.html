@@ -59,19 +59,21 @@
 <body>
     <header>
  <!-- ✅ Agent Info Panel -->
-<div id="agentInfoPanel" style="position:fixed; top:10px; left:20px; right:20px; background:#f7fbff; border:1px solid #cfe2ff; border-radius:8px; padding:8px 12px; display:flex; gap:15px; flex-wrap:wrap; font-size:13px; z-index:1000;">
+<div id="agentInfoPanel">
   <div><strong>Agent:</strong> <span id="agentNameLabel"></span></div>
   <div><strong>Date/Time:</strong> <span id="dateTimeLabel"></span></div>
-  <div><strong>First Login:</strong> <input type="text" id="firstLoginTime" readonly style="border:none; background:transparent; font-weight:bold; width:90px;"></div>
-  <div><strong>Last Logout:</strong> <input type="text" id="lastLogoutTime" readonly style="border:none; background:transparent; font-weight:bold; width:90px;"></div>
-  <div><strong>Break Hours:</strong> <input type="text" id="breakHours" readonly style="border:none; background:transparent; font-weight:bold; width:80px;"></div>
-  <div><strong>Production Hours:</strong> <input type="text" id="productionHours" readonly style="border:none; background:transparent; font-weight:bold; width:100px;"></div>
-  <div><strong>Total Logged-in:</strong> <input type="text" id="loggedinHours" readonly style="border:none; background:transparent; font-weight:bold; width:100px;"></div>
-    <div id="breakControls">
-    <button onclick="startBreak()">☕ Start Break</button>
-    <button onclick="endBreak()">⏱ End Break</button>
+  <div><strong>First Login:</strong> <input type="text" id="firstLoginTime" readonly></div>
+  <div><strong>Last Logout:</strong> <input type="text" id="lastLogoutTime" readonly></div>
+  <div><strong>Break:</strong>
+    <button id="startBreakBtn" onclick="startBreak()" title="Start Break">☕</button>
+    <button id="endBreakBtn" onclick="endBreak()" title="End Break">⏱</button>
+  </div>
+  <div>
+    <button id="backBtn" onclick="goBack()" title="Back">⬅</button>
+    <button id="logoutBtn" onclick="logout()" title="Logout">🚪</button>
   </div>
 </div>
+
 </header>
 
 <div id="topLeftBtns">
