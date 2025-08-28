@@ -63,13 +63,13 @@ th { background: #eef; }
 
 <script>
 // ✅ Load dropdowns on page load
-<script>
 document.addEventListener("DOMContentLoaded", function() {
   loadPhleboFilter();
   loadAgentFilter();
   loadLocationFilter();
 });
 
+// --- Load Phlebo dropdown (same pattern as booking form) ---
 function loadPhleboFilter() {
   fetch(`${API_URL}?action=getPhlebos`)
     .then(res => res.json())
@@ -84,9 +84,11 @@ function loadPhleboFilter() {
         opt.textContent = name;
         sel.appendChild(opt);
       });
-    });
+    })
+    .catch(err => console.error("Phlebo load failed:", err));
 }
 
+// --- Load Agent dropdown ---
 function loadAgentFilter() {
   fetch(`${API_URL}?action=getAgents`)
     .then(res => res.json())
@@ -101,9 +103,11 @@ function loadAgentFilter() {
         opt.textContent = name;
         sel.appendChild(opt);
       });
-    });
+    })
+    .catch(err => console.error("Agent load failed:", err));
 }
 
+// --- Load Location dropdown ---
 function loadLocationFilter() {
   fetch(`${API_URL}?action=getLocations`)
     .then(res => res.json())
@@ -118,10 +122,9 @@ function loadLocationFilter() {
         opt.textContent = name;
         sel.appendChild(opt);
       });
-    });
+    })
+    .catch(err => console.error("Location load failed:", err));
 }
-</script>
-
 
 // ✅ Fetch report summary
 function filterReport() {
@@ -134,55 +137,26 @@ function filterReport() {
     fetch(`${API_URL}?action=getReport&createdFrom=${createdFrom}&createdTo=${createdTo}&phleboName=${phlebo}&agentName=${agent}&location=${location}`)
         .then(res => res.json())
         .then(data => {
-            const table = document.querySelector("table");
-            const thead = table.querySelector("thead");
             const body = document.getElementById("reportBody");
-
             body.innerHTML = "";
-
             if (!data || data.length === 0) {
-                body.innerHTML = `<tr><td colspan="10">No records found</td></tr>`;
+                body.innerHTML = `<tr><td colspan="5">No records found</td></tr>`;
                 return;
             }
-
-            // --- Build headers dynamically ---
-            let headerRow = "<tr>";
-            if (agent && !phlebo) headerRow += "<th>Agent Name</th>";
-            if (phlebo && !agent) headerRow += "<th>Phlebo Name</th>";
-            if (agent && phlebo) {
-                headerRow += "<th>Agent Name</th>";
-                headerRow += "<th>Phlebo Name</th>";
-            }
-            if (location) headerRow += "<th>Location</th>";
-
-            headerRow += `
-                <th>No. of Bookings</th>
-                <th>No. of Cancelled</th>
-                <th>No. of Paid</th>
-                <th>Total Confirmed</th>
-            </tr>`;
-            thead.innerHTML = headerRow;
-
-            // --- Fill rows ---
             data.forEach(row => {
-                let rowHtml = "<tr>";
-                if (agent && !phlebo) rowHtml += `<td>${row.agentName || "-"}</td>`;
-                if (phlebo && !agent) rowHtml += `<td>${row.phleboName || "-"}</td>`;
-                if (agent && phlebo) {
-                    rowHtml += `<td>${row.agentName || "-"}</td>`;
-                    rowHtml += `<td>${row.phleboName || "-"}</td>`;
-                }
-                if (location) rowHtml += `<td>${row.location || "-"}</td>`;
-
-                rowHtml += `
-                    <td>${row.totalBookings}</td>
-                    <td>${row.totalCancelled}</td>
-                    <td>${row.totalPaid}</td>
-                    <td>${row.confirmedBookings}</td>
-                </tr>`;
-                body.innerHTML += rowHtml;
+                body.innerHTML += `
+                    <tr>
+                        <td>${row.agentName}</td>
+                        <td>${row.totalBookings}</td>
+                        <td>${row.totalCancelled}</td>
+                        <td>${row.totalPaid}</td>
+                        <td>${row.confirmedBookings}</td>
+                    </tr>`;
             });
         })
         .catch(err => alert("Error loading report: " + err));
 }
+</script>
 
+</body>
+</html>
