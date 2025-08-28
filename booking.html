@@ -62,12 +62,12 @@
 <!-- ✅ Agent Info Panel -->
 <div id="agentInfoPanel">
   <div><span id="agentNameLabel"></span></div>
-  <div><strong>Date/Time:</strong> <span id="dateTimeLabel"></span></div>
-  <div><strong>First Login:</strong> <input type="text" id="firstLoginTime" readonly></div>
-  <div><strong>Last Logout:</strong> <input type="text" id="lastLogoutTime" readonly></div>
-  <div><strong>Total Login Hours:</strong> <input type="text" id="loggedinHours" readonly></div>
-  <div><strong>Total Break Hours:</strong> <input type="text" id="breakHours" readonly></div>
-  <div><strong>Production Hours:</strong> <input type="text" id="productionHours" readonly></div>
+  <div><strong>Date/Time:</strong> <span id="dateTimeLabel">-</span></div>
+  <div><strong>First Login:</strong> <span id="firstLoginTime">-</span></div>
+  <div><strong>Last Logout:</strong> <span id="lastLogoutTime">-</span></div>
+  <div><strong>Total Login Hours:</strong> <span id="loggedinHours">-</span></div>
+  <div><strong>Total Break Hours:</strong> <span id="breakHours">-</span></div>
+  <div><strong>Production Hours:</strong> <span id="productionHours">-</span></div>
 
   <!-- Break controls -->
   <div>
@@ -81,6 +81,7 @@
     <button id="logoutBtn" onclick="logout()" title="Logout">🚪 Logout</button>
   </div>
 </div>
+
 
 
 
