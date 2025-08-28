@@ -85,6 +85,12 @@ th {
   z-index: 1500;
   font-size: 13px;
 }
+
+/* Add this new rule */
+body {
+  padding-top: 110px;  /* Push main content down so it's not hidden behind the fixed header */
+}
+
 #agentInfoPanel input {
   border: none;
   background: transparent;
@@ -102,7 +108,7 @@ th {
 /* Fix Back + Logout buttons visibility */
 #topLeftBtns {
   position: fixed;
-  top: 80px; /* push below top panel */
+  top: 130px;
   left: 20px;
   display: flex;
   gap: 6px;
