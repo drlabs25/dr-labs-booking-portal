@@ -59,20 +59,26 @@
 <body>
     <header>
  <!-- ✅ Agent Info Panel -->
+<!-- ✅ Agent Info Panel -->
 <div id="agentInfoPanel">
   <div><strong>Agent:</strong> <span id="agentNameLabel"></span></div>
   <div><strong>Date/Time:</strong> <span id="dateTimeLabel"></span></div>
   <div><strong>First Login:</strong> <input type="text" id="firstLoginTime" readonly></div>
   <div><strong>Last Logout:</strong> <input type="text" id="lastLogoutTime" readonly></div>
-  <div><strong>Break:</strong>
+
+  <!-- Break controls inline -->
+  <div>
     <button id="startBreakBtn" onclick="startBreak()" title="Start Break">☕</button>
     <button id="endBreakBtn" onclick="endBreak()" title="End Break">⏱</button>
   </div>
+
+  <!-- Back + Logout inline -->
   <div>
     <button id="backBtn" onclick="goBack()" title="Back">⬅</button>
     <button id="logoutBtn" onclick="logout()" title="Logout">🚪</button>
   </div>
 </div>
+
 
 </header>
 
