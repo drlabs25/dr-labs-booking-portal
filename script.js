@@ -29,6 +29,27 @@ window.addEventListener("DOMContentLoaded", function () {
 // 🔹 GAS Web App URL
 const API_URL = "https://script.google.com/macros/s/AKfycbw4sBOSu5WL_Cep7M1B9qYgfvBSQ0iuuCfbrRQDG6y4qPl6fJfap-4LLaX_wMqvg3ZV8A/exec";
 
+/** Reset daily data (runs at midnight or first load of new day) */
+function resetDailyData() {
+  const today = new Date().toISOString().split("T")[0];
+  const lastReset = localStorage.getItem("lastResetDate");
+
+  if (lastReset !== today) {
+    Object.keys(localStorage).forEach(key => {
+      if (
+        key.startsWith("firstLogin_") ||
+        key.startsWith("lastLogout_") ||
+        key.startsWith("breakStart_") ||
+        key.startsWith("breakTotal_")
+      ) {
+        localStorage.removeItem(key);
+      }
+    });
+    localStorage.setItem("lastResetDate", today);
+  }
+}
+
+
 /** Navigation **/
 function goBack() { history.back(); }
 function goHome() { window.location.href = 'index.html'; }
@@ -57,7 +78,6 @@ function adminLogin() {
 }
 
 
-/** Agent Login **/
 function agentLogin() {
   const user = document.getElementById("agentUser").value.trim();
   const pass = document.getElementById("agentPass").value.trim();
@@ -66,17 +86,17 @@ function agentLogin() {
     .then(res => res.json())
     .then(data => {
       if (data.success) {
-        // ✅ Save agent details
-        localStorage.setItem("agentName", data.agentName || user);
+        const agentName = data.agentName || user;
+        localStorage.setItem("agentName", agentName);
         localStorage.setItem("role", "Agent");
 
-        // ✅ Track first login of the day
-        const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
-        if (!localStorage.getItem("firstLogin_" + today)) {
-          localStorage.setItem("firstLogin_" + today, new Date().toLocaleTimeString());
+        const today = new Date().toISOString().split("T")[0];
+        const firstKey = "firstLogin_" + agentName + "_" + today;
+
+        if (!localStorage.getItem(firstKey)) {
+          localStorage.setItem(firstKey, new Date().toLocaleTimeString());
         }
 
-        // Redirect
         window.location.href = "booking.html";
       } else {
         alert(data.message || "Invalid login!");
@@ -88,39 +108,55 @@ function agentLogin() {
     });
 }
 
-/** Agent Logout **/
-function logout() {
-  const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
-  localStorage.setItem("lastLogout_" + today, new Date().toLocaleTimeString());
 
-  // clear session info
+function logout() {
+  const agentName = localStorage.getItem("agentName") || "Unknown";
+  const today = new Date().toISOString().split("T")[0];
+  const lastKey = "lastLogout_" + agentName + "_" + today;
+
+  // Always overwrite last logout
+  localStorage.setItem(lastKey, new Date().toLocaleTimeString());
+
   localStorage.removeItem("agentName");
   localStorage.removeItem("role");
 
-  // redirect to login page
   window.location.href = "index.html";
 }
 
+
 function startBreak() {
+  const agentName = localStorage.getItem("agentName") || "Unknown";
   const today = new Date().toISOString().split("T")[0];
-  if (!localStorage.getItem("breakStart_" + today)) {
-    localStorage.setItem("breakStart_" + today, new Date().getTime());
-    alert("Break started!");
+  const startKey = "breakStart_" + agentName + "_" + today;
+
+  if (!localStorage.getItem(startKey)) {
+    localStorage.setItem(startKey, new Date().getTime());
+    alert("You are on break. Please End the break to continue work.");
+    document.getElementById("startBreakBtn").disabled = true;
+    document.getElementById("endBreakBtn").disabled = false;
   }
 }
 
 function endBreak() {
+  const agentName = localStorage.getItem("agentName") || "Unknown";
   const today = new Date().toISOString().split("T")[0];
-  const start = localStorage.getItem("breakStart_" + today);
+  const startKey = "breakStart_" + agentName + "_" + today;
+  const totalKey = "breakTotal_" + agentName + "_" + today;
+
+  const start = localStorage.getItem(startKey);
   if (start) {
-    const prev = parseInt(localStorage.getItem("breakTotal_" + today) || "0", 10);
+    const prev = parseInt(localStorage.getItem(totalKey) || "0", 10);
     const end = new Date().getTime();
     const duration = end - parseInt(start, 10);
-    localStorage.setItem("breakTotal_" + today, prev + duration);
-    localStorage.removeItem("breakStart_" + today);
-    alert("Break ended!");
+    localStorage.setItem(totalKey, prev + duration);
+    localStorage.removeItem(startKey);
+
+    alert("Break ended. You can continue working.");
+    document.getElementById("startBreakBtn").disabled = false;
+    document.getElementById("endBreakBtn").disabled = true;
   }
 }
+
 
 /** Load Tests with live search from Google Sheet **/
 function loadTests(searchTerm = "") {
@@ -857,6 +893,9 @@ function renderPendingSummary() {
 
 
 window.onload = function () {
+  // ✅ Reset daily data at new day
+  resetDailyData();
+
   // Min date for prefDate
   let prefDate = document.getElementById("prefDate");
   if (prefDate) {
@@ -866,17 +905,21 @@ window.onload = function () {
   if (document.getElementById("phleboList")) loadPhlebos();
 
   // ✅ Show agent info
-  const agent = localStorage.getItem("agentName") || "Unknown";
-  showHeaderInfo(agent);
+  const agentName = localStorage.getItem("agentName") || "Unknown";
+  showHeaderInfo(agentName);
 
   const role = localStorage.getItem("role");
   if (role === "Agent") {
     const today = new Date().toISOString().split("T")[0];
 
+    const firstKey = "firstLogin_" + agentName + "_" + today;
+    const lastKey  = "lastLogout_" + agentName + "_" + today;
+    const breakTotalKey = "breakTotal_" + agentName + "_" + today;
+
     function updatePanel() {
       // First / Last login
-      const firstLogin = localStorage.getItem("firstLogin_" + today) || "-";
-      const lastLogout = localStorage.getItem("lastLogout_" + today) || "-";
+      const firstLogin = localStorage.getItem(firstKey) || "-";
+      const lastLogout = localStorage.getItem(lastKey) || "-";
 
       if (document.getElementById("firstLoginTime"))
         document.getElementById("firstLoginTime").value = firstLogin;
@@ -884,14 +927,14 @@ window.onload = function () {
       if (document.getElementById("lastLogoutTime"))
         document.getElementById("lastLogoutTime").value = lastLogout;
 
-      // Break Hours from localStorage
-      const breakMs = parseInt(localStorage.getItem("breakTotal_" + today) || "0", 10);
-      let breakHrs = Math.floor(breakMs / (1000*60*60));
-      let breakMins = Math.floor((breakMs % (1000*60*60)) / (1000*60));
+      // Break Hours
+      const breakMs = parseInt(localStorage.getItem(breakTotalKey) || "0", 10);
+      let breakHrs = Math.floor(breakMs / (1000 * 60 * 60));
+      let breakMins = Math.floor((breakMs % (1000 * 60 * 60)) / (1000 * 60));
       if (document.getElementById("breakHours"))
         document.getElementById("breakHours").value = `${breakHrs}h ${breakMins}m`;
 
-      // Production Hours = Logged-in – Break
+      // Total login hours
       if (firstLogin && firstLogin !== "-") {
         const now = new Date();
         const loginDate = new Date(today + " " + firstLogin);
@@ -899,13 +942,20 @@ window.onload = function () {
         let diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
         let diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
 
+        if (document.getElementById("loggedinHours"))
+          document.getElementById("loggedinHours").value = `${diffHrs}h ${diffMins}m`;
+
+        // Production Hours = Login – Break
         let prodHrs = diffHrs - breakHrs;
         let prodMins = diffMins - breakMins;
         if (prodMins < 0) { prodHrs -= 1; prodMins += 60; }
 
         if (document.getElementById("productionHours"))
-          document.getElementById("productionHours").value = `${Math.max(prodHrs,0)}h ${Math.max(prodMins,0)}m`;
+          document.getElementById("productionHours").value =
+            `${Math.max(prodHrs,0)}h ${Math.max(prodMins,0)}m`;
       } else {
+        if (document.getElementById("loggedinHours"))
+          document.getElementById("loggedinHours").value = "-";
         if (document.getElementById("productionHours"))
           document.getElementById("productionHours").value = "-";
       }
@@ -931,6 +981,7 @@ window.onload = function () {
     }
   }
 };
+
 
 
 
