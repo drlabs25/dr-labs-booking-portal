@@ -932,6 +932,7 @@ window.onload = function () {
 
   // ✅ Record first login once per day (backend only, no duplicate rows)
   fetch(`${API_URL}?action=recordFirstLogin&agent=${encodeURIComponent(agentName)}`);
+};
 
   // ✅ Function to fetch agent daily status from backend
   // ✅ Refresh Agent Info Panel
@@ -971,9 +972,6 @@ function logout() {
       window.location.href = "agent-login.html";
     });
 }
-
-
-
 
 
 /* Make functions available to inline HTML onclicks (especially on login page) */
