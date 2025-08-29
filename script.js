@@ -61,20 +61,28 @@ let mainBookingData = null;
 
 /** Admin Login **/
 function adminLogin() {
-  const user = document.getElementById("adminUser").value;
-  const pass = document.getElementById("adminPass").value;
+  const user = document.getElementById("adminUser").value.trim();
+  const pass = document.getElementById("adminPass").value.trim();
 
   fetch(`${API_URL}?action=login&role=Admin&username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}`)
     .then(res => res.json())
     .then(data => {
       if (data.success) {
-        localStorage.setItem("agentName", data.agentName);
-        window.location.href = "booking.html";
+        localStorage.setItem("adminName", data.agentName || user);
+        localStorage.setItem("role", "Admin");
+
+        // ✅ Redirect admin to admin dashboard, not booking.html
+        window.location.href = "admin-dashboard.html";  
       } else {
         alert(data.message || "Login failed");
       }
+    })
+    .catch(err => {
+      console.error("Admin login error:", err);
+      alert("Error during admin login!");
     });
 }
+
 
 function agentLogin() {
   const user = document.getElementById("agentUser").value.trim();
