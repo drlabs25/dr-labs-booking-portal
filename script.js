@@ -925,40 +925,40 @@ function renderPendingSummary() {
 
 // ✅ Logout: record last logout then redirect
 function logout() {
-  const agentName = localStorage.getItem("agentName") || "";
-  if (!agentName || agentName === "Unknown Agent") {
-    alert("Invalid agent, please login again.");
-    localStorage.clear();
-    window.location.href = "agent-login.html";
-    return;
-  }
+    const agentName = localStorage.getItem("agentName") || "Unknown Agent";
 
-  const today = new Date().toISOString().split("T")[0];
-  const lastKey = "lastLogout_" + agentName + "_" + today;
-  const breakTotalKey = "breakTotal_" + agentName + "_" + today;
+    if (!confirm("Are you sure you want to logout?")) return;
 
-  // Save locally
-  const now = new Date().toLocaleTimeString();
-  localStorage.setItem(lastKey, now);
+    // calculate break minutes if needed
+    let breakMinutes = localStorage.getItem("breakMinutes") || 0;
 
-  // Break time in minutes
-  const breakMs = parseInt(localStorage.getItem(breakTotalKey) || "0", 10);
-  const breakMins = Math.floor(breakMs / (1000 * 60));
+    fetch(`${API_URL}?action=recordLastLogout&agent=${encodeURIComponent(agentName)}&breakMinutes=${breakMinutes}&t=${Date.now()}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert("You have been logged out successfully!");
 
-  fetch(`${API_URL}?action=recordLastLogout&agent=${encodeURIComponent(agentName)}&breakMinutes=${breakMins}`)
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        localStorage.clear();
-        window.location.href = "agent-login.html";
-      } else {
-        alert("Logout failed: " + (data.message || "Please try again."));
-      }
-    })
-    .catch(err => {
-      console.error("Logout error:", err);
-      alert("Error during logout. Please try again.");
-    });
+                // clear agent data from UI + localStorage
+                localStorage.removeItem("agentName");
+                localStorage.removeItem("breakMinutes");
+
+                document.getElementById("agentNameLabel").textContent = "Agent: -";
+                document.getElementById("firstLoginTime").textContent = "-";
+                document.getElementById("lastLogoutTime").textContent = "-";
+                document.getElementById("loggedinHours").textContent = "-";
+                document.getElementById("breakHours").textContent = "-";
+                document.getElementById("productionHours").textContent = "-";
+
+                // redirect back to login page
+                window.location.href = "agent-login.html";
+            } else {
+                alert("Logout failed: " + (data.message || "Unknown error"));
+            }
+        })
+        .catch(err => {
+            console.error("Logout error:", err);
+            alert("Error during logout. Check console for details.");
+        });
 }
 
 
