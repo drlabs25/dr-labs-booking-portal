@@ -1,4 +1,5 @@
 // ✅ Runs on any page (safe guards for missing elements)
+// ✅ Runs on any page (safe guards for missing elements)
 window.addEventListener("DOMContentLoaded", function () {
   const agentLabel = document.getElementById("agentNameLabel");
   if (agentLabel) {
@@ -49,6 +50,52 @@ function resetDailyData() {
   }
 }
 
+/** -----------------------------
+ * 🔥 LIVE TIMERS FOR AGENT PANEL
+ * ----------------------------- */
+let liveTimerInterval = null;
+
+function startLiveAgentTimer() {
+  clearInterval(liveTimerInterval);
+
+  const agentName = localStorage.getItem("agentName") || "";
+  if (!agentName) return;
+
+  const today = new Date().toISOString().split("T")[0];
+  const firstKey = "firstLogin_" + agentName + "_" + today;
+  const breakStartKey = "breakStart_" + agentName + "_" + today;
+  const breakTotalKey = "breakTotal_" + agentName + "_" + today;
+
+  const firstLogin = localStorage.getItem(firstKey);
+  if (!firstLogin) return;
+
+  const firstLoginDate = new Date(today + " " + firstLogin);
+
+  liveTimerInterval = setInterval(() => {
+    const now = new Date();
+    let loginMs = now - firstLoginDate;
+
+    let breakMs = parseInt(localStorage.getItem(breakTotalKey) || "0", 10);
+    const breakStart = localStorage.getItem(breakStartKey);
+    if (breakStart) breakMs += now - parseInt(breakStart, 10);
+
+    let prodMs = loginMs - breakMs;
+
+    const logged = document.getElementById("loggedinHours");
+    const breaks = document.getElementById("breakHours");
+    const prod = document.getElementById("productionHours");
+    if (logged) logged.innerText = msToHMS(loginMs);
+    if (breaks) breaks.innerText = msToHMS(breakMs);
+    if (prod) prod.innerText = msToHMS(prodMs);
+  }, 1000);
+}
+
+function msToHMS(ms) {
+  const hrs = Math.floor(ms / 3600000);
+  const mins = Math.floor((ms % 3600000) / 60000);
+  const secs = Math.floor((ms % 60000) / 1000);
+  return `${hrs}h ${mins}m ${secs}s`;
+}
 
 /** Navigation **/
 function goBack() { history.back(); }
@@ -77,7 +124,7 @@ function adminLogin() {
     });
 }
 
-
+/** Agent Login **/
 function agentLogin() {
   const user = document.getElementById("agentUser").value.trim();
   const pass = document.getElementById("agentPass").value.trim();
@@ -101,6 +148,9 @@ function agentLogin() {
         // ✅ Tell backend to record first login in Agent Dashboard sheet
         fetch(`${API_URL}?action=recordFirstLogin&agent=${encodeURIComponent(agentName)}`);
 
+        // ✅ Start live timers
+        startLiveAgentTimer();
+
         // Redirect
         window.location.href = "booking.html";
       } else {
@@ -113,7 +163,7 @@ function agentLogin() {
     });
 }
 
-
+/** Break controls **/
 function startBreak(agentName) {
   const today = new Date().toISOString().split("T")[0];
   localStorage.setItem("breakStart_" + agentName + "_" + today, new Date().getTime());
@@ -131,8 +181,6 @@ function endBreak(agentName) {
     localStorage.removeItem("breakStart_" + agentName + "_" + today);
   }
 }
-
-
 
 /** Load Tests with live search from Google Sheet **/
 function loadTests(searchTerm = "") {
