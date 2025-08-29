@@ -1033,6 +1033,40 @@ window.addEventListener("DOMContentLoaded", () => {
   setInterval(refreshAgentPanel, 60000);
 });
 
+function createCredential() {
+  const empId = document.getElementById("empId").value.trim();
+  const username = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const agentName = document.getElementById("agentName").value.trim();
+  const role = document.getElementById("role").value;
+  const status = document.getElementById("status").value;
+
+  if (!empId || !username || !password || !agentName || !role || !status) {
+    alert("Please fill all fields!");
+    return;
+  }
+
+  const params = new URLSearchParams({
+    action: "createCredential",
+    empId, username, password, agentName, role, status
+  });
+
+  fetch(`${API_URL}?${params.toString()}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        alert("Credential created successfully!");
+        document.querySelectorAll("#empId,#username,#password,#agentName,#role,#status")
+          .forEach(el => el.value = "");
+      } else {
+        alert("Failed: " + (data.message || "Unknown error"));
+      }
+    })
+    .catch(err => {
+      console.error("Credential creation error:", err);
+      alert("Error creating credential. Check console.");
+    });
+}
 
 
 /* ✅ Make functions globally available for inline HTML onclick */
@@ -1050,3 +1084,4 @@ window.filterTests = filterTests;
 window.filterPackages = filterPackages;
 window.startBreak = startBreak;
 window.endBreak = endBreak;
+window.createCredential = createCredential;
