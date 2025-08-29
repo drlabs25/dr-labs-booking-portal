@@ -1032,29 +1032,54 @@ window.addEventListener("DOMContentLoaded", () => {
 // ✅ Logout: record last logout then redirect
 function logout() {
   const agentName = localStorage.getItem("agentName") || "";
+  if (!agentName) {
+    alert("Invalid agent, please login again.");
+    localStorage.clear();
+    window.location.href = "agent-login.html";
+    return;
+  }
+
   const today = new Date().toISOString().split("T")[0];
-  const lastKey = "lastLogout_" + agentName + "_" + today;
+  const now = new Date();
+  const lastLogout = now.toLocaleTimeString();
+
+  // Keys
+  const firstKey = "firstLogin_" + agentName + "_" + today;
+  const firstLogin = localStorage.getItem(firstKey) || "-";
+
+  // Calculate durations
+  const loginStart = new Date(today + " " + firstLogin);
+  const totalLoginMs = now - loginStart;
+
   const breakTotalKey = "breakTotal_" + agentName + "_" + today;
+  let breakMs = parseInt(localStorage.getItem(breakTotalKey) || "0", 10);
+  const productionMs = totalLoginMs - breakMs;
 
-  // Save locally
-  const now = new Date().toLocaleTimeString();
-  localStorage.setItem(lastKey, now);
+  // Helper to format ms → HH:MM:SS
+  function msToHMS(ms) {
+    const h = Math.floor(ms / 3600000);
+    const m = Math.floor((ms % 3600000) / 60000);
+    const s = Math.floor((ms % 60000) / 1000);
+    return `${h.toString().padStart(2,"0")}:${m.toString().padStart(2,"0")}:${s.toString().padStart(2,"0")}`;
+  }
 
-  // Break time in minutes
-  const breakMs = parseInt(localStorage.getItem(breakTotalKey) || "0", 10);
-  const breakMins = Math.floor(breakMs / (1000 * 60));
-
-  // ✅ Call backend with correct param name
-  fetch(`${API_URL}?action=recordLastLogout&agent=${encodeURIComponent(agentName)}&breakMinutes=${breakMins}`)
-    .then(() => {
-      localStorage.clear();
-      window.location.href = "agent-login.html";
+  // ✅ Save to Google Sheet
+  fetch(`${API_URL}?action=recordAgentDay&agent=${encodeURIComponent(agentName)}&date=${today}&firstLogin=${encodeURIComponent(firstLogin)}&lastLogout=${encodeURIComponent(lastLogout)}&loginHours=${encodeURIComponent(msToHMS(totalLoginMs))}&breakHours=${encodeURIComponent(msToHMS(breakMs))}&productionHours=${encodeURIComponent(msToHMS(productionMs))}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        localStorage.clear();
+        window.location.href = "agent-login.html";
+      } else {
+        alert("Logout failed to save daily record");
+      }
     })
     .catch(err => {
       console.error("Logout error:", err);
       alert("Error during logout. Please try again.");
     });
 }
+
 
 
 
