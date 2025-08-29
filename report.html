@@ -15,6 +15,15 @@ th { background: #eef; }
 </style>
 </head>
 <body>
+<script>
+// 🚨 Block access if not Admin
+const role = localStorage.getItem("role");
+if (role !== "Admin") {
+  alert("Access Denied! Admins only.");
+  window.location.href = "index.html"; // redirect back to home
+}
+</script>
+
 <button class="nav-btn back" onclick="goBack()">Back</button>
 <button class="nav-btn home" onclick="goHome()">Home</button>
 
@@ -48,14 +57,13 @@ th { background: #eef; }
 
         <button onclick="filterReport()">Search</button>
         <button onclick="resetFilters()">Reset</button>
-       
-
     </div>
     <hr>
+
     <!-- Download Button -->
-<div class="download-btns" style="margin:10px 0;">
-  <button onclick="downloadReportCSV()">⬇ Download Full CSV</button>
-</div>
+    <div class="download-btns" style="margin:10px 0;">
+      <button onclick="downloadReportCSV()">⬇ Download Full CSV</button>
+    </div>
 
     <!-- Report Table -->
     <div class="table-container">
@@ -209,7 +217,8 @@ function resetFilters() {
   document.getElementById("reportBody").innerHTML = "";
   document.querySelector("#reportTable thead").innerHTML = "<tr><th>Report</th></tr>";
 }
-    function downloadReportCSV() {
+
+function downloadReportCSV() {
     const prefFrom   = document.getElementById("prefFrom")?.value || "";
     const prefTo     = document.getElementById("prefTo")?.value || "";
     const createdFrom= document.getElementById("createdFrom").value;
@@ -236,7 +245,6 @@ function resetFilters() {
     link.click();
     document.body.removeChild(link);
 }
-
 </script>
 
 </body>
