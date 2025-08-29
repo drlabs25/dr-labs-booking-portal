@@ -945,7 +945,7 @@ function logout() {
   const breakMs = parseInt(localStorage.getItem(breakTotalKey) || "0", 10);
   const breakMins = Math.floor(breakMs / (1000 * 60));
 
-  fetch(`${API_URL}?action=recordLastLogout&agent=${encodeURIComponent(agentName)}&breakMinutes=${breakMins}`)
+  fetch(`${API_URL}?action=recordAgentDay&agent=${agentName}&date=${today}&firstLogin=${firstLogin}&lastLogout=${logoutTime}&loginHours=${loginHours}&breakHours=${breakHours}&productionHours=${productionHours}`)
     .then(res => res.json())
     .then(data => {
       if (data.success) {
