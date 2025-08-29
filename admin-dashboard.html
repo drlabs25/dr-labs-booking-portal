@@ -1,17 +1,44 @@
-
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
 <title>Admin Dashboard</title>
 <link rel="stylesheet" href="style.css">
+<style>
+  .container {
+    padding: 20px;
+    text-align: center;
+  }
+  h2 {
+    margin-bottom: 20px;
+  }
+  .admin-btn {
+    display: block;
+    margin: 10px auto;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    transition: background 0.3s;
+    width: 220px;
+  }
+  .admin-btn:hover {
+    background-color: #0056b3;
+  }
+</style>
 </head>
 <body>
 <div class="container">
-<h2>Admin Dashboard</h2>
-<button onclick="location.href='create-credentials.html'">Create Credentials</button>
-<button onclick="location.href='test-details.html'">Test Details</button>
-<button onclick="location.href='package-details.html'">Package Details</button>
+  <h2>Admin Dashboard</h2>
+  <button class="admin-btn" onclick="location.href='create-credentials.html'">Create Credentials</button>
+  <button class="admin-btn" onclick="location.href='test-details.html'">Test Details</button>
+  <button class="admin-btn" onclick="location.href='package-details.html'">Package Details</button>
+  <!-- ✅ Report button placed after Package Details -->
+  <button class="admin-btn" onclick="location.href='report.html'">Reports</button>
 </div>
 </body>
 </html>
