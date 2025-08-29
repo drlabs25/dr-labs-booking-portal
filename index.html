@@ -57,7 +57,18 @@
     <h1>Welcome to Dr. Labs Booking Portal</h1>
     <button class="login-btn" onclick="location.href='admin-login.html'">Admin Login</button>
     <button class="login-btn" onclick="location.href='agent-login.html'">Agent Login</button>
-    <button class="login-btn" onclick="location.href='report.html'">Report</button>
+    <!-- Report button (hidden by default) -->
+    <button id="reportBtn" class="login-btn" onclick="location.href='report.html'" style="display:none;">Report</button>
   </div>
+
+  <script>
+    // ✅ Show Report button only if logged in as Admin
+    window.addEventListener("DOMContentLoaded", () => {
+      const role = localStorage.getItem("role");
+      if (role === "Admin") {
+        document.getElementById("reportBtn").style.display = "inline-block";
+      }
+    });
+  </script>
 </body>
 </html>
