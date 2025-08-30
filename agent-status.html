@@ -40,16 +40,20 @@
   </div>
 
 <script>
-const API_URL = "YOUR_WEBAPP_URL_HERE"; // Replace with your Apps Script web app URL
+const API_URL = "YOUR_WEBAPP_URL_HERE"; // replace with Apps Script URL
 
 function loadAgentStatuses() {
-  fetch(`${API_URL}?action=getLiveAgentStatus`)
+  fetch(`${API_URL}?action=getAllPanels`)
     .then(res => res.json())
     .then(agents => {
       const body = document.getElementById("agentStatusBody");
       body.innerHTML = "";
+      if (!agents.length) {
+        body.innerHTML = `<tr><td colspan="6">No agents online</td></tr>`;
+        return;
+      }
       agents.forEach(a => {
-        let tr = document.createElement("tr");
+        const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${a.agent}</td>
           <td>${a.firstLogin}</td>
@@ -61,11 +65,10 @@ function loadAgentStatuses() {
         body.appendChild(tr);
       });
     })
-    .catch(err => console.error("Error:", err));
+    .catch(err => console.error("Error loading agents:", err));
 }
 
-// Auto refresh every 15s
-setInterval(loadAgentStatuses, 15000);
+setInterval(loadAgentStatuses, 10000); // refresh every 10s
 window.onload = loadAgentStatuses;
 </script>
 </body>
