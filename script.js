@@ -1082,11 +1082,6 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 
-// ✅ Refresh agent panel immediately + every 1 min
-window.addEventListener("DOMContentLoaded", () => {
-  refreshAgentPanel();
-  setInterval(refreshAgentPanel, 60000);
-});
 
 function createCredential() {
   const empId = document.getElementById("empId").value.trim();
