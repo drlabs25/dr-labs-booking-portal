@@ -1049,7 +1049,11 @@ window.onload = function () {
 
   // ✅ Record first login once per day (backend only, no duplicate rows)
   fetch(`${API_URL}?action=recordFirstLogin&agent=${encodeURIComponent(agentName)}`);
+
+  // ✅ Immediately sync this agent's panel to backend
+  syncAgentPanel();
 };
+
 
 // ✅ Function to fetch agent daily status from backend (Agent Dashboard)
 function refreshAgentPanel() {
