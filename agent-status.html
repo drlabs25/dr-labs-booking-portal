@@ -3,11 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <title>Agent Live Status</title>
-<link rel="stylesheet" href="style.css">
 <style>
   body { font-family: Arial, sans-serif; background:#f7fbff; }
   .status-board {
-    max-width: 700px;
+    max-width: 900px;
     margin: 30px auto;
     padding: 15px;
     border: 1px solid #ddd;
@@ -17,11 +16,7 @@
   }
   .status-board h2 { text-align: center; margin-bottom: 20px; }
   table { width: 100%; border-collapse: collapse; }
-  th, td {
-    border: 1px solid #ccc;
-    padding: 10px;
-    text-align: center;
-  }
+  th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
   .prod { color: green; font-weight: bold; }
   .break { color: red; font-weight: bold; }
 </style>
@@ -31,28 +26,37 @@
     <h2>👨‍⚕️ Agent Live Status</h2>
     <table>
       <thead>
-        <tr><th>Agent</th><th>Status</th><th>Since</th></tr>
+        <tr>
+          <th>Agent</th>
+          <th>First Login</th>
+          <th>Total Login Hours</th>
+          <th>Break Hours</th>
+          <th>Production Hours</th>
+          <th>Current Status</th>
+        </tr>
       </thead>
       <tbody id="agentStatusBody"></tbody>
     </table>
   </div>
 
 <script>
-const API_URL = "YOUR_WEBAPP_URL_HERE"; // <-- replace with your Apps Script web app link
+const API_URL = "YOUR_WEBAPP_URL_HERE"; // Replace with your Apps Script web app URL
 
 function loadAgentStatuses() {
-  fetch(`${API_URL}?action=getAllAgentStatuses`)
+  fetch(`${API_URL}?action=getLiveAgentStatus`)
     .then(res => res.json())
-    .then(statuses => {
+    .then(agents => {
       const body = document.getElementById("agentStatusBody");
       body.innerHTML = "";
-      statuses.forEach(s => {
+      agents.forEach(a => {
         let tr = document.createElement("tr");
-        let cls = (s.status.toLowerCase() === "production") ? "prod" : "break";
         tr.innerHTML = `
-          <td>${s.agent}</td>
-          <td class="${cls}">${s.status}</td>
-          <td>${new Date(s.lastAction).toLocaleTimeString()}</td>
+          <td>${a.agent}</td>
+          <td>${a.firstLogin}</td>
+          <td>${a.totalLoginHours}</td>
+          <td>${a.breakHours}</td>
+          <td>${a.productionHours}</td>
+          <td class="${a.status==="Break"?"break":"prod"}">${a.status}</td>
         `;
         body.appendChild(tr);
       });
@@ -60,7 +64,7 @@ function loadAgentStatuses() {
     .catch(err => console.error("Error:", err));
 }
 
-// ✅ Refresh every 15s
+// Auto refresh every 15s
 setInterval(loadAgentStatuses, 15000);
 window.onload = loadAgentStatuses;
 </script>
