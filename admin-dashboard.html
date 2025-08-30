@@ -13,7 +13,10 @@
     margin-bottom: 20px;
   }
   .admin-btn {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
     margin: 10px auto;
     padding: 12px 24px;
     font-size: 16px;
@@ -24,23 +27,34 @@
     color: white;
     cursor: pointer;
     transition: background 0.3s;
-    width: 220px;
+    width: 240px;
   }
   .admin-btn:hover {
     background-color: #0056b3;
+  }
+  .admin-btn span {
+    font-size: 18px;
   }
 </style>
 </head>
 <body>
 <div class="container">
   <h2>Admin Dashboard</h2>
-  <button class="admin-btn" onclick="location.href='create-credentials.html'">Create Credentials</button>
-  <button class="admin-btn" onclick="location.href='test-details.html'">Test Details</button>
-  <button class="admin-btn" onclick="location.href='package-details.html'">Package Details</button>
-  <!-- ✅ Report button -->
-  <button class="admin-btn" onclick="location.href='report.html'">Reports</button>
-  <!-- ✅ New Agent Live Status button -->
-  <button class="admin-btn" onclick="location.href='agent-status.html'">Agent Live Status</button>
+  <button class="admin-btn" onclick="location.href='create-credentials.html'">
+    <span>🔑</span> Create Credentials
+  </button>
+  <button class="admin-btn" onclick="location.href='test-details.html'">
+    <span>🧪</span> Test Details
+  </button>
+  <button class="admin-btn" onclick="location.href='package-details.html'">
+    <span>📦</span> Package Details
+  </button>
+  <button class="admin-btn" onclick="location.href='report.html'">
+    <span>📊</span> Reports
+  </button>
+  <button class="admin-btn" onclick="location.href='agent-status.html'">
+    <span>👨‍⚕️</span> Agent Live Status
+  </button>
 </div>
 </body>
 </html>
