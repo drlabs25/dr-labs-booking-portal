@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Agent Live Status</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  body { font-family: Arial, sans-serif; background:#f7fbff; }
+  .status-board {
+    max-width: 700px;
+    margin: 30px auto;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  .status-board h2 { text-align: center; margin-bottom: 20px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+  }
+  .prod { color: green; font-weight: bold; }
+  .break { color: red; font-weight: bold; }
+</style>
+</head>
+<body>
+  <div class="status-board">
+    <h2>👨‍⚕️ Agent Live Status</h2>
+    <table>
+      <thead>
+        <tr><th>Agent</th><th>Status</th><th>Since</th></tr>
+      </thead>
+      <tbody id="agentStatusBody"></tbody>
+    </table>
+  </div>
+
+<script>
+const API_URL = "YOUR_WEBAPP_URL_HERE"; // <-- replace with your Apps Script web app link
+
+function loadAgentStatuses() {
+  fetch(`${API_URL}?action=getAllAgentStatuses`)
+    .then(res => res.json())
+    .then(statuses => {
+      const body = document.getElementById("agentStatusBody");
+      body.innerHTML = "";
+      statuses.forEach(s => {
+        let tr = document.createElement("tr");
+        let cls = (s.status.toLowerCase() === "production") ? "prod" : "break";
+        tr.innerHTML = `
+          <td>${s.agent}</td>
+          <td class="${cls}">${s.status}</td>
+          <td>${new Date(s.lastAction).toLocaleTimeString()}</td>
+        `;
+        body.appendChild(tr);
+      });
+    })
+    .catch(err => console.error("Error:", err));
+}
+
+// ✅ Refresh every 15s
+setInterval(loadAgentStatuses, 15000);
+window.onload = loadAgentStatuses;
+</script>
+</body>
+</html>
