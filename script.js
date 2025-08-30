@@ -115,7 +115,7 @@ function agentLogin() {
     });
 }
 
-// ✅ Break handling
+// ✅ Break handling with backend sync
 function startBreak() {
   const agentName = localStorage.getItem("agentName") || "";
   const today = new Date().toISOString().split("T")[0];
@@ -123,6 +123,12 @@ function startBreak() {
 
   document.getElementById("startBreakBtn").disabled = true;
   document.getElementById("endBreakBtn").disabled = false;
+
+  // 🔹 Tell backend that agent is on break
+  fetch(`${API_URL}?action=updateAgentStatus&agentName=${encodeURIComponent(agentName)}&status=Break`)
+    .then(res => res.json())
+    .then(data => console.log("Break status updated:", data))
+    .catch(err => console.error("Break update failed:", err));
 }
 
 function endBreak() {
@@ -142,7 +148,14 @@ function endBreak() {
 
   document.getElementById("startBreakBtn").disabled = false;
   document.getElementById("endBreakBtn").disabled = true;
+
+  // 🔹 Tell backend that agent is back to production
+  fetch(`${API_URL}?action=updateAgentStatus&agentName=${encodeURIComponent(agentName)}&status=Production`)
+    .then(res => res.json())
+    .then(data => console.log("Production status updated:", data))
+    .catch(err => console.error("Production update failed:", err));
 }
+
 
 // ✅ Real-time timer update
 function updateAgentTimers() {
