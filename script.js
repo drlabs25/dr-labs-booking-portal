@@ -61,28 +61,20 @@ let mainBookingData = null;
 
 /** Admin Login **/
 function adminLogin() {
-  const user = document.getElementById("adminUser").value.trim();
-  const pass = document.getElementById("adminPass").value.trim();
+  const user = document.getElementById("adminUser").value;
+  const pass = document.getElementById("adminPass").value;
 
   fetch(`${API_URL}?action=login&role=Admin&username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}`)
     .then(res => res.json())
     .then(data => {
       if (data.success) {
-        localStorage.setItem("adminName", data.agentName || user);
-        localStorage.setItem("role", "Admin");
-
-        // ✅ Redirect admin to admin dashboard, not booking.html
-        window.location.href = "admin-dashboard.html";  
+        localStorage.setItem("agentName", data.agentName);
+        window.location.href = "booking.html";
       } else {
         alert(data.message || "Login failed");
       }
-    })
-    .catch(err => {
-      console.error("Admin login error:", err);
-      alert("Error during admin login!");
     });
 }
-
 
 function agentLogin() {
   const user = document.getElementById("agentUser").value.trim();
@@ -104,12 +96,6 @@ function agentLogin() {
         }
 
         fetch(`${API_URL}?action=recordFirstLogin&agent=${encodeURIComponent(agentName)}`);
-
-        // ✅ Sync agent panel immediately + every 1 min
-        syncAgentPanel();
-        setInterval(syncAgentPanel, 60000);
-
-        // 🔹 Finally redirect
         window.location.href = "booking.html";
       } else {
         alert(data.message || "Invalid login!");
@@ -121,8 +107,7 @@ function agentLogin() {
     });
 }
 
-
-// ✅ Break handling with backend sync
+// ✅ Break handling
 function startBreak() {
   const agentName = localStorage.getItem("agentName") || "";
   const today = new Date().toISOString().split("T")[0];
@@ -130,15 +115,6 @@ function startBreak() {
 
   document.getElementById("startBreakBtn").disabled = true;
   document.getElementById("endBreakBtn").disabled = false;
-
-  // 🔹 Tell backend that agent is on break
-  fetch(`${API_URL}?action=updateAgentStatus&agentName=${encodeURIComponent(agentName)}&status=Break`)
-    .then(res => res.json())
-    .then(data => console.log("Break status updated:", data))
-    .catch(err => console.error("Break update failed:", err));
-
-  // ✅ Also sync entire agent panel values
-  syncAgentPanel();
 }
 
 function endBreak() {
@@ -158,42 +134,7 @@ function endBreak() {
 
   document.getElementById("startBreakBtn").disabled = false;
   document.getElementById("endBreakBtn").disabled = true;
-
-  // 🔹 Tell backend that agent is back to production
-  fetch(`${API_URL}?action=updateAgentStatus&agentName=${encodeURIComponent(agentName)}&status=Production`)
-    .then(res => res.json())
-    .then(data => console.log("Production status updated:", data))
-    .catch(err => console.error("Production update failed:", err));
-
-  // ✅ Also sync entire agent panel values
-  syncAgentPanel();
 }
-
-
-// ✅ Push current agent panel values to backend
-function syncAgentPanel() {
-  const agentName = localStorage.getItem("agentName") || "";
-  if (!agentName) return;
-
-  const payload = {
-    action: "syncAgentPanel",
-    agentName: agentName,
-    firstLogin: document.getElementById("firstLoginTime").innerText,
-    lastLogout: document.getElementById("lastLogoutTime").innerText,
-    totalLoginHours: document.getElementById("loggedinHours").innerText,
-    breakHours: document.getElementById("breakHours").innerText,
-    productionHours: document.getElementById("productionHours").innerText,
-    status: document.getElementById("startBreakBtn").disabled ? "Break" : "Production"
-  };
-
-  fetch(`${API_URL}?${new URLSearchParams(payload)}`)
-    .then(r => r.json())
-    .then(d => console.log("Synced panel:", d))
-    .catch(err => console.error("Sync error:", err));
-}
-
-
-
 
 // ✅ Real-time timer update
 function updateAgentTimers() {
@@ -1051,11 +992,7 @@ window.onload = function () {
 
   // ✅ Record first login once per day (backend only, no duplicate rows)
   fetch(`${API_URL}?action=recordFirstLogin&agent=${encodeURIComponent(agentName)}`);
-
-  // ✅ Immediately sync this agent's panel to backend
-  syncAgentPanel();
 };
-
 
 // ✅ Function to fetch agent daily status from backend (Agent Dashboard)
 function refreshAgentPanel() {
@@ -1082,41 +1019,12 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 
+// ✅ Refresh agent panel immediately + every 1 min
+window.addEventListener("DOMContentLoaded", () => {
+  refreshAgentPanel();
+  setInterval(refreshAgentPanel, 60000);
+});
 
-function createCredential() {
-  const empId = document.getElementById("empId").value.trim();
-  const username = document.getElementById("username").value.trim();
-  const password = document.getElementById("password").value.trim();
-  const agentName = document.getElementById("agentName").value.trim();
-  const role = document.getElementById("role").value;
-  const status = document.getElementById("status").value;
-
-  if (!empId || !username || !password || !agentName || !role || !status) {
-    alert("Please fill all fields!");
-    return;
-  }
-
-  const params = new URLSearchParams({
-    action: "createCredential",
-    empId, username, password, agentName, role, status
-  });
-
-  fetch(`${API_URL}?${params.toString()}`)
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        alert("Credential created successfully!");
-        document.querySelectorAll("#empId,#username,#password,#agentName,#role,#status")
-          .forEach(el => el.value = "");
-      } else {
-        alert("Failed: " + (data.message || "Unknown error"));
-      }
-    })
-    .catch(err => {
-      console.error("Credential creation error:", err);
-      alert("Error creating credential. Check console.");
-    });
-}
 
 
 /* ✅ Make functions globally available for inline HTML onclick */
@@ -1134,4 +1042,3 @@ window.filterTests = filterTests;
 window.filterPackages = filterPackages;
 window.startBreak = startBreak;
 window.endBreak = endBreak;
-window.createCredential = createCredential;
