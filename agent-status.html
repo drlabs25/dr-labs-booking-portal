@@ -6,7 +6,7 @@
 <style>
   body { font-family: Arial, sans-serif; background:#f7fbff; }
   .status-board {
-    max-width: 900px;
+    max-width: 950px;
     margin: 30px auto;
     padding: 15px;
     border: 1px solid #ddd;
@@ -15,22 +15,18 @@
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   }
   .status-board h2 { text-align: center; margin-bottom: 10px; }
-  #lastUpdated {
-    text-align: right;
-    font-size: 13px;
-    color: #666;
-    margin: 0 0 10px;
-  }
+  .last-updated { text-align: right; font-size: 13px; color: #666; margin-bottom: 10px; }
   table { width: 100%; border-collapse: collapse; }
   th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
   .prod { color: green; font-weight: bold; }
   .break { color: red; font-weight: bold; }
+  .offline { color: gray; font-weight: bold; }
 </style>
 </head>
 <body>
   <div class="status-board">
     <h2>👨‍⚕️ Agent Live Status</h2>
-    <p id="lastUpdated">Last updated: --</p>
+    <div class="last-updated">Last updated: <span id="lastUpdated">--</span></div>
     <table>
       <thead>
         <tr>
@@ -47,25 +43,35 @@
   </div>
 
 <script>
-const API_URL = "YOUR_WEBAPP_URL_HERE"; // replace with Apps Script URL
+const API_URL = "YOUR_WEBAPP_URL_HERE"; // 🔹 Replace with Apps Script Web App URL
 
 function loadAgentStatuses() {
   fetch(`${API_URL}?action=getAllPanels`)
     .then(res => res.json())
     .then(agents => {
       const body = document.getElementById("agentStatusBody");
-      const lastUpdated = document.getElementById("lastUpdated");
       body.innerHTML = "";
-
-      // ✅ Update timestamp
-      const now = new Date();
-      lastUpdated.innerText = "Last updated: " + now.toLocaleTimeString();
-
       if (!agents.length) {
         body.innerHTML = `<tr><td colspan="6">No agents online</td></tr>`;
         return;
       }
+
+      const now = Date.now();
+
       agents.forEach(a => {
+        const lastSync = a.ts ? new Date(a.ts).getTime() : 0;
+        const diffSec = (now - lastSync) / 1000;
+
+        let statusClass = "prod";
+        let statusText = a.status || "Production";
+
+        if (diffSec > 60) {
+          statusClass = "offline";
+          statusText = "Offline";
+        } else if (a.status === "Break") {
+          statusClass = "break";
+        }
+
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${a.agent}</td>
@@ -73,15 +79,19 @@ function loadAgentStatuses() {
           <td>${a.totalLoginHours}</td>
           <td>${a.breakHours}</td>
           <td>${a.productionHours}</td>
-          <td class="${a.status==="Break"?"break":"prod"}">${a.status}</td>
+          <td class="${statusClass}">${statusText}</td>
         `;
         body.appendChild(tr);
       });
+
+      // update "Last updated" time
+      document.getElementById("lastUpdated").innerText = new Date().toLocaleTimeString();
     })
     .catch(err => console.error("Error loading agents:", err));
 }
 
-setInterval(loadAgentStatuses, 10000); // refresh every 10s
+// auto-refresh
+setInterval(loadAgentStatuses, 10000); 
 window.onload = loadAgentStatuses;
 </script>
 </body>
