@@ -14,7 +14,13 @@
     background: white;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   }
-  .status-board h2 { text-align: center; margin-bottom: 20px; }
+  .status-board h2 { text-align: center; margin-bottom: 10px; }
+  #lastUpdated {
+    text-align: right;
+    font-size: 13px;
+    color: #666;
+    margin: 0 0 10px;
+  }
   table { width: 100%; border-collapse: collapse; }
   th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
   .prod { color: green; font-weight: bold; }
@@ -24,6 +30,7 @@
 <body>
   <div class="status-board">
     <h2>👨‍⚕️ Agent Live Status</h2>
+    <p id="lastUpdated">Last updated: --</p>
     <table>
       <thead>
         <tr>
@@ -47,7 +54,13 @@ function loadAgentStatuses() {
     .then(res => res.json())
     .then(agents => {
       const body = document.getElementById("agentStatusBody");
+      const lastUpdated = document.getElementById("lastUpdated");
       body.innerHTML = "";
+
+      // ✅ Update timestamp
+      const now = new Date();
+      lastUpdated.innerText = "Last updated: " + now.toLocaleTimeString();
+
       if (!agents.length) {
         body.innerHTML = `<tr><td colspan="6">No agents online</td></tr>`;
         return;
