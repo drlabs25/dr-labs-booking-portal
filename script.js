@@ -104,6 +104,12 @@ function agentLogin() {
         }
 
         fetch(`${API_URL}?action=recordFirstLogin&agent=${encodeURIComponent(agentName)}`);
+
+        // ✅ Sync agent panel immediately + every 1 min
+        syncAgentPanel();
+        setInterval(syncAgentPanel, 60000);
+
+        // 🔹 Finally redirect
         window.location.href = "booking.html";
       } else {
         alert(data.message || "Invalid login!");
@@ -114,6 +120,7 @@ function agentLogin() {
       alert("Error during login!");
     });
 }
+
 
 // ✅ Break handling with backend sync
 function startBreak() {
@@ -129,6 +136,9 @@ function startBreak() {
     .then(res => res.json())
     .then(data => console.log("Break status updated:", data))
     .catch(err => console.error("Break update failed:", err));
+
+  // ✅ Also sync entire agent panel values
+  syncAgentPanel();
 }
 
 function endBreak() {
@@ -154,6 +164,32 @@ function endBreak() {
     .then(res => res.json())
     .then(data => console.log("Production status updated:", data))
     .catch(err => console.error("Production update failed:", err));
+
+  // ✅ Also sync entire agent panel values
+  syncAgentPanel();
+}
+
+
+// ✅ Push current agent panel values to backend
+function syncAgentPanel() {
+  const agentName = localStorage.getItem("agentName") || "";
+  if (!agentName) return;
+
+  const payload = {
+    action: "syncAgentPanel",
+    agentName: agentName,
+    firstLogin: document.getElementById("firstLoginTime").innerText,
+    lastLogout: document.getElementById("lastLogoutTime").innerText,
+    totalLoginHours: document.getElementById("loggedinHours").innerText,
+    breakHours: document.getElementById("breakHours").innerText,
+    productionHours: document.getElementById("productionHours").innerText,
+    status: document.getElementById("startBreakBtn").disabled ? "Break" : "Production"
+  };
+
+  fetch(`${API_URL}?${new URLSearchParams(payload)}`)
+    .then(r => r.json())
+    .then(d => console.log("Synced panel:", d))
+    .catch(err => console.error("Sync error:", err));
 }
 
 
