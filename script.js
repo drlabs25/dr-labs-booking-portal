@@ -171,7 +171,7 @@ function endBreak() {
 
 
 // ✅ Push current agent panel values to backend
-function syncAgentPanel() {
+Vfunction syncAgentPanel() {
   const agentName = localStorage.getItem("agentName") || "";
   if (!agentName) return;
 
@@ -191,6 +191,7 @@ function syncAgentPanel() {
     .then(d => console.log("Synced panel:", d))
     .catch(err => console.error("Sync error:", err));
 }
+
 
 
 // ✅ Real-time timer update
