@@ -832,13 +832,16 @@ function editBooking(bookingId) {
             document.getElementById("submitBtn").style.display = "none";
             document.getElementById("updateBtn").style.display = "inline-block";
 
-            // Freeze these fields in edit mode
-            document.getElementById("location").disabled   = true;
-            document.getElementById("city").disabled       = true;
-            document.getElementById("pincode").disabled    = true;
-            document.getElementById("phleboList").disabled = true;
-            document.getElementById("prefDate").disabled   = true;
-            document.getElementById("prefTime").disabled   = true;
+            // ✅ Unfreeze all fields in edit mode
+            ["custNumber","custName","dob","age","gender","address",
+             "location","city","pincode","phleboList","prefDate","prefTime",
+             "discountList","techCharge"].forEach(id => {
+                let el = document.getElementById(id);
+                if (!el) return;
+                el.readOnly = false;
+                el.disabled = false;
+                el.style.backgroundColor = "";
+            });
 
             // Show form, hide history
             document.getElementById("bookingForm").style.display = "block";
