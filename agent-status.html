@@ -6,53 +6,64 @@
 <style>
   body { font-family: Arial, sans-serif; background:#f7fbff; }
   .status-board {
-    max-width: 950px;
+    max-width: 1200px;
     margin: 30px auto;
     padding: 15px;
-    border: 1px solid #ddd;
     border-radius: 8px;
-    background: white;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   }
-  .status-board h2 { text-align: center; margin-bottom: 10px; }
-  .last-updated { text-align: right; font-size: 13px; color: #666; margin-bottom: 10px; }
-  table { width: 100%; border-collapse: collapse; }
-  th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
-  .prod { color: green; font-weight: bold; }
-  .break { color: red; font-weight: bold; }
-  .offline { color: gray; font-weight: bold; }
+  .status-board h2 { text-align: center; margin-bottom: 20px; }
+  .last-updated { text-align: right; font-size: 13px; color: #666; margin-bottom: 20px; }
+  
+  /* Grid layout for agent panels */
+  .agent-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+  }
+
+  .agent-card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    text-align: center;
+  }
+  .agent-card h3 {
+    margin: 0 0 10px 0;
+    font-size: 18px;
+  }
+  .status {
+    font-weight: bold;
+    padding: 6px 12px;
+    border-radius: 6px;
+    display: inline-block;
+    margin-top: 10px;
+  }
+  .prod { background: #d4edda; color: #155724; }
+  .break { background: #f8d7da; color: #721c24; }
+  .offline { background: #e2e3e5; color: #383d41; }
+  .info { font-size: 14px; margin: 3px 0; }
 </style>
 </head>
 <body>
   <div class="status-board">
     <h2>👨‍⚕️ Agent Live Status</h2>
     <div class="last-updated">Last updated: <span id="lastUpdated">--</span></div>
-    <table>
-      <thead>
-        <tr>
-          <th>Agent</th>
-          <th>First Login</th>
-          <th>Total Login Hours</th>
-          <th>Break Hours</th>
-          <th>Production Hours</th>
-          <th>Current Status</th>
-        </tr>
-      </thead>
-      <tbody id="agentStatusBody"></tbody>
-    </table>
+    <div class="agent-grid" id="agentStatusGrid"></div>
   </div>
 
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbw4sBOSu5WL_Cep7M1B9qYgfvBSQ0iuuCfbrRQDG6y4qPl6fJfap-4LLaX_wMqvg3ZV8A/exec";
 
-  function loadAgentStatuses() {
+function loadAgentStatuses() {
   fetch(`${API_URL}?action=getAllPanels`)
     .then(res => res.json())
     .then(agents => {
-      const body = document.getElementById("agentStatusBody");
-      body.innerHTML = "";
+      const grid = document.getElementById("agentStatusGrid");
+      grid.innerHTML = "";
       if (!agents.length) {
-        body.innerHTML = `<tr><td colspan="6">No agents online</td></tr>`;
+        grid.innerHTML = `<p>No agents online</p>`;
         return;
       }
 
@@ -70,30 +81,29 @@ const API_URL = "https://script.google.com/macros/s/AKfycbw4sBOSu5WL_Cep7M1B9qYg
           statusText = "Offline";
         } else if (a.status === "Break") {
           statusClass = "break";
+          statusText = "Break";
         }
 
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${a.agent}</td>
-          <td>${a.firstLogin}</td>
-          <td>${a.totalLoginHours}</td>
-          <td>${a.breakHours}</td>
-          <td>${a.productionHours}</td>
-          <td class="${statusClass}">${statusText}</td>
+        const card = document.createElement("div");
+        card.className = "agent-card";
+        card.innerHTML = `
+          <h3>${a.agent}</h3>
+          <div class="info">🟢 First Login: ${a.firstLogin}</div>
+          <div class="info">⏱ Total Login: ${a.totalLoginHours}</div>
+          <div class="info">☕ Break: ${a.breakHours}</div>
+          <div class="info">💼 Production: ${a.productionHours}</div>
+          <div class="status ${statusClass}">${statusText}</div>
         `;
-        body.appendChild(tr);
+        grid.appendChild(card);
       });
 
-      // update "Last updated" time
       document.getElementById("lastUpdated").innerText = new Date().toLocaleTimeString();
     })
     .catch(err => console.error("Error loading agents:", err));
 }
 
-// auto-refresh
-setInterval(loadAgentStatuses, 10000); 
+setInterval(loadAgentStatuses, 10000);
 window.onload = loadAgentStatuses;
 </script>
 </body>
 </html>
-
