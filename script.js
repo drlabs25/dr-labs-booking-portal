@@ -127,6 +127,9 @@ function startBreak() {
   const today = new Date().toISOString().split("T")[0];
   localStorage.setItem("breakStart_" + agentName + "_" + today, Date.now());
 
+  // 👇 NEW: mark agent as on break
+  localStorage.setItem("agentStatus", "break");
+
   document.getElementById("startBreakBtn").disabled = true;
   document.getElementById("endBreakBtn").disabled = false;
 }
@@ -146,9 +149,13 @@ function endBreak() {
     localStorage.removeItem(breakStartKey);
   }
 
+  // 👇 NEW: mark agent as active again
+  localStorage.setItem("agentStatus", "active");
+
   document.getElementById("startBreakBtn").disabled = false;
   document.getElementById("endBreakBtn").disabled = true;
 }
+
 
 // ✅ Real-time timer update
 function updateAgentTimers() {
@@ -1056,3 +1063,37 @@ window.filterTests = filterTests;
 window.filterPackages = filterPackages;
 window.startBreak = startBreak;
 window.endBreak = endBreak;
+
+/* ===== Idle Session Lock (3 minutes) ===== */
+(function idleSessionLock() {
+  const IDLE_LIMIT_MS = 3 * 60 * 1000; // 3 minutes
+  let idleTimer;
+
+  function resetIdleTimer() {
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(lockCRM, IDLE_LIMIT_MS);
+  }
+
+  function lockCRM() {
+    // 🚫 Skip lock if agent is on break
+    const status = localStorage.getItem("agentStatus");
+    if (status === "break") {
+      resetIdleTimer(); // keep checking but don’t lock
+      return;
+    }
+
+    // ✅ Otherwise lock (redirect to login)
+    alert("Session locked due to inactivity.");
+    localStorage.removeItem("agentName");
+    localStorage.removeItem("userRole");
+    window.location.href = "agent-login.html";
+  }
+
+  // Monitor activity
+  ["mousemove", "keydown", "mousedown", "touchstart", "scroll"].forEach(evt =>
+    document.addEventListener(evt, resetIdleTimer, { passive: true })
+  );
+
+  resetIdleTimer(); // start timer
+})();
+
