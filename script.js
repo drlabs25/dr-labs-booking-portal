@@ -60,21 +60,7 @@ let subBookingCounter = 0;
 let mainBookingData = null;
 
 /** Admin Login **/
-function adminLogin() {
-  const user = document.getElementById("adminUser").value;
-  const pass = document.getElementById("adminPass").value;
-
-  fetch(`${API_URL}?action=login&role=Admin&username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}`)
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        localStorage.setItem("agentName", data.agentName);
-        window.location.href = "booking.html";
-      } else {
-        alert(data.message || "Login failed");
-      }
-    });
-}
+admin-dashboard.html
 
 function agentLogin() {
   const user = document.getElementById("agentUser").value.trim();
