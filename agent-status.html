@@ -2,108 +2,33 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Agent Live Status</title>
+<title>All Agents Live Status</title>
 <style>
-  body { font-family: Arial, sans-serif; background:#f7fbff; }
-  .status-board {
-    max-width: 1200px;
-    margin: 30px auto;
-    padding: 15px;
-    border-radius: 8px;
-  }
-  .status-board h2 { text-align: center; margin-bottom: 20px; }
-  .last-updated { text-align: right; font-size: 13px; color: #666; margin-bottom: 20px; }
-  
-  /* Grid layout for agent panels */
-  .agent-grid {
+  body { font-family: Arial, sans-serif; background:#f7fbff; margin: 0; padding: 0; }
+  h2 { text-align: center; padding: 20px; }
+  .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
     gap: 15px;
+    padding: 20px;
   }
-
-  .agent-card {
-    background: white;
-    border: 1px solid #ddd;
+  iframe {
+    width: 100%;
+    height: 400px;
+    border: 1px solid #ccc;
     border-radius: 10px;
-    padding: 15px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    text-align: center;
   }
-  .agent-card h3 {
-    margin: 0 0 10px 0;
-    font-size: 18px;
-  }
-  .status {
-    font-weight: bold;
-    padding: 6px 12px;
-    border-radius: 6px;
-    display: inline-block;
-    margin-top: 10px;
-  }
-  .prod { background: #d4edda; color: #155724; }
-  .break { background: #f8d7da; color: #721c24; }
-  .offline { background: #e2e3e5; color: #383d41; }
-  .info { font-size: 14px; margin: 3px 0; }
 </style>
 </head>
 <body>
-  <div class="status-board">
-    <h2>👨‍⚕️ Agent Live Status</h2>
-    <div class="last-updated">Last updated: <span id="lastUpdated">--</span></div>
-    <div class="agent-grid" id="agentStatusGrid"></div>
+  <h2>👨‍⚕️ All Agents Live Status</h2>
+  <div class="grid">
+    <!-- Replace src with each agent's panel link -->
+    <iframe src="agent1-status.html"></iframe>
+    <iframe src="agent2-status.html"></iframe>
+    <iframe src="agent3-status.html"></iframe>
+    <iframe src="agent4-status.html"></iframe>
   </div>
-
-<script>
-const API_URL = "https://script.google.com/macros/s/AKfycbw4sBOSu5WL_Cep7M1B9qYgfvBSQ0iuuCfbrRQDG6y4qPl6fJfap-4LLaX_wMqvg3ZV8A/exec";
-
-function loadAgentStatuses() {
-  fetch(`${API_URL}?action=getAllPanels`)
-    .then(res => res.json())
-    .then(agents => {
-      const grid = document.getElementById("agentStatusGrid");
-      grid.innerHTML = "";
-      if (!agents.length) {
-        grid.innerHTML = `<p>No agents online</p>`;
-        return;
-      }
-
-      const now = Date.now();
-
-      agents.forEach(a => {
-        const lastSync = a.ts ? new Date(a.ts).getTime() : 0;
-        const diffSec = (now - lastSync) / 1000;
-
-        let statusClass = "prod";
-        let statusText = a.status || "Production";
-
-        if (diffSec > 60) {
-          statusClass = "offline";
-          statusText = "Offline";
-        } else if (a.status === "Break") {
-          statusClass = "break";
-          statusText = "Break";
-        }
-
-        const card = document.createElement("div");
-        card.className = "agent-card";
-        card.innerHTML = `
-          <h3>${a.agent}</h3>
-          <div class="info">🟢 First Login: ${a.firstLogin}</div>
-          <div class="info">⏱ Total Login: ${a.totalLoginHours}</div>
-          <div class="info">☕ Break: ${a.breakHours}</div>
-          <div class="info">💼 Production: ${a.productionHours}</div>
-          <div class="status ${statusClass}">${statusText}</div>
-        `;
-        grid.appendChild(card);
-      });
-
-      document.getElementById("lastUpdated").innerText = new Date().toLocaleTimeString();
-    })
-    .catch(err => console.error("Error loading agents:", err));
-}
-
-setInterval(loadAgentStatuses, 10000);
-window.onload = loadAgentStatuses;
-</script>
 </body>
 </html>
