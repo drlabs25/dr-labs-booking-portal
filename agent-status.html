@@ -2,33 +2,87 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>All Agents Live Panels</title>
+<title>All Agents Live Status</title>
 <style>
   body { font-family: Arial, sans-serif; background:#f7fbff; margin: 0; padding: 0; }
   h2 { text-align: center; padding: 20px; }
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 15px;
     padding: 20px;
   }
-  iframe {
-    width: 100%;
-    height: 600px;
+  .card {
+    background: white;
     border: 1px solid #ccc;
     border-radius: 10px;
+    padding: 15px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   }
+  .prod { color: green; font-weight: bold; }
+  .break { color: red; font-weight: bold; }
+  .offline { color: gray; font-weight: bold; }
 </style>
 </head>
 <body>
-  <h2>👨‍⚕️ All Agents Live Panels (Mirrored)</h2>
-  <div class="grid">
-    <!-- Replace with actual panel URLs -->
-    <iframe src="https://drlabs25.github.io/agent-panel.html?agent=Priya"></iframe>
-    <iframe src="https://drlabs25.github.io/agent-panel.html?agent=Sevanthi"></iframe>
-    <iframe src="https://drlabs25.github.io/agent-panel.html?agent=Sathish"></iframe>
-    <iframe src="https://drlabs25.github.io/agent-panel.html?agent=Easwari"></iframe>
-  </div>
+  <h2>👨‍⚕️ All Agents Live Status</h2>
+  <div class="grid" id="agentsGrid"></div>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbw4sBOSu5WL_Cep7M1B9qYgfvBSQ0iuuCfbrRQDG6y4qPl6fJfap-4LLaX_wMqvg3ZV8A/exec";
+
+// List of all agents you want to show
+const agents = ["Priya", "Sevanthi", "Sathish", "Easwari", "Kaliraj"];
+
+// Function to refresh all panels
+function refreshAllPanels() {
+  const grid = document.getElementById("agentsGrid");
+  grid.innerHTML = "";
+
+  agents.forEach(agent => {
+    // Create card container
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <h3>${agent}</h3>
+      <p><b>First Login:</b> <span id="first-${agent}">--</span></p>
+      <p><b>Total Login Hours:</b> <span id="login-${agent}">--</span></p>
+      <p><b>Break Hours:</b> <span id="break-${agent}">--</span></p>
+      <p><b>Production Hours:</b> <span id="prod-${agent}">--</span></p>
+      <p><b>Status:</b> <span id="status-${agent}" class="offline">Offline</span></p>
+    `;
+    grid.appendChild(card);
+
+    // Fetch live data for this agent
+    fetch(`${API_URL}?action=getAgentDailyStatus&agent=${encodeURIComponent(agent)}&t=${Date.now()}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          document.getElementById(`first-${agent}`).innerText = data.firstLogin || "--";
+          document.getElementById(`login-${agent}`).innerText = data.totalLoginHours || "--";
+          document.getElementById(`break-${agent}`).innerText = data.breakHours || "--";
+          document.getElementById(`prod-${agent}`).innerText = data.productionHours || "--";
+
+          let statusEl = document.getElementById(`status-${agent}`);
+          if (parseFloat(data.breakHours) > 0 && parseFloat(data.productionHours) <= 0) {
+            statusEl.innerText = "Break";
+            statusEl.className = "break";
+          } else if (parseFloat(data.productionHours) > 0) {
+            statusEl.innerText = "Production";
+            statusEl.className = "prod";
+          } else {
+            statusEl.innerText = "Offline";
+            statusEl.className = "offline";
+          }
+        }
+      })
+      .catch(err => console.error("Error fetching agent:", agent, err));
+  });
+}
+
+// Run immediately + refresh every 1 min
+refreshAllPanels();
+setInterval(refreshAllPanels, 60000);
+</script>
 </body>
 </html>
