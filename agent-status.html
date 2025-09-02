@@ -8,69 +8,27 @@
   h2 { text-align: center; padding: 20px; }
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
     gap: 15px;
     padding: 20px;
   }
-  .card {
-    background: white;
+  iframe {
+    width: 100%;
+    height: 500px;
     border: 1px solid #ccc;
     border-radius: 10px;
-    padding: 15px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   }
-  .prod { color: green; font-weight: bold; }
-  .break { color: red; font-weight: bold; }
-  .offline { color: gray; font-weight: bold; }
-  .last-updated { text-align: right; font-size: 13px; color: #666; margin: 10px; }
 </style>
 </head>
 <body>
-  <h2>👨‍⚕️ All Agents Live Status</h2>
-  <div class="last-updated">Last updated: <span id="lastUpdated">--</span></div>
-  <div class="grid" id="agentsGrid"></div>
-
-<script>
-const API_URL = "https://script.google.com/macros/s/AKfycbw4sBOSu5WL_Cep7M1B9qYgfvBSQ0iuuCfbrRQDG6y4qPl6fJfap-4LLaX_wMqvg3ZV8A/exec";
-
-function loadAgents() {
-  fetch(`${API_URL}?action=getAllPanels`)
-    .then(res => res.json())
-    .then(agents => {
-      const grid = document.getElementById("agentsGrid");
-      grid.innerHTML = "";
-
-      if (!agents.length) {
-        grid.innerHTML = `<p>No agents online</p>`;
-        return;
-      }
-
-      agents.forEach(a => {
-        let statusClass = "prod";
-        if (a.status === "Break") statusClass = "break";
-        if (a.status === "Offline") statusClass = "offline";
-
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `
-          <h3>${a.agent}</h3>
-          <p><b>First Login:</b> ${a.firstLogin}</p>
-          <p><b>Last Logout:</b> ${a.lastLogout || "--"}</p>
-          <p><b>Total Login Hours:</b> ${a.totalLoginHours}</p>
-          <p><b>Break Hours:</b> ${a.breakHours}</p>
-          <p><b>Production Hours:</b> ${a.productionHours}</p>
-          <p><b>Status:</b> <span class="${statusClass}">${a.status}</span></p>
-        `;
-        grid.appendChild(card);
-      });
-
-      document.getElementById("lastUpdated").innerText = new Date().toLocaleTimeString();
-    })
-    .catch(err => console.error("Error loading agents:", err));
-}
-
-setInterval(loadAgents, 10000); // auto-refresh
-window.onload = loadAgents;
-</script>
+  <h2>👨‍⚕️ All Agents Live Status (Mirrored)</h2>
+  <div class="grid">
+    <!-- 🔹 Mirror each agent’s live panel here -->
+    <iframe src="agent1-panel.html"></iframe>
+    <iframe src="agent2-panel.html"></iframe>
+    <iframe src="agent3-panel.html"></iframe>
+    <iframe src="agent4-panel.html"></iframe>
+  </div>
 </body>
 </html>
