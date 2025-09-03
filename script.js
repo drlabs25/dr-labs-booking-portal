@@ -1064,9 +1064,9 @@ window.filterPackages = filterPackages;
 window.startBreak = startBreak;
 window.endBreak = endBreak;
 
-/* ===== Idle Session Lock (3 minutes) ===== */
+/* ===== Idle Session Lock (5 minutes) ===== */
 (function idleSessionLock() {
-  const IDLE_LIMIT_MS = 3 * 60 * 1000; // 3 minutes
+  const IDLE_LIMIT_MS = 5 * 60 * 1000; // 5 minutes
   let idleTimer;
 
   function resetIdleTimer() {
