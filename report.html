@@ -57,7 +57,7 @@
 </table>
 
 <script>
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw4sBOSu5WL_Cep7M1B9qYgfvBSQ0iuuCfbrRQDG6y4qPl6fJfap-4LLaX_wMqvg3ZV8A/exec"; // Replace with your own Apps Script URL
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw4sBOSu5WL_Cep7M1B9qYgfvBSQ0iuuCfbrRQDG6y4qPl6fJfap-4LLaX_wMqvg3ZV8A/exec"; // Your web app URL
 
   async function applyFilter() {
     const dateType = document.getElementById("dateType").value;
@@ -72,7 +72,6 @@
 
     const params = new URLSearchParams();
     params.append("action", "getReport");
-
     if (dateType === "created") {
       params.append("createdStart", fromDate);
       params.append("createdEnd", toDate);
@@ -90,6 +89,7 @@
         return;
       }
 
+      console.log("Fetched Data:", data); // For debugging
       renderTable(data, statusFilter);
     } catch (err) {
       console.error(err);
@@ -101,14 +101,14 @@
     const tbody = document.querySelector("#reportTable tbody");
     tbody.innerHTML = "";
 
-    // Group data by date
     const grouped = {};
 
     data.forEach(item => {
-      const itemStatus = item.status ? item.status.toLowerCase() : "confirm";
-      if (statusFilter !== "all" && statusFilter !== itemStatus) return;
+      const itemStatus = (item.status || "confirm").toLowerCase();
+      if (statusFilter !== "all" && itemStatus !== statusFilter) return;
 
-      const dateKey = item.date || "-";
+      // ✅ Smart fallback for date field
+      const dateKey = item.date || item.createdDate || item.slotDate || "-";
 
       if (!grouped[dateKey]) {
         grouped[dateKey] = {
@@ -120,17 +120,23 @@
         };
       }
 
-      grouped[dateKey].totalBookings += 1;
+      grouped[dateKey].totalBookings++;
 
-      if (itemStatus === "paid") grouped[dateKey].totalPaid += 1;
-      if (itemStatus === "confirm") grouped[dateKey].totalConfirm += 1;
-      if (itemStatus === "cancel") grouped[dateKey].totalCancel += 1;
+      if (itemStatus === "paid") grouped[dateKey].totalPaid++;
+      if (itemStatus === "confirm") grouped[dateKey].totalConfirm++;
+      if (itemStatus === "cancel") grouped[dateKey].totalCancel++;
 
-      const toPay = parseFloat(item.totalToPay || 0);
+      // ✅ Parse totalToPay even if it's like "₹1,200"
+      let toPay = 0;
+      if (item.totalToPay !== undefined) {
+        const raw = item.totalToPay.toString().replace(/[₹,]/g, '').trim();
+        toPay = parseFloat(raw) || 0;
+      }
+
       grouped[dateKey].totalToPay += toPay;
     });
 
-    // Totals for bottom row
+    // Totals
     let grandTotalBookings = 0,
         grandTotalPaid = 0,
         grandTotalConfirm = 0,
@@ -158,7 +164,7 @@
       tbody.appendChild(tr);
     });
 
-    // Add total row
+    // Total row
     const totalRow = document.createElement("tr");
     totalRow.classList.add("total-row");
     totalRow.innerHTML = `
