@@ -4,16 +4,14 @@
   <meta charset="UTF-8" />
   <title>Admin Report</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #fafafa; }
-    label { margin-right: 10px; font-weight: 600; }
-    select, input { margin-right: 15px; padding: 6px 8px; border: 1px solid #ccc; border-radius: 4px; }
-    button { padding: 8px 14px; margin-top: 10px; cursor: pointer; background: #007BFF; color: white; border: none; border-radius: 4px; }
-    button:hover { background: #0056b3; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; background: white; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
-    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    label { margin-right: 10px; }
+    select, input { margin-right: 15px; padding: 5px; }
+    button { padding: 6px 12px; margin-top: 10px; cursor: pointer; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
     th { background: #f4f4f4; }
     tr.total-row { font-weight: bold; background: #e0e0e0; }
-    #noDataMessage { margin-top: 20px; color: #666; font-style: italic; display: none; }
   </style>
 </head>
 <body>
@@ -44,9 +42,7 @@
   <button onclick="applyFilter()">Apply Filter</button>
 </div>
 
-<div id="noDataMessage">No records to display. Please apply filters to see the report.</div>
-
-<table id="reportTable" style="display:none;">
+<table id="reportTable">
   <thead>
     <tr>
       <th>Date</th>
@@ -68,8 +64,6 @@
     const fromDate = document.getElementById("fromDate").value;
     const toDate = document.getElementById("toDate").value;
     const statusFilter = document.getElementById("statusFilter").value;
-    const noDataMessage = document.getElementById("noDataMessage");
-    const reportTable = document.getElementById("reportTable");
 
     if (!fromDate || !toDate) {
       alert("Please select both From and To dates.");
@@ -91,12 +85,10 @@
       const data = await res.json();
       console.log("Fetched Data:", data);
       if (!data || data.length === 0) {
-        noDataMessage.style.display = "block";
-        reportTable.style.display = "none";
+        alert("No records found.");
+        clearTable();
         return;
       }
-      noDataMessage.style.display = "none";
-      reportTable.style.display = "table";
       renderTable(data, statusFilter, dateType);
     } catch (err) {
       console.error("Fetch Error:", err);
@@ -104,58 +96,107 @@
     }
   }
 
+  // Clears table body when no data found
+  function clearTable() {
+    const tbody = document.querySelector("#reportTable tbody");
+    tbody.innerHTML = "";
+  }
+
   function renderTable(data, statusFilter, dateType) {
     const tbody = document.querySelector("#reportTable tbody");
     tbody.innerHTML = "";
 
-    let totalBookings = 0;
-    let totalPaid = 0;
-    let totalConfirm = 0;
-    let totalCancel = 0;
-    let totalToPay = 0;
+    // Group data by date
+    const groupedData = {};
 
     data.forEach(item => {
+      // Determine date based on filter
+      let rawDate = dateType === "created" ? item.createdDate : item.slotDate;
+
+      // Normalize date (YYYY-MM-DD format)
+      if (!rawDate) return; // skip if no date available
+
+      // Extract only date part (sometimes might have time)
+      const dateOnly = rawDate.split("T")[0];
+
+      // Filter by status if selected
       const itemStatus = (item.status || "confirm").toLowerCase();
-      if (statusFilter !== "all" && itemStatus !== statusFilter) return;
+      if (statusFilter !== "all" && itemStatus !== statusFilter) {
+        return;
+      }
 
-      let dateRaw = dateType === "created" ? item.createdDate : item.slotDate;
-      const displayDate = dateRaw || "-";
+      // Initialize group if not exists
+      if (!groupedData[dateOnly]) {
+        groupedData[dateOnly] = {
+          totalBookings: 0,
+          totalPaid: 0,
+          totalConfirm: 0,
+          totalCancel: 0,
+          totalToPay: 0
+        };
+      }
 
+      // Update group counters
+      groupedData[dateOnly].totalBookings += 1;
+      if (itemStatus === "paid") groupedData[dateOnly].totalPaid += 1;
+      else if (itemStatus === "confirm") groupedData[dateOnly].totalConfirm += 1;
+      else if (itemStatus === "cancel") groupedData[dateOnly].totalCancel += 1;
+
+      // Clean the toPay value (remove ₹, commas)
       let toPayStr = item.totalToPay || "0";
-      const toPay = parseFloat(toPayStr.toString().replace(/[^\d.-]/g, '')) || 0;
+      const toPayNum = parseFloat(toPayStr.toString().replace(/[₹,]/g, '')) || 0;
 
-      totalBookings++;
-      if (itemStatus === "paid") totalPaid++;
-      if (itemStatus === "confirm") totalConfirm++;
-      if (itemStatus === "cancel") totalCancel++;
-      totalToPay += toPay;
+      groupedData[dateOnly].totalToPay += toPayNum;
+    });
+
+    // Sort dates ascending
+    const sortedDates = Object.keys(groupedData).sort();
+
+    if (sortedDates.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6">No records found for the applied filters.</td></tr>`;
+      return;
+    }
+
+    // Totals for all dates combined
+    let grandTotals = {
+      totalBookings: 0,
+      totalPaid: 0,
+      totalConfirm: 0,
+      totalCancel: 0,
+      totalToPay: 0
+    };
+
+    // Build table rows
+    sortedDates.forEach(date => {
+      const group = groupedData[date];
+      grandTotals.totalBookings += group.totalBookings;
+      grandTotals.totalPaid += group.totalPaid;
+      grandTotals.totalConfirm += group.totalConfirm;
+      grandTotals.totalCancel += group.totalCancel;
+      grandTotals.totalToPay += group.totalToPay;
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${displayDate}</td>
-        <td>1</td>
-        <td>${itemStatus === "paid" ? 1 : 0}</td>
-        <td>${itemStatus === "confirm" ? 1 : 0}</td>
-        <td>${itemStatus === "cancel" ? 1 : 0}</td>
-        <td>₹${toPay.toFixed(2)}</td>
+        <td>${date}</td>
+        <td>${group.totalBookings}</td>
+        <td>${group.totalPaid}</td>
+        <td>${group.totalConfirm}</td>
+        <td>${group.totalCancel}</td>
+        <td>₹${group.totalToPay.toFixed(2)}</td>
       `;
       tbody.appendChild(tr);
     });
 
-    if (totalBookings === 0) {
-      tbody.innerHTML = `<tr><td colspan="6">No records match the selected filter.</td></tr>`;
-      return;
-    }
-
+    // Add grand total row
     const totalRow = document.createElement("tr");
     totalRow.classList.add("total-row");
     totalRow.innerHTML = `
       <td>Total</td>
-      <td>${totalBookings}</td>
-      <td>${totalPaid}</td>
-      <td>${totalConfirm}</td>
-      <td>${totalCancel}</td>
-      <td>₹${totalToPay.toFixed(2)}</td>
+      <td>${grandTotals.totalBookings}</td>
+      <td>${grandTotals.totalPaid}</td>
+      <td>${grandTotals.totalConfirm}</td>
+      <td>${grandTotals.totalCancel}</td>
+      <td>₹${grandTotals.totalToPay.toFixed(2)}</td>
     `;
     tbody.appendChild(totalRow);
   }
