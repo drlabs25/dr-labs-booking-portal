@@ -40,21 +40,35 @@
 <body>
 <div class="container">
   <h2>Admin Dashboard</h2>
+
   <button class="admin-btn" onclick="location.href='create-credentials.html'">
     <span>🔑</span> Create Credentials
   </button>
+
   <button class="admin-btn" onclick="location.href='test-details.html'">
     <span>🧪</span> Test Details
   </button>
+
   <button class="admin-btn" onclick="location.href='package-details.html'">
     <span>📦</span> Package Details
   </button>
-  <button class="admin-btn" onclick="location.href='report.html'">
+
+  <!-- ✅ Updated Reports Button -->
+  <button class="admin-btn" onclick="openReports()">
     <span>📊</span> Reports
   </button>
+
   <button class="admin-btn" onclick="location.href='agent-status.html'">
     <span>👨‍⚕️</span> Agent Live Status
   </button>
 </div>
+
+<script>
+  // ✅ Set role as Admin and open report page
+  function openReports() {
+    localStorage.setItem("role", "Admin");
+    window.location.href = "report.html";
+  }
+</script>
 </body>
 </html>
