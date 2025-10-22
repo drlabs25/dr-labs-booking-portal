@@ -1,241 +1,116 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>Report</title>
-<link rel="stylesheet" href="style.css">
-<script src="script.js"></script>
-<style>
-.container { padding:20px; }
-.table-container { max-height:400px; overflow:auto; margin-top:15px; }
-table { border-collapse: collapse; width: 100%; }
-th, td { border: 1px solid #ccc; padding: 6px; text-align: left; font-size: 13px; }
-th { background: #eef; }
-.flex { display:flex; gap:10px; flex-wrap:wrap; margin-bottom: 10px; }
-</style>
+  <meta charset="UTF-8">
+  <title>Report</title>
+  <style>
+    .container { padding: 20px; }
+    .flex { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; align-items: center; }
+    .table-container { max-height: 400px; overflow: auto; margin-top: 15px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; font-size: 13px; }
+    th { background: #eef; }
+    .download-btns { margin: 10px 0; }
+    .nav-btn { margin-right: 10px; padding: 6px 12px; cursor: pointer; }
+  </style>
 </head>
 <body>
-<script>
-// 🚨 Block access if not Admin
-const role = localStorage.getItem("role");
-if (role !== "Admin") {
-  alert("Access Denied! Admins only.");
-  window.location.href = "index.html"; // redirect back to home
-}
-</script>
-
-<button class="nav-btn back" onclick="goBack()">Back</button>
-<button class="nav-btn home" onclick="goHome()">Home</button>
-
-<div class="container">
-    <h2>Report</h2>
-
-    <!-- Filters -->
-    <div class="flex">
-        <!-- Preferred Date filter -->
-        <label>Preferred Date:</label>
-        <input type="date" id="prefFrom">
-        <input type="date" id="prefTo">
-
-        <!-- Created Date filter -->
-        <label>Created Date:</label>
-        <input type="date" id="createdFrom">
-        <input type="date" id="createdTo">
-
-        <!-- Dropdown filters -->
-        <select id="phleboFilter">
-          <option value="">-- Select Phlebo --</option>
-        </select>
-
-        <select id="agentFilter">
-          <option value="">-- Select Agent --</option>
-        </select>
-
-        <select id="locationFilter">
-          <option value="">-- Select Location --</option>
-        </select>
-
-        <button onclick="filterReport()">Search</button>
-        <button onclick="resetFilters()">Reset</button>
-    </div>
-    <hr>
-
-    <!-- Download Button -->
-    <div class="download-btns" style="margin:10px 0;">
-      <button onclick="downloadReportCSV()">⬇ Download Full CSV</button>
-    </div>
-
-    <!-- Report Table -->
-    <div class="table-container">
-        <table id="reportTable">
-            <thead>
-                <tr>
-                    <!-- Headers will be set dynamically -->
-                </tr>
-            </thead>
-            <tbody id="reportBody">
-                <!-- Rows will load dynamically -->
-            </tbody>
-        </table>
-    </div>
-</div>
 
 <script>
-// ✅ Load dropdowns on page load
-document.addEventListener("DOMContentLoaded", function() {
-  loadPhleboFilter();
-  loadAgentFilter();
-  loadLocationFilter();
-});
+  // 🚨 Restrict access to Admin role
+  const role = localStorage.getItem("role");
+  if (role !== "Admin") {
+    alert("Access Denied! Admins only.");
+    window.location.href = "index.html";
+  }
 
-// --- Load Phlebo dropdown ---
-function loadPhleboFilter() {
-  fetch(`${API_URL}?action=getPhlebos`)
-    .then(res => res.json())
-    .then(phlebos => {
-      const sel = document.getElementById("phleboFilter");
-      sel.innerHTML = `<option value="">-- Select Phlebo --</option>`;
-      phlebos.forEach(p => {
-        const name = (typeof p === "string") ? p : p.name;
-        if (!name) return;
-        const opt = document.createElement("option");
-        opt.value = name;
-        opt.textContent = name;
-        sel.appendChild(opt);
-      });
-    })
-    .catch(err => console.error("Phlebo load failed:", err));
-}
+  // 🔙 Go back
+  function goBack() {
+    window.history.back();
+  }
 
-// --- Load Agent dropdown ---
-function loadAgentFilter() {
-  fetch(`${API_URL}?action=getAgents`)
-    .then(res => res.json())
-    .then(agents => {
-      const sel = document.getElementById("agentFilter");
-      sel.innerHTML = `<option value="">-- Select Agent --</option>`;
-      agents.forEach(a => {
-        const name = (typeof a === "string") ? a : a.name;
-        if (!name) return;
-        const opt = document.createElement("option");
-        opt.value = name;
-        opt.textContent = name;
-        sel.appendChild(opt);
-      });
-    })
-    .catch(err => console.error("Agent load failed:", err));
-}
+  // 🏠 Go home
+  function goHome() {
+    window.location.href = "index.html";
+  }
 
-// --- Load Location dropdown ---
-function loadLocationFilter() {
-  fetch(`${API_URL}?action=getLocations`)
-    .then(res => res.json())
-    .then(locs => {
-      const sel = document.getElementById("locationFilter");
-      sel.innerHTML = `<option value="">-- Select Location --</option>`;
-      locs.forEach(l => {
-        const name = (typeof l === "string") ? l : l.name;
-        if (!name) return;
-        const opt = document.createElement("option");
-        opt.value = name;
-        opt.textContent = name;
-        sel.appendChild(opt);
-      });
-    })
-    .catch(err => console.error("Location load failed:", err));
-}
+  // 🔍 Filter report data
+  function filterReport() {
+    const createdFrom = document.getElementById("createdFrom").value;
+    const createdTo = document.getElementById("createdTo").value;
 
-// ✅ Fetch report summary
-function filterReport() {
-    const prefFrom   = document.getElementById("prefFrom").value;
-    const prefTo     = document.getElementById("prefTo").value;
-    const createdFrom= document.getElementById("createdFrom").value;
-    const createdTo  = document.getElementById("createdTo").value;
-    const phlebo     = document.getElementById("phleboFilter").value;
-    const agent      = document.getElementById("agentFilter").value;
-    const location   = document.getElementById("locationFilter").value;
+    if (!createdFrom || !createdTo) {
+      alert("Please select both From and To dates.");
+      return;
+    }
 
-    fetch(`${API_URL}?action=getReport&prefStart=${prefFrom}&prefEnd=${prefTo}&createdStart=${createdFrom}&createdEnd=${createdTo}&phleboName=${phlebo}&agentName=${agent}&location=${location}`)
-        .then(res => res.json())
-        .then(data => {
-            const table = document.getElementById("reportTable");
-            const thead = table.querySelector("thead");
-            const body = document.getElementById("reportBody");
+    fetch(`${API_URL}?action=getReport&createdStart=${createdFrom}&createdEnd=${createdTo}`)
+      .then(res => res.json())
+      .then(data => {
+        const table = document.getElementById("reportTable");
+        const thead = table.querySelector("thead");
+        const body = document.getElementById("reportBody");
+        body.innerHTML = "";
 
-            body.innerHTML = "";
+        if (!data || data.length === 0) {
+          thead.innerHTML = "<tr><th>Report</th></tr>";
+          body.innerHTML = "<tr><td>No records found</td></tr>";
+          return;
+        }
 
-            if (!data || data.length === 0) {
-                thead.innerHTML = "<tr><th>Report</th></tr>";
-                body.innerHTML = `<tr><td>No records found</td></tr>`;
-                return;
-            }
+        // Table headers
+        thead.innerHTML = `
+          <tr>
+            <th>Phlebo Name</th>
+            <th>Agent Name</th>
+            <th>Location</th>
+            <th>No. of Bookings</th>
+            <th>No. of Cancelled</th>
+            <th>No. of Paid</th>
+            <th>Total Confirmed</th>
+          </tr>
+        `;
 
-            // --- Build headers dynamically ---
-            let headerRow = "<tr>";
-            if (agent && !phlebo) headerRow += "<th>Agent Name</th>";
-            if (phlebo && !agent) headerRow += "<th>Phlebo Name</th>";
-            if (agent && phlebo) {
-                headerRow += "<th>Agent Name</th><th>Phlebo Name</th>";
-            }
-            if (location) headerRow += "<th>Location</th>";
+        // Table rows
+        data.forEach(row => {
+          body.innerHTML += `
+            <tr>
+              <td>${row.phleboName || "-"}</td>
+              <td>${row.agentName || "-"}</td>
+              <td>${row.location || "-"}</td>
+              <td>${row.totalBookings}</td>
+              <td>${row.totalCancelled}</td>
+              <td>${row.totalPaid}</td>
+              <td>${row.confirmedBookings}</td>
+            </tr>
+          `;
+        });
+      })
+      .catch(err => alert("Error loading report: " + err));
+  }
 
-            headerRow += `
-                <th>No. of Bookings</th>
-                <th>No. of Cancelled</th>
-                <th>No. of Paid</th>
-                <th>Total Confirmed</th>
-            </tr>`;
-            thead.innerHTML = headerRow;
+  // 🔄 Reset filter and table
+  function resetFilters() {
+    document.getElementById("createdFrom").value = "";
+    document.getElementById("createdTo").value = "";
+    document.getElementById("reportBody").innerHTML = "";
+    document.querySelector("#reportTable thead").innerHTML = "<tr><th>Report</th></tr>";
+  }
 
-            // --- Fill rows ---
-            data.forEach(row => {
-                let rowHtml = "<tr>";
-                if (agent && !phlebo) rowHtml += `<td>${row.agentName || "-"}</td>`;
-                if (phlebo && !agent) rowHtml += `<td>${row.phleboName || "-"}</td>`;
-                if (agent && phlebo) {
-                    rowHtml += `<td>${row.agentName || "-"}</td>`;
-                    rowHtml += `<td>${row.phleboName || "-"}</td>`;
-                }
-                if (location) rowHtml += `<td>${row.location || "-"}</td>`;
+  // ⬇ Download CSV
+  function downloadReportCSV() {
+    const createdFrom = document.getElementById("createdFrom").value;
+    const createdTo = document.getElementById("createdTo").value;
 
-                rowHtml += `
-                    <td>${row.totalBookings}</td>
-                    <td>${row.totalCancelled}</td>
-                    <td>${row.totalPaid}</td>
-                    <td>${row.confirmedBookings}</td>
-                </tr>`;
-                body.innerHTML += rowHtml;
-            });
-        })
-        .catch(err => alert("Error loading report: " + err));
-}
-
-// ✅ Reset filters
-function resetFilters() {
-  ["prefFrom","prefTo","createdFrom","createdTo","phleboFilter","agentFilter","locationFilter"]
-    .forEach(id => document.getElementById(id).value = "");
-  document.getElementById("reportBody").innerHTML = "";
-  document.querySelector("#reportTable thead").innerHTML = "<tr><th>Report</th></tr>";
-}
-
-function downloadReportCSV() {
-    const prefFrom   = document.getElementById("prefFrom")?.value || "";
-    const prefTo     = document.getElementById("prefTo")?.value || "";
-    const createdFrom= document.getElementById("createdFrom").value;
-    const createdTo  = document.getElementById("createdTo").value;
-    const phlebo     = document.getElementById("phleboFilter").value;
-    const agent      = document.getElementById("agentFilter").value;
-    const location   = document.getElementById("locationFilter").value;
+    if (!createdFrom || !createdTo) {
+      alert("Please select both From and To dates.");
+      return;
+    }
 
     const params = new URLSearchParams({
       action: "getReportCSV",
-      prefStart: prefFrom,
-      prefEnd: prefTo,
       createdStart: createdFrom,
-      createdEnd: createdTo,
-      phleboName: phlebo,
-      agentName: agent,
-      location: location
+      createdEnd: createdTo
     });
 
     const link = document.createElement("a");
@@ -244,7 +119,45 @@ function downloadReportCSV() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-}
+  }
+</script>
+
+<!-- Navigation Buttons -->
+<button class="nav-btn back" onclick="goBack()">Back</button>
+<button class="nav-btn home" onclick="goHome()">Home</button>
+
+<div class="container">
+  <h2>Report</h2>
+
+  <!-- 📅 Created Date Filter -->
+  <div class="flex">
+    <label>Created Date:</label>
+    <input type="date" id="createdFrom">
+    <input type="date" id="createdTo">
+    <button onclick="filterReport()">Search</button>
+    <button onclick="resetFilters()">Reset</button>
+  </div>
+  <hr>
+
+  <!-- ⬇ Download CSV -->
+  <div class="download-btns">
+    <button onclick="downloadReportCSV()">⬇ Download CSV</button>
+  </div>
+
+  <!-- 📋 Report Table -->
+  <div class="table-container">
+    <table id="reportTable">
+      <thead>
+        <tr><th>Report</th></tr>
+      </thead>
+      <tbody id="reportBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 📌 Define your API URL -->
+<script>
+  const API_URL = "https://your-api-url.com/report-api"; // Replace with your actual backend URL
 </script>
 
 </body>
