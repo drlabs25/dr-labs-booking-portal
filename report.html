@@ -93,13 +93,20 @@
     } catch (err) {
       console.error("Fetch Error:", err);
       alert("Error fetching report.");
+      clearTable();
     }
   }
 
-  // Clears table body when no data found
   function clearTable() {
     const tbody = document.querySelector("#reportTable tbody");
-    tbody.innerHTML = "";
+    tbody.innerHTML = `<tr><td colspan="6">No records to display.</td></tr>`;
+  }
+
+  // Normalize date string: returns 'YYYY-MM-DD' or null
+  function normalizeDate(dateStr) {
+    if (!dateStr) return null;
+    if (dateStr.includes("T")) return dateStr.split("T")[0];
+    return dateStr;
   }
 
   function renderTable(data, statusFilter, dateType) {
@@ -110,46 +117,35 @@
     const groupedData = {};
 
     data.forEach(item => {
-      // Determine date based on filter
-      let rawDate = dateType === "created" ? item.createdDate : item.slotDate;
+      const rawDate = dateType === "created" ? item.createdDate : item.slotDate;
+      const dateOnly = normalizeDate(rawDate);
+      if (!dateOnly) return;
 
-      // Normalize date (YYYY-MM-DD format)
-      if (!rawDate) return; // skip if no date available
-
-      // Extract only date part (sometimes might have time)
-      const dateOnly = rawDate.split("T")[0];
-
-      // Filter by status if selected
       const itemStatus = (item.status || "confirm").toLowerCase();
-      if (statusFilter !== "all" && itemStatus !== statusFilter) {
-        return;
-      }
 
-      // Initialize group if not exists
+      // Apply status filter (skip if not matching)
+      if (statusFilter !== "all" && itemStatus !== statusFilter) return;
+
       if (!groupedData[dateOnly]) {
         groupedData[dateOnly] = {
           totalBookings: 0,
           totalPaid: 0,
           totalConfirm: 0,
           totalCancel: 0,
-          totalToPay: 0
+          totalToPay: 0,
         };
       }
 
-      // Update group counters
-      groupedData[dateOnly].totalBookings += 1;
-      if (itemStatus === "paid") groupedData[dateOnly].totalPaid += 1;
-      else if (itemStatus === "confirm") groupedData[dateOnly].totalConfirm += 1;
-      else if (itemStatus === "cancel") groupedData[dateOnly].totalCancel += 1;
+      groupedData[dateOnly].totalBookings++;
+      if (itemStatus === "paid") groupedData[dateOnly].totalPaid++;
+      else if (itemStatus === "confirm") groupedData[dateOnly].totalConfirm++;
+      else if (itemStatus === "cancel") groupedData[dateOnly].totalCancel++;
 
-      // Clean the toPay value (remove ₹, commas)
       let toPayStr = item.totalToPay || "0";
-      const toPayNum = parseFloat(toPayStr.toString().replace(/[₹,]/g, '')) || 0;
-
+      let toPayNum = parseFloat(toPayStr.toString().replace(/[₹,]/g, "")) || 0;
       groupedData[dateOnly].totalToPay += toPayNum;
     });
 
-    // Sort dates ascending
     const sortedDates = Object.keys(groupedData).sort();
 
     if (sortedDates.length === 0) {
@@ -157,16 +153,15 @@
       return;
     }
 
-    // Totals for all dates combined
-    let grandTotals = {
+    // Grand totals
+    const grandTotals = {
       totalBookings: 0,
       totalPaid: 0,
       totalConfirm: 0,
       totalCancel: 0,
-      totalToPay: 0
+      totalToPay: 0,
     };
 
-    // Build table rows
     sortedDates.forEach(date => {
       const group = groupedData[date];
       grandTotals.totalBookings += group.totalBookings;
@@ -187,7 +182,7 @@
       tbody.appendChild(tr);
     });
 
-    // Add grand total row
+    // Total row
     const totalRow = document.createElement("tr");
     totalRow.classList.add("total-row");
     totalRow.innerHTML = `
@@ -200,6 +195,9 @@
     `;
     tbody.appendChild(totalRow);
   }
+
+  // Initialize empty table message
+  clearTable();
 </script>
 
 </body>
