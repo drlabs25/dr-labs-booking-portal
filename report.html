@@ -72,6 +72,7 @@
 
     const params = new URLSearchParams();
     params.append("action", "getReport");
+
     if (dateType === "created") {
       params.append("createdStart", fromDate);
       params.append("createdEnd", toDate);
@@ -107,7 +108,7 @@
       const itemStatus = (item.status || "confirm").toLowerCase();
       if (statusFilter !== "all" && itemStatus !== statusFilter) return;
 
-      // ✅ Smart fallback for date field
+      // ✅ Safely get the date from any possible field
       const dateKey = item.date || item.createdDate || item.slotDate || "-";
 
       if (!grouped[dateKey]) {
@@ -120,23 +121,27 @@
         };
       }
 
-      grouped[dateKey].totalBookings++;
+      // ✅ Each item is one booking
+      grouped[dateKey].totalBookings += 1;
+      if (itemStatus === "paid") grouped[dateKey].totalPaid += 1;
+      if (itemStatus === "confirm") grouped[dateKey].totalConfirm += 1;
+      if (itemStatus === "cancel") grouped[dateKey].totalCancel += 1;
 
-      if (itemStatus === "paid") grouped[dateKey].totalPaid++;
-      if (itemStatus === "confirm") grouped[dateKey].totalConfirm++;
-      if (itemStatus === "cancel") grouped[dateKey].totalCancel++;
-
-      // ✅ Parse totalToPay even if it's like "₹1,200"
+      // ✅ Parse totalToPay (even if "₹1,200.00")
       let toPay = 0;
-      if (item.totalToPay !== undefined) {
-        const raw = item.totalToPay.toString().replace(/[₹,]/g, '').trim();
-        toPay = parseFloat(raw) || 0;
+      if (item.totalToPay !== undefined && item.totalToPay !== null) {
+        try {
+          const cleaned = item.totalToPay.toString().replace(/[^\d.-]/g, '');
+          toPay = parseFloat(cleaned) || 0;
+        } catch (e) {
+          console.warn("Could not parse totalToPay:", item.totalToPay);
+        }
       }
 
       grouped[dateKey].totalToPay += toPay;
     });
 
-    // Totals
+    // ✅ Totals
     let grandTotalBookings = 0,
         grandTotalPaid = 0,
         grandTotalConfirm = 0,
@@ -164,7 +169,6 @@
       tbody.appendChild(tr);
     });
 
-    // Total row
     const totalRow = document.createElement("tr");
     totalRow.classList.add("total-row");
     totalRow.innerHTML = `
