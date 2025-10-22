@@ -84,15 +84,13 @@
       const res = await fetch(`${WEB_APP_URL}?${params.toString()}`);
       const data = await res.json();
       console.log("Fetched Data:", data);
-
       if (!data || data.length === 0) {
         alert("No records found.");
         return;
       }
-
       renderTable(data, statusFilter, dateType);
     } catch (err) {
-      console.error(err);
+      console.error("Fetch Error:", err);
       alert("Error fetching report.");
     }
   }
@@ -111,22 +109,24 @@
       const itemStatus = (item.status || "confirm").toLowerCase();
       if (statusFilter !== "all" && itemStatus !== statusFilter) return;
 
-      // Get the correct date based on selected date type
-      const date = dateType === "created" ? (item.createdDate || item.date || "-") : (item.slotDate || item.date || "-");
+      // 1. Use correct date field
+      let dateRaw = dateType === "created" ? item.createdDate : item.slotDate;
+      const displayDate = dateRaw || "-";
 
-      // Ensure values are parsed correctly
-      const toPayRaw = item.totalToPay || "0";
-      const toPay = parseFloat(toPayRaw.toString().replace(/[^\d.-]/g, '')) || 0;
+      // 2. Normalize ₹ values (₹1,200.00 -> 1200)
+      let toPayStr = item.totalToPay || "0";
+      const toPay = parseFloat(toPayStr.toString().replace(/[^\d.-]/g, '')) || 0;
 
+      // 3. Count status types
       totalBookings += 1;
-      if (itemStatus === "paid") totalPaid += 1;
-      if (itemStatus === "confirm") totalConfirm += 1;
-      if (itemStatus === "cancel") totalCancel += 1;
+      if (itemStatus === "paid") totalPaid++;
+      if (itemStatus === "confirm") totalConfirm++;
+      if (itemStatus === "cancel") totalCancel++;
       totalToPay += toPay;
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${date}</td>
+        <td>${displayDate}</td>
         <td>1</td>
         <td>${itemStatus === "paid" ? 1 : 0}</td>
         <td>${itemStatus === "confirm" ? 1 : 0}</td>
@@ -136,7 +136,7 @@
       tbody.appendChild(tr);
     });
 
-    // Add totals row
+    // Add total row
     const totalRow = document.createElement("tr");
     totalRow.classList.add("total-row");
     totalRow.innerHTML = `
