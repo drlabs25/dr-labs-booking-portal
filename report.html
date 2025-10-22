@@ -1,44 +1,56 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Report</title>
 <style>
-body { font-family: Arial, sans-serif; padding: 20px; background: #f8f9fa; }
-h2 { text-align: center; margin-bottom: 20px; }
-.filters, .status-filters { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-bottom: 15px; }
-label { font-weight: 600; }
-select, input[type="date"], button { padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; }
-button { background-color: #007bff; color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
-button:hover { background-color: #0056b3; }
-table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
-th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
-th { background-color: #007bff; color: white; }
-tr:nth-child(even) { background-color: #f2f2f2; }
-tfoot { background-color: #e9ecef; font-weight: bold; }
+  body { font-family: Arial, sans-serif; padding: 20px; }
+  h2 { text-align: center; margin-bottom: 20px; }
+  .filter-section { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; }
+  label { font-weight: bold; }
+  select, input[type="date"] { padding: 5px; font-size: 14px; }
+  button { padding: 8px 16px; font-size: 14px; cursor: pointer; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+  th { background-color: #f0f0f0; }
 </style>
 </head>
 <body>
 
 <h2>Admin Report</h2>
 
-<div class="filters">
-  <label>Filter By:
-    <select id="dateFilterType">
-      <option value="Created Date">Created Date</option>
-      <option value="Preferred Date">Slot Date</option>
+<div class="filter-section">
+  <div>
+    <label>Date Type:</label>
+    <select id="dateType">
+      <option value="created">Created Date</option>
+      <option value="slot">Slot Date</option>
     </select>
-  </label>
-  <label>From: <input type="date" id="fromDate"></label>
-  <label>To: <input type="date" id="toDate"></label>
-  <button onclick="applyFilter()">Apply Filter</button>
-</div>
+  </div>
 
-<div class="status-filters">
-  <label><input type="checkbox" id="statusPaid" checked> Paid</label>
-  <label><input type="checkbox" id="statusConfirm" checked> Confirm</label>
-  <label><input type="checkbox" id="statusCancel" checked> Cancel</label>
+  <div>
+    <label>From:</label>
+    <input type="date" id="fromDate">
+  </div>
+
+  <div>
+    <label>To:</label>
+    <input type="date" id="toDate">
+  </div>
+
+  <div>
+    <label>Status:</label>
+    <select id="statusFilter">
+      <option value="all">All</option>
+      <option value="paid">Paid</option>
+      <option value="confirm">Confirm</option>
+      <option value="cancel">Cancel</option>
+    </select>
+  </div>
+
+  <div>
+    <button onclick="applyFilter()">Apply Filter</button>
+  </div>
 </div>
 
 <table id="reportTable">
@@ -46,229 +58,93 @@ tfoot { background-color: #e9ecef; font-weight: bold; }
     <tr>
       <th>Date</th>
       <th>Total Bookings</th>
-      <th>Paid</th>
-      <th>Confirm</th>
-      <th>Cancel</th>
+      <th>Total Paid</th>
+      <th>Total Confirm</th>
+      <th>Total Cancel</th>
       <th>Total To Pay</th>
     </tr>
   </thead>
   <tbody></tbody>
-  <tfoot>
-    <tr>
-      <td>Total</td>
-      <td id="totalBookings">0</td>
-      <td id="totalPaid">0</td>
-      <td id="totalConfirm">0</td>
-      <td id="totalCancel">0</td>
-      <td id="totalToPay">0</td>
-    </tr>
-  </tfoot>
 </table>
 
 <script>
-async function applyFilter() {
-  const filterType = document.getElementById("dateFilterType").value;
-  const fromDate = document.getElementById("fromDate").value;
-  const toDate = document.getElementById("toDate").value;
-  const statusPaid = document.getElementById("statusPaid").checked;
-  const statusConfirm = document.getElementById("statusConfirm").checked;
-  const statusCancel = document.getElementById("statusCancel").checked;
+const webAppUrl = "https://script.google.com/macros/s/AKfycbw4sBOSu5WL_Cep7M1B9qYgfvBSQ0iuuCfbrRQDG6y4qPl6fJfap-4LLaX_wMqvg3ZV8A/exec"; // Replace with your Google Apps Script Web App URL
 
-  // Build query parameters
-  let params = [];
-  if (filterType === "Created Date") {
-    if(fromDate) params.push("createdStart=" + fromDate);
-    if(toDate) params.push("createdEnd=" + toDate);
-  } else {
-    if(fromDate) params.push("prefStart=" + fromDate);
-    if(toDate) params.push("prefEnd=" + toDate);
+async function applyFilter() {
+  const dateType = document.getElementById('dateType').value;
+  const from = document.getElementById('fromDate').value;
+  const to = document.getElementById('toDate').value;
+  const status = document.getElementById('statusFilter').value;
+
+  if (!from || !to) {
+    alert("Please select both From and To dates.");
+    return;
   }
-  const query = params.join("&");
+
+  // Prepare query parameters
+  const query = new URLSearchParams({
+    action: 'getReport',
+    createdStart: dateType === 'created' ? from : '',
+    createdEnd: dateType === 'created' ? to : '',
+    prefStart: dateType === 'slot' ? from : '',
+    prefEnd: dateType === 'slot' ? to : '',
+    statusFilter: status
+  });
 
   try {
-    const response = await fetch(`https://script.google.com/macros/s/YOUR_DEPLOYED_WEB_APP/exec?action=getReport&${query}`);
-    const data = await response.json();
-    renderReport(data, { paid: statusPaid, confirm: statusConfirm, cancel: statusCancel }, filterType);
+    const res = await fetch(`${webAppUrl}/exec?${query}`);
+    const data = await res.json();
+    renderTable(data, status);
   } catch (err) {
-    console.error("Error fetching report:", err);
+    console.error(err);
+    alert("Failed to fetch report.");
   }
 }
 
-function renderReport(data, statusFilters, dateType) {
-  const tbody = document.querySelector("#reportTable tbody");
+function renderTable(data, statusFilter) {
+  const tbody = document.querySelector('#reportTable tbody');
   tbody.innerHTML = "";
 
-  let totalBookings = 0, totalPaid = 0, totalConfirm = 0, totalCancel = 0, totalToPay = 0;
+  let totalBookings = 0;
+  let totalPaid = 0;
+  let totalConfirm = 0;
+  let totalCancel = 0;
+  let totalToPaySum = 0;
 
   data.forEach(row => {
-    // Filter by selected statuses
-    let paid = statusFilters.paid ? parseInt(row.totalPaid || 0) : 0;
-    let cancel = statusFilters.cancel ? parseInt(row.totalCancelled || 0) : 0;
-    let confirm = statusFilters.confirm ? parseInt(row.confirmedBookings || 0) : 0;
+    const rowStatus = row.status ? row.status.toLowerCase() : '';
+    if (statusFilter !== 'all' && rowStatus !== statusFilter) return;
 
-    const rowTotal = paid + confirm + cancel;
+    totalBookings++;
+    if (rowStatus === 'paid') totalPaid++;
+    if (rowStatus === 'confirm') totalConfirm++;
+    if (rowStatus === 'cancel') totalCancel++;
+    totalToPaySum += parseFloat(row.totalToPay || 0);
 
-    totalBookings += rowTotal;
-    totalPaid += paid;
-    totalCancel += cancel;
-    totalConfirm += confirm;
-    totalToPay += parseFloat(row.totalToPay || 0);
-
-    const tr = document.createElement("tr");
+    const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${dateType === "Created Date" ? row.date || "" : row.date || ""}</td>
-      <td>${rowTotal}</td>
-      <td>${paid}</td>
-      <td>${confirm}</td>
-      <td>${cancel}</td>
+      <td>${row.date || (row.createdOn || row.preferredDate)}</td>
+      <td>1</td>
+      <td>${rowStatus === 'paid' ? 1 : 0}</td>
+      <td>${rowStatus === 'confirm' ? 1 : 0}</td>
+      <td>${rowStatus === 'cancel' ? 1 : 0}</td>
       <td>${row.totalToPay || 0}</td>
     `;
     tbody.appendChild(tr);
   });
 
-  document.getElementById("totalBookings").textContent = totalBookings;
-  document.getElementById("totalPaid").textContent = totalPaid;
-  document.getElementById("totalConfirm").textContent = totalConfirm;
-  document.getElementById("totalCancel").textContent = totalCancel;
-  document.getElementById("totalToPay").textContent = totalToPay.toFixed(2);
-}
-</script>
-
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Report</title>
-<style>
-body { font-family: Arial, sans-serif; padding: 20px; background: #f8f9fa; }
-h2 { text-align: center; margin-bottom: 20px; }
-.filters, .status-filters { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-bottom: 15px; }
-label { font-weight: 600; }
-select, input[type="date"], button { padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; }
-button { background-color: #007bff; color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
-button:hover { background-color: #0056b3; }
-table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
-th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
-th { background-color: #007bff; color: white; }
-tr:nth-child(even) { background-color: #f2f2f2; }
-tfoot { background-color: #e9ecef; font-weight: bold; }
-</style>
-</head>
-<body>
-
-<h2>Admin Report</h2>
-
-<div class="filters">
-  <label>Filter By:
-    <select id="dateFilterType">
-      <option value="Created Date">Created Date</option>
-      <option value="Preferred Date">Slot Date</option>
-    </select>
-  </label>
-  <label>From: <input type="date" id="fromDate"></label>
-  <label>To: <input type="date" id="toDate"></label>
-  <button onclick="applyFilter()">Apply Filter</button>
-</div>
-
-<div class="status-filters">
-  <label><input type="checkbox" id="statusPaid" checked> Paid</label>
-  <label><input type="checkbox" id="statusConfirm" checked> Confirm</label>
-  <label><input type="checkbox" id="statusCancel" checked> Cancel</label>
-</div>
-
-<table id="reportTable">
-  <thead>
-    <tr>
-      <th>Date</th>
-      <th>Total Bookings</th>
-      <th>Paid</th>
-      <th>Confirm</th>
-      <th>Cancel</th>
-      <th>Total To Pay</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-  <tfoot>
-    <tr>
-      <td>Total</td>
-      <td id="totalBookings">0</td>
-      <td id="totalPaid">0</td>
-      <td id="totalConfirm">0</td>
-      <td id="totalCancel">0</td>
-      <td id="totalToPay">0</td>
-    </tr>
-  </tfoot>
-</table>
-
-<script>
-async function applyFilter() {
-  const filterType = document.getElementById("dateFilterType").value;
-  const fromDate = document.getElementById("fromDate").value;
-  const toDate = document.getElementById("toDate").value;
-  const statusPaid = document.getElementById("statusPaid").checked;
-  const statusConfirm = document.getElementById("statusConfirm").checked;
-  const statusCancel = document.getElementById("statusCancel").checked;
-
-  // Build query parameters
-  let params = [];
-  if (filterType === "Created Date") {
-    if(fromDate) params.push("createdStart=" + fromDate);
-    if(toDate) params.push("createdEnd=" + toDate);
-  } else {
-    if(fromDate) params.push("prefStart=" + fromDate);
-    if(toDate) params.push("prefEnd=" + toDate);
-  }
-  const query = params.join("&");
-
-  try {
-    const response = await fetch(`https://script.google.com/macros/s/AKfycbw4sBOSu5WL_Cep7M1B9qYgfvBSQ0iuuCfbrRQDG6y4qPl6fJfap-4LLaX_wMqvg3ZV8A/exec?action=getReport&${query}`);
-    const data = await response.json();
-    renderReport(data, { paid: statusPaid, confirm: statusConfirm, cancel: statusCancel }, filterType);
-  } catch (err) {
-    console.error("Error fetching report:", err);
-  }
-}
-
-function renderReport(data, statusFilters, dateType) {
-  const tbody = document.querySelector("#reportTable tbody");
-  tbody.innerHTML = "";
-
-  let totalBookings = 0, totalPaid = 0, totalConfirm = 0, totalCancel = 0, totalToPay = 0;
-
-  data.forEach(row => {
-    // Filter by selected statuses
-    let paid = statusFilters.paid ? parseInt(row.totalPaid || 0) : 0;
-    let cancel = statusFilters.cancel ? parseInt(row.totalCancelled || 0) : 0;
-    let confirm = statusFilters.confirm ? parseInt(row.confirmedBookings || 0) : 0;
-
-    const rowTotal = paid + confirm + cancel;
-
-    totalBookings += rowTotal;
-    totalPaid += paid;
-    totalCancel += cancel;
-    totalConfirm += confirm;
-    totalToPay += parseFloat(row.totalToPay || 0);
-
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${dateType === "Created Date" ? row.date || "" : row.date || ""}</td>
-      <td>${rowTotal}</td>
-      <td>${paid}</td>
-      <td>${confirm}</td>
-      <td>${cancel}</td>
-      <td>${row.totalToPay || 0}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-
-  document.getElementById("totalBookings").textContent = totalBookings;
-  document.getElementById("totalPaid").textContent = totalPaid;
-  document.getElementById("totalConfirm").textContent = totalConfirm;
-  document.getElementById("totalCancel").textContent = totalCancel;
-  document.getElementById("totalToPay").textContent = totalToPay.toFixed(2);
+  // Add summary row
+  const tr = document.createElement('tr');
+  tr.style.fontWeight = "bold";
+  tr.innerHTML = `
+    <td>Total</td>
+    <td>${totalBookings}</td>
+    <td>${totalPaid}</td>
+    <td>${totalConfirm}</td>
+    <td>${totalCancel}</td>
+    <td>${totalToPaySum.toFixed(2)}</td>
+  `;
+  tbody.appendChild(tr);
 }
 </script>
 
