@@ -1,25 +1,69 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Report</title>
+  <title>Admin Report</title>
   <style>
-    .container { padding: 20px; }
+    body { font-family: Arial, sans-serif; background: #f8f9fa; margin: 0; }
+    .container { padding: 20px; max-width: 1100px; margin: auto; background: #fff; box-shadow: 0 0 8px rgba(0,0,0,0.1); margin-top: 30px; border-radius: 10px; }
     .flex { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; align-items: center; }
-    .table-container { max-height: 400px; overflow: auto; margin-top: 15px; }
+    .table-container { max-height: 400px; overflow: auto; margin-top: 15px; border: 1px solid #ddd; border-radius: 6px; }
     table { border-collapse: collapse; width: 100%; }
-    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; font-size: 13px; }
-    th { background: #eef; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; font-size: 13px; }
+    th { background: #eaf1ff; }
     .download-btns { margin: 10px 0; }
-    .nav-btn { margin-right: 10px; padding: 6px 12px; cursor: pointer; }
+    .nav-btn { margin-right: 10px; padding: 6px 12px; cursor: pointer; border: none; background: #007bff; color: white; border-radius: 5px; }
+    .nav-btn:hover { background: #0056b3; }
+    h2 { color: #333; }
+    #loading { display: none; color: #007bff; font-weight: bold; }
   </style>
 </head>
 <body>
 
+<!-- Navigation Buttons -->
+<button class="nav-btn" onclick="goBack()">← Back</button>
+<button class="nav-btn" onclick="goHome()">🏠 Home</button>
+
+<div class="container">
+  <h2>📊 Admin Report</h2>
+
+  <!-- 📅 Created Date Filter -->
+  <div class="flex">
+    <label>Created Date:</label>
+    <input type="date" id="createdFrom">
+    <input type="date" id="createdTo">
+    <button class="nav-btn" onclick="filterReport()">Search</button>
+    <button class="nav-btn" style="background:#6c757d" onclick="resetFilters()">Reset</button>
+  </div>
+
+  <div id="loading">Loading report data...</div>
+  <hr>
+
+  <!-- ⬇ Download CSV -->
+  <div class="download-btns">
+    <button class="nav-btn" style="background:#28a745" onclick="downloadReportCSV()">⬇ Download CSV</button>
+  </div>
+
+  <!-- 📋 Report Table -->
+  <div class="table-container">
+    <table id="reportTable">
+      <thead>
+        <tr><th>Report</th></tr>
+      </thead>
+      <tbody id="reportBody"></tbody>
+    </table>
+  </div>
+</div>
+
 <script>
+  // ✅ Your backend API URL
+  const API_URL = "https://script.google.com/macros/s/AKfycbw4sBOSu5WL_Cep7M1B9qYgfvBSQ0iuuCfbrRQDG6y4qPl6fJfap-4LLaX_wMqvg3ZV8A/exec";
+
   // 🚨 Restrict access to Admin role
   const role = localStorage.getItem("role");
-  if (role !== "Admin") {
+  console.log("User role:", role);
+
+  if (!role || role.toLowerCase() !== "admin") {
     alert("Access Denied! Admins only.");
     window.location.href = "index.html";
   }
@@ -38,18 +82,23 @@
   function filterReport() {
     const createdFrom = document.getElementById("createdFrom").value;
     const createdTo = document.getElementById("createdTo").value;
+    const loading = document.getElementById("loading");
+    const body = document.getElementById("reportBody");
+    const thead = document.querySelector("#reportTable thead");
 
     if (!createdFrom || !createdTo) {
       alert("Please select both From and To dates.");
       return;
     }
 
+    loading.style.display = "block";
+    body.innerHTML = "";
+    thead.innerHTML = "<tr><th>Loading...</th></tr>";
+
     fetch(`${API_URL}?action=getReport&createdStart=${createdFrom}&createdEnd=${createdTo}`)
       .then(res => res.json())
       .then(data => {
-        const table = document.getElementById("reportTable");
-        const thead = table.querySelector("thead");
-        const body = document.getElementById("reportBody");
+        loading.style.display = "none";
         body.innerHTML = "";
 
         if (!data || data.length === 0) {
@@ -78,15 +127,18 @@
               <td>${row.phleboName || "-"}</td>
               <td>${row.agentName || "-"}</td>
               <td>${row.location || "-"}</td>
-              <td>${row.totalBookings}</td>
-              <td>${row.totalCancelled}</td>
-              <td>${row.totalPaid}</td>
-              <td>${row.confirmedBookings}</td>
+              <td>${row.totalBookings || 0}</td>
+              <td>${row.totalCancelled || 0}</td>
+              <td>${row.totalPaid || 0}</td>
+              <td>${row.confirmedBookings || 0}</td>
             </tr>
           `;
         });
       })
-      .catch(err => alert("Error loading report: " + err));
+      .catch(err => {
+        loading.style.display = "none";
+        alert("Error loading report: " + err);
+      });
   }
 
   // 🔄 Reset filter and table
@@ -120,44 +172,6 @@
     link.click();
     document.body.removeChild(link);
   }
-</script>
-
-<!-- Navigation Buttons -->
-<button class="nav-btn back" onclick="goBack()">Back</button>
-<button class="nav-btn home" onclick="goHome()">Home</button>
-
-<div class="container">
-  <h2>Report</h2>
-
-  <!-- 📅 Created Date Filter -->
-  <div class="flex">
-    <label>Created Date:</label>
-    <input type="date" id="createdFrom">
-    <input type="date" id="createdTo">
-    <button onclick="filterReport()">Search</button>
-    <button onclick="resetFilters()">Reset</button>
-  </div>
-  <hr>
-
-  <!-- ⬇ Download CSV -->
-  <div class="download-btns">
-    <button onclick="downloadReportCSV()">⬇ Download CSV</button>
-  </div>
-
-  <!-- 📋 Report Table -->
-  <div class="table-container">
-    <table id="reportTable">
-      <thead>
-        <tr><th>Report</th></tr>
-      </thead>
-      <tbody id="reportBody"></tbody>
-    </table>
-  </div>
-</div>
-
-<!-- 📌 Define your API URL -->
-<script>
-  const API_URL = "https://script.google.com/macros/s/AKfycbw4sBOSu5WL_Cep7M1B9qYgfvBSQ0iuuCfbrRQDG6y4qPl6fJfap-4LLaX_wMqvg3ZV8A/exec"; // Replace with your actual backend URL
 </script>
 
 </body>
