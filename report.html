@@ -1,177 +1,75 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Admin Report</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f8f9fa; margin: 0; }
-    .container { padding: 20px; max-width: 1100px; margin: auto; background: #fff; box-shadow: 0 0 8px rgba(0,0,0,0.1); margin-top: 30px; border-radius: 10px; }
-    .flex { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; align-items: center; }
-    .table-container { max-height: 400px; overflow: auto; margin-top: 15px; border: 1px solid #ddd; border-radius: 6px; }
-    table { border-collapse: collapse; width: 100%; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; font-size: 13px; }
-    th { background: #eaf1ff; }
-    .download-btns { margin: 10px 0; }
-    .nav-btn { margin-right: 10px; padding: 6px 12px; cursor: pointer; border: none; background: #007bff; color: white; border-radius: 5px; }
-    .nav-btn:hover { background: #0056b3; }
-    h2 { color: #333; }
-    #loading { display: none; color: #007bff; font-weight: bold; }
-  </style>
+<meta charset="UTF-8">
+<title>Admin Report</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+  }
+  h2 {
+    text-align: center;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  th, td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+  }
+  th {
+    background-color: #007bff;
+    color: white;
+  }
+  tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+</style>
 </head>
 <body>
 
-<!-- Navigation Buttons -->
-<button class="nav-btn" onclick="goBack()">← Back</button>
-<button class="nav-btn" onclick="goHome()">🏠 Home</button>
+<h2>Admin Report</h2>
 
-<div class="container">
-  <h2>📊 Admin Report</h2>
-
-  <!-- 📅 Created Date Filter -->
-  <div class="flex">
-    <label>Created Date:</label>
-    <input type="date" id="createdFrom">
-    <input type="date" id="createdTo">
-    <button class="nav-btn" onclick="filterReport()">Search</button>
-    <button class="nav-btn" style="background:#6c757d" onclick="resetFilters()">Reset</button>
-  </div>
-
-  <div id="loading">Loading report data...</div>
-  <hr>
-
-  <!-- ⬇ Download CSV -->
-  <div class="download-btns">
-    <button class="nav-btn" style="background:#28a745" onclick="downloadReportCSV()">⬇ Download CSV</button>
-  </div>
-
-  <!-- 📋 Report Table -->
-  <div class="table-container">
-    <table id="reportTable">
-      <thead>
-        <tr><th>Report</th></tr>
-      </thead>
-      <tbody id="reportBody"></tbody>
-    </table>
-  </div>
-</div>
+<table id="reportTable">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Total Bookings</th>
+      <th>Paid Bookings</th>
+      <th>Confirm Bookings</th>
+      <th>Cancel Bookings</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Data rows will be inserted here -->
+  </tbody>
+</table>
 
 <script>
-  // ✅ Your backend API URL
-  const API_URL = "https://script.google.com/macros/s/AKfycbw4sBOSu5WL_Cep7M1B9qYgfvBSQ0iuuCfbrRQDG6y4qPl6fJfap-4LLaX_wMqvg3ZV8A/exec";
+  // Example data - replace this with your actual data source
+  const reportData = [
+    { date: "2025-10-20", total: 50, paid: 30, confirm: 15, cancel: 5 },
+    { date: "2025-10-21", total: 40, paid: 25, confirm: 10, cancel: 5 },
+    { date: "2025-10-22", total: 60, paid: 40, confirm: 15, cancel: 5 }
+  ];
 
-  // 🚨 Restrict access to Admin role
-  const role = localStorage.getItem("role");
-  console.log("User role:", role);
+  const tbody = document.querySelector("#reportTable tbody");
 
-  if (!role || role.toLowerCase() !== "admin") {
-    alert("Access Denied! Admins only.");
-    window.location.href = "index.html";
-  }
-
-  // 🔙 Go back
-  function goBack() {
-    window.history.back();
-  }
-
-  // 🏠 Go home
-  function goHome() {
-    window.location.href = "index.html";
-  }
-
-  // 🔍 Filter report data
-  function filterReport() {
-    const createdFrom = document.getElementById("createdFrom").value;
-    const createdTo = document.getElementById("createdTo").value;
-    const loading = document.getElementById("loading");
-    const body = document.getElementById("reportBody");
-    const thead = document.querySelector("#reportTable thead");
-
-    if (!createdFrom || !createdTo) {
-      alert("Please select both From and To dates.");
-      return;
-    }
-
-    loading.style.display = "block";
-    body.innerHTML = "";
-    thead.innerHTML = "<tr><th>Loading...</th></tr>";
-
-    fetch(`${API_URL}?action=getReport&createdStart=${createdFrom}&createdEnd=${createdTo}`)
-      .then(res => res.json())
-      .then(data => {
-        loading.style.display = "none";
-        body.innerHTML = "";
-
-        if (!data || data.length === 0) {
-          thead.innerHTML = "<tr><th>Report</th></tr>";
-          body.innerHTML = "<tr><td>No records found</td></tr>";
-          return;
-        }
-
-        // Table headers
-        thead.innerHTML = `
-          <tr>
-            <th>Phlebo Name</th>
-            <th>Agent Name</th>
-            <th>Location</th>
-            <th>No. of Bookings</th>
-            <th>No. of Cancelled</th>
-            <th>No. of Paid</th>
-            <th>Total Confirmed</th>
-          </tr>
-        `;
-
-        // Table rows
-        data.forEach(row => {
-          body.innerHTML += `
-            <tr>
-              <td>${row.phleboName || "-"}</td>
-              <td>${row.agentName || "-"}</td>
-              <td>${row.location || "-"}</td>
-              <td>${row.totalBookings || 0}</td>
-              <td>${row.totalCancelled || 0}</td>
-              <td>${row.totalPaid || 0}</td>
-              <td>${row.confirmedBookings || 0}</td>
-            </tr>
-          `;
-        });
-      })
-      .catch(err => {
-        loading.style.display = "none";
-        alert("Error loading report: " + err);
-      });
-  }
-
-  // 🔄 Reset filter and table
-  function resetFilters() {
-    document.getElementById("createdFrom").value = "";
-    document.getElementById("createdTo").value = "";
-    document.getElementById("reportBody").innerHTML = "";
-    document.querySelector("#reportTable thead").innerHTML = "<tr><th>Report</th></tr>";
-  }
-
-  // ⬇ Download CSV
-  function downloadReportCSV() {
-    const createdFrom = document.getElementById("createdFrom").value;
-    const createdTo = document.getElementById("createdTo").value;
-
-    if (!createdFrom || !createdTo) {
-      alert("Please select both From and To dates.");
-      return;
-    }
-
-    const params = new URLSearchParams({
-      action: "getReportCSV",
-      createdStart: createdFrom,
-      createdEnd: createdTo
-    });
-
-    const link = document.createElement("a");
-    link.href = `${API_URL}?${params.toString()}`;
-    link.download = "Filtered_Report.csv";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
+  reportData.forEach(item => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${item.date}</td>
+      <td>${item.total}</td>
+      <td>${item.paid}</td>
+      <td>${item.confirm}</td>
+      <td>${item.cancel}</td>
+    `;
+    tbody.appendChild(row);
+  });
 </script>
 
 </body>
