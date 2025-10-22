@@ -1,38 +1,77 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Admin Report</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    padding: 20px;
-  }
-  h2 {
-    text-align: center;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-  }
-  th, td {
-    border: 1px solid #ccc;
-    padding: 10px;
-    text-align: center;
-  }
-  th {
-    background-color: #007bff;
-    color: white;
-  }
-  tr:nth-child(even) {
-    background-color: #f2f2f2;
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Report</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    h2 {
+      text-align: center;
+    }
+    .filters {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    label {
+      font-weight: bold;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background-color: #007bff;
+      color: white;
+    }
+    tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+    button {
+      padding: 6px 12px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
 </head>
 <body>
 
 <h2>Admin Report</h2>
+
+<div class="filters">
+  <label>
+    From: <input type="date" id="fromDate">
+  </label>
+  <label>
+    To: <input type="date" id="toDate">
+  </label>
+  <label>
+    Filter by:
+    <select id="dateType">
+      <option value="Created Date">Created Date</option>
+      <option value="Preferred Date">Preferred Date</option>
+    </select>
+  </label>
+  <button onclick="applyFilter()">Apply Filter</button>
+</div>
 
 <table id="reportTable">
   <thead>
@@ -45,31 +84,76 @@
     </tr>
   </thead>
   <tbody>
-    <!-- Data rows will be inserted here -->
+    <!-- Filtered data rows will appear here -->
   </tbody>
 </table>
 
 <script>
-  // Example data - replace this with your actual data source
-  const reportData = [
-    { date: "2025-10-20", total: 50, paid: 30, confirm: 15, cancel: 5 },
-    { date: "2025-10-21", total: 40, paid: 25, confirm: 10, cancel: 5 },
-    { date: "2025-10-22", total: 60, paid: 40, confirm: 15, cancel: 5 }
-  ];
+  const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS7fJjjdC95htb0nYuIMMkNKQ8WIZz01wdEVq_mZ_L3XrTn_rzXT5aKKQX_WTUsOvTwALVwGwm8mE1t/pub?output=csv';
 
-  const tbody = document.querySelector("#reportTable tbody");
+  fetch(sheetUrl)
+    .then(response => response.text())
+    .then(csvData => {
+      const rows = csvData.split('\n').map(row => row.split(','));
+      const headers = rows[0];
+      const data = rows.slice(1).map(row => {
+        const obj = {};
+        row.forEach((cell, index) => {
+          obj[headers[index]] = cell;
+        });
+        return obj;
+      });
+      renderTable(data);
+    })
+    .catch(error => console.error('Error fetching data:', error));
 
-  reportData.forEach(item => {
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>${item.date}</td>
-      <td>${item.total}</td>
-      <td>${item.paid}</td>
-      <td>${item.confirm}</td>
-      <td>${item.cancel}</td>
-    `;
-    tbody.appendChild(row);
-  });
+  function renderTable(data) {
+    const tbody = document.querySelector("#reportTable tbody");
+    tbody.innerHTML = "";
+    data.forEach(item => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${item['Created Date']}</td>
+        <td>${item['Total Bookings']}</td>
+        <td>${item['Paid Bookings']}</td>
+        <td>${item['Confirm Bookings']}</td>
+        <td>${item['Cancel Bookings']}</td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  function applyFilter() {
+    const fromDate = document.getElementById("fromDate").value;
+    const toDate = document.getElementById("toDate").value;
+    const dateType = document.getElementById("dateType").value;
+
+    fetch(sheetUrl)
+      .then(response => response.text())
+      .then(csvData => {
+        const rows = csvData.split('\n').map(row => row.split(','));
+        const headers = rows[0];
+        const data = rows.slice(1).map(row => {
+          const obj = {};
+          row.forEach((cell, index) => {
+            obj[headers[index]] = cell;
+          });
+          return obj;
+        });
+
+        let filtered = data;
+
+        if (fromDate) {
+          filtered = filtered.filter(item => new Date(item[dateType]) >= new Date(fromDate));
+        }
+        if (toDate) {
+          filtered = filtered.filter(item => new Date(item[dateType]) <= new Date(toDate));
+        }
+
+        renderTable(filtered);
+      })
+      .catch(error => console.error('Error fetching data:', error));
+  }
 </script>
 
 </body>
