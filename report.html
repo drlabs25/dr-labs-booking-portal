@@ -1,75 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Report</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-    }
-    h2 {
-      text-align: center;
-    }
-    .filters {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
-    label {
-      font-weight: bold;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 10px;
-      text-align: center;
-    }
-    th {
-      background-color: #007bff;
-      color: white;
-    }
-    tr:nth-child(even) {
-      background-color: #f2f2f2;
-    }
-    button {
-      padding: 6px 12px;
-      cursor: pointer;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 4px;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Report</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; }
+  h2 { text-align: center; }
+  .filters { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin-bottom: 20px; }
+  label { font-weight: bold; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+  th { background-color: #007bff; color: white; }
+  tr:nth-child(even) { background-color: #f2f2f2; }
+  button { padding: 6px 12px; cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 4px; }
+  button:hover { background-color: #0056b3; }
+</style>
 </head>
 <body>
 
 <h2>Admin Report</h2>
 
 <div class="filters">
-  <label>
-    From: <input type="date" id="fromDate">
-  </label>
-  <label>
-    To: <input type="date" id="toDate">
-  </label>
-  <label>
-    Filter by:
-    <select id="dateType">
-      <option value="Created Date">Created Date</option>
-      <option value="Preferred Date">Preferred Date</option>
-    </select>
-  </label>
+  <div>
+    <label>Created Date From: <input type="date" id="createdFrom"></label>
+    <label>To: <input type="date" id="createdTo"></label>
+  </div>
+  <div>
+    <label>Slot Date From: <input type="date" id="slotFrom"></label>
+    <label>To: <input type="date" id="slotTo"></label>
+  </div>
   <button onclick="applyFilter()">Apply Filter</button>
 </div>
 
@@ -78,82 +38,71 @@
     <tr>
       <th>Date</th>
       <th>Total Bookings</th>
-      <th>Paid Bookings</th>
-      <th>Confirm Bookings</th>
-      <th>Cancel Bookings</th>
+      <th>Paid</th>
+      <th>Confirm</th>
+      <th>Cancel</th>
     </tr>
   </thead>
-  <tbody>
-    <!-- Filtered data rows will appear here -->
-  </tbody>
+  <tbody></tbody>
 </table>
 
 <script>
-  const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS7fJjjdC95htb0nYuIMMkNKQ8WIZz01wdEVq_mZ_L3XrTn_rzXT5aKKQX_WTUsOvTwALVwGwm8mE1t/pub?output=csv';
+const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS7fJjjdC95htb0nYuIMMkNKQ8WIZz01wdEVq_mZ_L3XrTn_rzXT5aKKQX_WTUsOvTwALVwGwm8mE1t/pub?output=csv';
+let reportData = [];
 
+// Fetch sheet data
+function fetchData(callback) {
   fetch(sheetUrl)
     .then(response => response.text())
     .then(csvData => {
-      const rows = csvData.split('\n').map(row => row.split(','));
+      const rows = csvData.split('\n').map(r => r.split(','));
       const headers = rows[0];
-      const data = rows.slice(1).map(row => {
+      reportData = rows.slice(1).map(row => {
         const obj = {};
-        row.forEach((cell, index) => {
-          obj[headers[index]] = cell;
-        });
+        row.forEach((cell, i) => { obj[headers[i]] = cell; });
         return obj;
       });
-      renderTable(data);
+      if(callback) callback();
     })
     .catch(error => console.error('Error fetching data:', error));
+}
 
-  function renderTable(data) {
-    const tbody = document.querySelector("#reportTable tbody");
-    tbody.innerHTML = "";
-    data.forEach(item => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${item['Created Date']}</td>
-        <td>${item['Total Bookings']}</td>
-        <td>${item['Paid Bookings']}</td>
-        <td>${item['Confirm Bookings']}</td>
-        <td>${item['Cancel Bookings']}</td>
-      `;
-      tbody.appendChild(row);
-    });
-  }
+// Render table
+function renderTable(data) {
+  const tbody = document.querySelector("#reportTable tbody");
+  tbody.innerHTML = "";
+  data.forEach(item => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${item['Created Date']}</td>
+      <td>${item['Total Bookings']}</td>
+      <td>${item['Paid']}</td>
+      <td>${item['Confirm']}</td>
+      <td>${item['Cancel']}</td>
+    `;
+    tbody.appendChild(row);
+  });
+}
 
-  function applyFilter() {
-    const fromDate = document.getElementById("fromDate").value;
-    const toDate = document.getElementById("toDate").value;
-    const dateType = document.getElementById("dateType").value;
+// Apply filters
+function applyFilter() {
+  const createdFrom = document.getElementById("createdFrom").value;
+  const createdTo = document.getElementById("createdTo").value;
+  const slotFrom = document.getElementById("slotFrom").value;
+  const slotTo = document.getElementById("slotTo").value;
 
-    fetch(sheetUrl)
-      .then(response => response.text())
-      .then(csvData => {
-        const rows = csvData.split('\n').map(row => row.split(','));
-        const headers = rows[0];
-        const data = rows.slice(1).map(row => {
-          const obj = {};
-          row.forEach((cell, index) => {
-            obj[headers[index]] = cell;
-          });
-          return obj;
-        });
+  let filtered = reportData;
 
-        let filtered = data;
+  if(createdFrom) filtered = filtered.filter(item => new Date(item['Created Date']) >= new Date(createdFrom));
+  if(createdTo) filtered = filtered.filter(item => new Date(item['Created Date']) <= new Date(createdTo));
+  if(slotFrom) filtered = filtered.filter(item => new Date(item['Slot Date']) >= new Date(slotFrom));
+  if(slotTo) filtered = filtered.filter(item => new Date(item['Slot Date']) <= new Date(slotTo));
 
-        if (fromDate) {
-          filtered = filtered.filter(item => new Date(item[dateType]) >= new Date(fromDate));
-        }
-        if (toDate) {
-          filtered = filtered.filter(item => new Date(item[dateType]) <= new Date(toDate));
-        }
+  renderTable(filtered);
+}
 
-        renderTable(filtered);
-      })
-      .catch(error => console.error('Error fetching data:', error));
-  }
+// Initial fetch and render
+fetchData(() => renderTable(reportData));
 </script>
 
 </body>
