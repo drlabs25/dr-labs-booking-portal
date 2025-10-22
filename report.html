@@ -1,17 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Admin Report</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    label { margin-right: 10px; }
-    select, input { margin-right: 15px; padding: 5px; }
-    button { padding: 6px 12px; margin-top: 10px; cursor: pointer; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    body { font-family: Arial, sans-serif; padding: 20px; background: #fafafa; }
+    label { margin-right: 10px; font-weight: 600; }
+    select, input { margin-right: 15px; padding: 6px 8px; border: 1px solid #ccc; border-radius: 4px; }
+    button { padding: 8px 14px; margin-top: 10px; cursor: pointer; background: #007BFF; color: white; border: none; border-radius: 4px; }
+    button:hover { background: #0056b3; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; background: white; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
     th { background: #f4f4f4; }
     tr.total-row { font-weight: bold; background: #e0e0e0; }
+    #noDataMessage { margin-top: 20px; color: #666; font-style: italic; display: none; }
   </style>
 </head>
 <body>
@@ -26,10 +28,10 @@
   </select>
 
   <label for="fromDate">From:</label>
-  <input type="date" id="fromDate">
+  <input type="date" id="fromDate" />
 
   <label for="toDate">To:</label>
-  <input type="date" id="toDate">
+  <input type="date" id="toDate" />
 
   <label for="statusFilter">Status:</label>
   <select id="statusFilter">
@@ -42,7 +44,9 @@
   <button onclick="applyFilter()">Apply Filter</button>
 </div>
 
-<table id="reportTable">
+<div id="noDataMessage">No records to display. Please apply filters to see the report.</div>
+
+<table id="reportTable" style="display:none;">
   <thead>
     <tr>
       <th>Date</th>
@@ -64,6 +68,8 @@
     const fromDate = document.getElementById("fromDate").value;
     const toDate = document.getElementById("toDate").value;
     const statusFilter = document.getElementById("statusFilter").value;
+    const noDataMessage = document.getElementById("noDataMessage");
+    const reportTable = document.getElementById("reportTable");
 
     if (!fromDate || !toDate) {
       alert("Please select both From and To dates.");
@@ -85,9 +91,12 @@
       const data = await res.json();
       console.log("Fetched Data:", data);
       if (!data || data.length === 0) {
-        alert("No records found.");
+        noDataMessage.style.display = "block";
+        reportTable.style.display = "none";
         return;
       }
+      noDataMessage.style.display = "none";
+      reportTable.style.display = "table";
       renderTable(data, statusFilter, dateType);
     } catch (err) {
       console.error("Fetch Error:", err);
@@ -109,16 +118,13 @@
       const itemStatus = (item.status || "confirm").toLowerCase();
       if (statusFilter !== "all" && itemStatus !== statusFilter) return;
 
-      // 1. Use correct date field
       let dateRaw = dateType === "created" ? item.createdDate : item.slotDate;
       const displayDate = dateRaw || "-";
 
-      // 2. Normalize ₹ values (₹1,200.00 -> 1200)
       let toPayStr = item.totalToPay || "0";
       const toPay = parseFloat(toPayStr.toString().replace(/[^\d.-]/g, '')) || 0;
 
-      // 3. Count status types
-      totalBookings += 1;
+      totalBookings++;
       if (itemStatus === "paid") totalPaid++;
       if (itemStatus === "confirm") totalConfirm++;
       if (itemStatus === "cancel") totalCancel++;
@@ -136,7 +142,11 @@
       tbody.appendChild(tr);
     });
 
-    // Add total row
+    if (totalBookings === 0) {
+      tbody.innerHTML = `<tr><td colspan="6">No records match the selected filter.</td></tr>`;
+      return;
+    }
+
     const totalRow = document.createElement("tr");
     totalRow.classList.add("total-row");
     totalRow.innerHTML = `
