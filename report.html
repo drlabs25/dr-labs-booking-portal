@@ -112,9 +112,15 @@
     data.forEach((row) => {
       const totalBookings = Number(row.totalBookings || 0);
       const totalPaid = Number(row.totalPaid || 0);
-      const totalConfirm = Number(row.confirmedBookings || 0);
-      const totalCancel = Number(row.totalCancelled || 0);
-      const totalToPay = parseFloat(row.totalToPay || 0);
+
+      // Detect possible field names for confirm count
+      const totalConfirm =
+        Number(row.totalConfirm || row.confirmedBookings || row.confirmBookings || row.confirmCount || 0);
+
+      const totalCancel = Number(row.totalCancelled || row.cancelCount || 0);
+      const totalToPay = parseFloat(
+        (row.totalToPay || "0").toString().replace(/[₹,]/g, "")
+      );
 
       grandTotals.bookings += totalBookings;
       grandTotals.paid += totalPaid;
