@@ -94,7 +94,12 @@
     try {
       const res = await fetch(`${WEB_APP_URL}?${params.toString()}`);
       const csvText = await res.text();
+
+      console.log("Raw CSV data:\n", csvText);
+
       const data = parseCSV(csvText);
+
+      console.log("Parsed data objects:", data);
 
       if (!data || data.length === 0) {
         renderEmpty("No records found for the applied filters.");
@@ -137,11 +142,18 @@
     const grouped = {};
 
     data.forEach(row => {
+      // Check for correct columns
+      if (!row.hasOwnProperty("Created On") || !row.hasOwnProperty("Preferred Date") || !row.hasOwnProperty("Status") || !row.hasOwnProperty("Total To Pay")) {
+        console.warn("Row missing expected columns:", row);
+        return;
+      }
+
       const dateVal = dateType === "created" ? row["Created On"] : row["Preferred Date"];
       const date = formatDate(dateVal);
       if (!date) return;
 
       const status = (row["Status"] || "").trim().toLowerCase();
+
       if (statusFilter !== "all" && status !== statusFilter) return;
 
       const toPay = parseMoney(row["Total To Pay"]);
@@ -213,7 +225,6 @@
     tbody.appendChild(totalRow);
   }
 
-  // Initialize with empty message
   renderEmpty("No records yet — please apply a filter.");
 </script>
 
