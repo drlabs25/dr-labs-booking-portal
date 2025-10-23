@@ -57,17 +57,18 @@
 </table>
 
 <script>
-  // ✅ Replace this with your actual deployed Apps Script Web App URL
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw4sBOSu5WL_Cep7M1B9qYgfvBSQ0iuuCfbrRQDG6y4qPl6fJfap-4LLaX_wMqvg3ZV8A/exec";
+  const WEB_APP_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec";
 
-  const parseMoney = (val) => parseFloat((val || "0").toString().replace(/[₹,]/g, "").trim()) || 0;
+  function parseMoney(val) {
+    return parseFloat((val || "0").toString().replace(/[₹,]/g, "").trim()) || 0;
+  }
 
-  const formatDate = (val) => {
+  function formatDate(val) {
     if (!val) return "";
     if (typeof val === "string" && val.includes("T")) return val.split("T")[0];
     if (val instanceof Date) return val.toISOString().split("T")[0];
     return val.trim();
-  };
+  }
 
   async function applyFilter() {
     const dateType = document.getElementById("dateType").value;
@@ -107,18 +108,20 @@
     }
   }
 
-  // Convert CSV → Array of objects (and skip header row automatically)
+  // Parse CSV, skipping header rows, return array of objects
   function parseCSV(csv) {
     const lines = csv.trim().split("\n");
-    const headers = lines.shift().split(",").map(h => h.trim());
-    return lines
-      .map(line => {
-        const values = line.split(",");
-        const obj = {};
-        headers.forEach((h, i) => (obj[h] = values[i] ? values[i].trim() : ""));
-        return obj;
-      })
-      .filter(r => r["Status"] && r["Status"].toLowerCase() !== "status"); // skip accidental header rows
+    if (lines.length < 2) return [];
+
+    const headers = lines[0].split(",").map(h => h.trim());
+    const rows = lines.slice(1);
+
+    return rows.map(line => {
+      const values = line.split(",");
+      const obj = {};
+      headers.forEach((h, i) => (obj[h] = values[i] ? values[i].trim() : ""));
+      return obj;
+    }).filter(r => r["Status"] && r["Status"].toLowerCase() !== "status"); // avoid accidental header rows in data
   }
 
   function renderEmpty(msg) {
@@ -130,6 +133,7 @@
     const tbody = document.querySelector("#reportTable tbody");
     tbody.innerHTML = "";
 
+    // Group by date, aggregate counts and sums
     const grouped = {};
 
     data.forEach(row => {
@@ -138,12 +142,18 @@
       if (!date) return;
 
       const status = (row["Status"] || "").trim().toLowerCase();
-      const totalToPay = parseMoney(row["Total To Pay"]);
-
       if (statusFilter !== "all" && status !== statusFilter) return;
 
+      const toPay = parseMoney(row["Total To Pay"]);
+
       if (!grouped[date]) {
-        grouped[date] = { totalBookings: 0, paid: 0, confirm: 0, cancel: 0, totalToPay: 0 };
+        grouped[date] = {
+          totalBookings: 0,
+          paid: 0,
+          confirm: 0,
+          cancel: 0,
+          totalToPay: 0,
+        };
       }
 
       grouped[date].totalBookings++;
@@ -151,18 +161,25 @@
       else if (status === "confirm") grouped[date].confirm++;
       else if (status === "cancel") grouped[date].cancel++;
 
-      grouped[date].totalToPay += totalToPay;
+      grouped[date].totalToPay += toPay;
     });
 
-    const sortedDates = Object.keys(grouped).sort();
-    if (sortedDates.length === 0) {
+    const dates = Object.keys(grouped).sort();
+
+    if (dates.length === 0) {
       renderEmpty("No matching records found.");
       return;
     }
 
-    let grandTotals = { totalBookings: 0, paid: 0, confirm: 0, cancel: 0, totalToPay: 0 };
+    const grandTotals = {
+      totalBookings: 0,
+      paid: 0,
+      confirm: 0,
+      cancel: 0,
+      totalToPay: 0,
+    };
 
-    sortedDates.forEach(date => {
+    dates.forEach(date => {
       const g = grouped[date];
       grandTotals.totalBookings += g.totalBookings;
       grandTotals.paid += g.paid;
@@ -182,6 +199,7 @@
       tbody.appendChild(tr);
     });
 
+    // Add a total summary row at bottom
     const totalRow = document.createElement("tr");
     totalRow.classList.add("total-row");
     totalRow.innerHTML = `
@@ -195,6 +213,7 @@
     tbody.appendChild(totalRow);
   }
 
+  // Initialize with empty message
   renderEmpty("No records yet — please apply a filter.");
 </script>
 
