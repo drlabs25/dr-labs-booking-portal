@@ -59,22 +59,62 @@
 <script>
   const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw4sBOSu5WL_Cep7M1B9qYgfvBSQ0iuuCfbrRQDG6y4qPl6fJfap-4LLaX_wMqvg3ZV8A/exec";
 
+  // Parse money string like "₹1,550" or "1550" safely
   function parseMoney(val) {
     return parseFloat((val || "0").toString().replace(/[₹,]/g, "").trim()) || 0;
   }
 
-  function formatDate(val) {
-    if (!val) return "";
-    if (typeof val === "string" && val.includes("T")) return val.split("T")[0];
-    if (val instanceof Date) return val.toISOString().split("T")[0];
-    return val.trim();
+  // Normalize any date string to "YYYY-MM-DD" format or return empty string
+  function normalizeDate(dateStr) {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "";
+    return d.toISOString().slice(0, 10);
+  }
+
+  // CSV parser that handles commas inside quotes, returns array of objects
+  function parseCSV(csv) {
+    const lines = csv.trim().split(/\r?\n/);
+    if (lines.length < 2) return [];
+
+    const headers = parseCSVLine(lines[0]);
+
+    return lines.slice(1).map(line => {
+      const values = parseCSVLine(line);
+      const obj = {};
+      headers.forEach((h, i) => obj[h] = values[i] ? values[i].trim() : "");
+      return obj;
+    }).filter(r => r["Status"] && r["Status"].toLowerCase() !== "status");
+  }
+
+  // Parse single CSV line considering quotes
+  function parseCSVLine(line) {
+    const result = [];
+    let current = "";
+    let insideQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"' && line[i + 1] === '"') {
+        current += '"'; // escaped quote
+        i++;
+      } else if (char === '"') {
+        insideQuotes = !insideQuotes;
+      } else if (char === ',' && !insideQuotes) {
+        result.push(current);
+        current = "";
+      } else {
+        current += char;
+      }
+    }
+    result.push(current);
+    return result;
   }
 
   async function applyFilter() {
     const dateType = document.getElementById("dateType").value;
     const fromDate = document.getElementById("fromDate").value;
     const toDate = document.getElementById("toDate").value;
-    const statusFilter = document.getElementById("statusFilter").value;
+    const statusFilter = document.getElementById("statusFilter").value.toLowerCase();
 
     if (!fromDate || !toDate) {
       alert("Please select both From and To dates.");
@@ -93,6 +133,8 @@
 
     try {
       const res = await fetch(`${WEB_APP_URL}?${params.toString()}`);
+      if (!res.ok) throw new Error(`Network error: ${res.status}`);
+
       const csvText = await res.text();
 
       console.log("Raw CSV data:\n", csvText);
@@ -101,32 +143,16 @@
 
       console.log("Parsed data objects:", data);
 
-      if (!data || data.length === 0) {
+      if (!data.length) {
         renderEmpty("No records found for the applied filters.");
         return;
       }
 
-      renderTable(data, statusFilter, dateType);
+      renderTable(data, statusFilter, dateType, fromDate, toDate);
     } catch (err) {
       console.error("Fetch Error:", err);
       renderEmpty("⚠️ Unable to fetch data. Please check your Web App URL or permissions.");
     }
-  }
-
-  // Parse CSV, skipping header rows, return array of objects
-  function parseCSV(csv) {
-    const lines = csv.trim().split("\n");
-    if (lines.length < 2) return [];
-
-    const headers = lines[0].split(",").map(h => h.trim());
-    const rows = lines.slice(1);
-
-    return rows.map(line => {
-      const values = line.split(",");
-      const obj = {};
-      headers.forEach((h, i) => (obj[h] = values[i] ? values[i].trim() : ""));
-      return obj;
-    }).filter(r => r["Status"] && r["Status"].toLowerCase() !== "status"); // avoid accidental header rows in data
   }
 
   function renderEmpty(msg) {
@@ -134,26 +160,29 @@
       `<tr><td colspan="6">${msg}</td></tr>`;
   }
 
-  function renderTable(data, statusFilter, dateType) {
+  function renderTable(data, statusFilter, dateType, fromDate, toDate) {
     const tbody = document.querySelector("#reportTable tbody");
     tbody.innerHTML = "";
 
-    // Group by date, aggregate counts and sums
     const grouped = {};
 
-    data.forEach(row => {
-      // Check for correct columns
-      if (!row.hasOwnProperty("Created On") || !row.hasOwnProperty("Preferred Date") || !row.hasOwnProperty("Status") || !row.hasOwnProperty("Total To Pay")) {
-        console.warn("Row missing expected columns:", row);
-        return;
-      }
+    // Convert filter dates to Date objects for comparison
+    const from = new Date(fromDate);
+    const to = new Date(toDate);
 
-      const dateVal = dateType === "created" ? row["Created On"] : row["Preferred Date"];
-      const date = formatDate(dateVal);
+    data.forEach(row => {
+      // Determine date field and normalize it
+      const dateRaw = dateType === "created" ? row["Created On"] : row["Preferred Date"];
+      const date = normalizeDate(dateRaw);
       if (!date) return;
 
-      const status = (row["Status"] || "").trim().toLowerCase();
+      // Check if date is within range inclusive
+      const dateObj = new Date(date);
+      if (dateObj < from || dateObj > to) return;
 
+      const status = (row["Status"] || "").toLowerCase();
+
+      // Apply status filter
       if (statusFilter !== "all" && status !== statusFilter) return;
 
       const toPay = parseMoney(row["Total To Pay"]);
@@ -178,7 +207,7 @@
 
     const dates = Object.keys(grouped).sort();
 
-    if (dates.length === 0) {
+    if (!dates.length) {
       renderEmpty("No matching records found.");
       return;
     }
@@ -211,7 +240,7 @@
       tbody.appendChild(tr);
     });
 
-    // Add a total summary row at bottom
+    // Total row
     const totalRow = document.createElement("tr");
     totalRow.classList.add("total-row");
     totalRow.innerHTML = `
