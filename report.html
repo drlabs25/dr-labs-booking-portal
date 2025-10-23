@@ -31,21 +31,15 @@
   <label for="toDate">To:</label>
   <input type="date" id="toDate" />
 
-  <label for="statusFilter">Status:</label>
-  <select id="statusFilter">
-    <option value="all">All</option>
-    <option value="paid">Paid</option>
-    <option value="confirm">Confirm</option>
-    <option value="cancel">Cancel</option>
-  </select>
-
   <button onclick="applyFilter()">Apply Filter</button>
 </div>
 
 <table id="reportTable">
   <thead>
     <tr>
-      <th>Date</th>
+      <th>Agent</th>
+      <th>Phlebo</th>
+      <th>Location</th>
       <th>Total Bookings</th>
       <th>Total Paid</th>
       <th>Total Confirm</th>
@@ -57,13 +51,13 @@
 </table>
 
 <script>
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw4sBOSu5WL_Cep7M1B9qYgfvBSQ0iuuCfbrRQDG6y4qPl6fJfap-4LLaX_wMqvg3ZV8A/exec";
+  const WEB_APP_URL =
+    "https://script.google.com/macros/s/AKfycbw4sBOSu5WL_Cep7M1B9qYgfvBSQ0iuuCfbrRQDG6y4qPl6fJfap-4LLaX_wMqvg3ZV8A/exec";
 
   async function applyFilter() {
     const dateType = document.getElementById("dateType").value;
     const fromDate = document.getElementById("fromDate").value;
     const toDate = document.getElementById("toDate").value;
-    const statusFilter = document.getElementById("statusFilter").value;
 
     if (!fromDate || !toDate) {
       alert("Please select both From and To dates.");
@@ -82,122 +76,81 @@
 
     try {
       const res = await fetch(`${WEB_APP_URL}?${params.toString()}`);
+      if (!res.ok) throw new Error("HTTP error " + res.status);
       const data = await res.json();
       console.log("Fetched Data:", data);
+
       if (!data || data.length === 0) {
-        alert("No records found.");
-        clearTable();
+        clearTable("No records found for the applied filters.");
         return;
       }
-      renderTable(data, statusFilter, dateType);
+
+      renderTable(data);
     } catch (err) {
       console.error("Fetch Error:", err);
-      alert("Error fetching report.");
-      clearTable();
+      clearTable("Error fetching report. Please try again.");
     }
   }
 
-  function clearTable() {
+  function clearTable(message) {
     const tbody = document.querySelector("#reportTable tbody");
-    tbody.innerHTML = `<tr><td colspan="6">No records to display.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8">${message}</td></tr>`;
   }
 
-  // Normalize date string: returns 'YYYY-MM-DD' or null
-  function normalizeDate(dateStr) {
-    if (!dateStr) return null;
-    if (dateStr.includes("T")) return dateStr.split("T")[0];
-    return dateStr;
-  }
-
-  function renderTable(data, statusFilter, dateType) {
+  function renderTable(data) {
     const tbody = document.querySelector("#reportTable tbody");
     tbody.innerHTML = "";
 
-    // Group data by date
-    const groupedData = {};
-
-    data.forEach(item => {
-      const rawDate = dateType === "created" ? item.createdDate : item.slotDate;
-      const dateOnly = normalizeDate(rawDate);
-      if (!dateOnly) return;
-
-      const itemStatus = (item.status || "confirm").toLowerCase();
-
-      // Apply status filter (skip if not matching)
-      if (statusFilter !== "all" && itemStatus !== statusFilter) return;
-
-      if (!groupedData[dateOnly]) {
-        groupedData[dateOnly] = {
-          totalBookings: 0,
-          totalPaid: 0,
-          totalConfirm: 0,
-          totalCancel: 0,
-          totalToPay: 0,
-        };
-      }
-
-      groupedData[dateOnly].totalBookings++;
-      if (itemStatus === "paid") groupedData[dateOnly].totalPaid++;
-      else if (itemStatus === "confirm") groupedData[dateOnly].totalConfirm++;
-      else if (itemStatus === "cancel") groupedData[dateOnly].totalCancel++;
-
-      let toPayStr = item.totalToPay || "0";
-      let toPayNum = parseFloat(toPayStr.toString().replace(/[₹,]/g, "")) || 0;
-      groupedData[dateOnly].totalToPay += toPayNum;
-    });
-
-    const sortedDates = Object.keys(groupedData).sort();
-
-    if (sortedDates.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6">No records found for the applied filters.</td></tr>`;
-      return;
-    }
-
-    // Grand totals
-    const grandTotals = {
-      totalBookings: 0,
-      totalPaid: 0,
-      totalConfirm: 0,
-      totalCancel: 0,
-      totalToPay: 0,
+    let grandTotals = {
+      bookings: 0,
+      paid: 0,
+      confirm: 0,
+      cancel: 0,
+      toPay: 0,
     };
 
-    sortedDates.forEach(date => {
-      const group = groupedData[date];
-      grandTotals.totalBookings += group.totalBookings;
-      grandTotals.totalPaid += group.totalPaid;
-      grandTotals.totalConfirm += group.totalConfirm;
-      grandTotals.totalCancel += group.totalCancel;
-      grandTotals.totalToPay += group.totalToPay;
+    data.forEach((row) => {
+      const totalBookings = Number(row.totalBookings || 0);
+      const totalPaid = Number(row.totalPaid || 0);
+      const totalConfirm = Number(row.confirmedBookings || 0);
+      const totalCancel = Number(row.totalCancelled || 0);
+      const totalToPay = parseFloat(row.totalToPay || 0);
+
+      grandTotals.bookings += totalBookings;
+      grandTotals.paid += totalPaid;
+      grandTotals.confirm += totalConfirm;
+      grandTotals.cancel += totalCancel;
+      grandTotals.toPay += totalToPay;
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${date}</td>
-        <td>${group.totalBookings}</td>
-        <td>${group.totalPaid}</td>
-        <td>${group.totalConfirm}</td>
-        <td>${group.totalCancel}</td>
-        <td>₹${group.totalToPay.toFixed(2)}</td>
+        <td>${row.agentName || "All Agents"}</td>
+        <td>${row.phleboName || "All Phlebos"}</td>
+        <td>${row.location || "All Locations"}</td>
+        <td>${totalBookings}</td>
+        <td>${totalPaid}</td>
+        <td>${totalConfirm}</td>
+        <td>${totalCancel}</td>
+        <td>₹${totalToPay.toFixed(2)}</td>
       `;
       tbody.appendChild(tr);
     });
 
-    // Total row
+    // Grand Total Row
     const totalRow = document.createElement("tr");
     totalRow.classList.add("total-row");
     totalRow.innerHTML = `
-      <td>Total</td>
-      <td>${grandTotals.totalBookings}</td>
-      <td>${grandTotals.totalPaid}</td>
-      <td>${grandTotals.totalConfirm}</td>
-      <td>${grandTotals.totalCancel}</td>
-      <td>₹${grandTotals.totalToPay.toFixed(2)}</td>
+      <td colspan="3">Grand Total</td>
+      <td>${grandTotals.bookings}</td>
+      <td>${grandTotals.paid}</td>
+      <td>${grandTotals.confirm}</td>
+      <td>${grandTotals.cancel}</td>
+      <td>₹${grandTotals.toPay.toFixed(2)}</td>
     `;
     tbody.appendChild(totalRow);
   }
 
-  // Initialize empty table message
-  clearTable();
+  clearTable("Please apply filters to view report.");
 </script>
 
 </body>
