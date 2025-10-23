@@ -31,14 +31,6 @@
   <label for="toDate">To:</label>
   <input type="date" id="toDate">
 
-  <label for="statusFilter">Status:</label>
-  <select id="statusFilter">
-    <option value="all">All</option>
-    <option value="paid">Paid</option>
-    <option value="confirm">Confirm</option>
-    <option value="cancel">Cancel</option>
-  </select>
-
   <button onclick="applyFilter()">Apply Filter</button>
 </div>
 
@@ -63,7 +55,6 @@
     const dateType = document.getElementById("dateType").value;
     const fromDate = document.getElementById("fromDate").value;
     const toDate = document.getElementById("toDate").value;
-    const statusFilter = document.getElementById("statusFilter").value;
 
     if (!fromDate || !toDate) {
       alert("Please select both From and To dates.");
@@ -72,6 +63,7 @@
 
     const params = new URLSearchParams();
     params.append("action", "getReport");
+
     if (dateType === "created") {
       params.append("createdStart", fromDate);
       params.append("createdEnd", toDate);
@@ -82,99 +74,115 @@
 
     try {
       const res = await fetch(`${WEB_APP_URL}?${params.toString()}`);
-      const data = await res.json();
+      const text = await res.text();
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = parseCSV(text);
+      }
+
       console.log("Fetched Data:", data);
 
-      if (!Array.isArray(data) || data.length === 0) {
-        alert("No records found.");
-        clearTable();
+      if (!data || data.length === 0) {
+        showMessage("No records found for the selected filters.");
         return;
       }
 
-      renderTable(data, statusFilter, dateType);
+      renderTable(data, dateType);
     } catch (err) {
       console.error("Fetch Error:", err);
-      alert("Error fetching report. Check console for details.");
-      clearTable();
+      showMessage("Error fetching report. Please check the console.");
     }
   }
 
-  function clearTable() {
-    const tbody = document.querySelector("#reportTable tbody");
-    tbody.innerHTML = `<tr><td colspan="6">No records to display.</td></tr>`;
+  // Parse CSV if returned by Apps Script
+  function parseCSV(csvText) {
+    const lines = csvText.trim().split("\n");
+    const headers = lines[0].split(",");
+    const rows = lines.slice(1).map(line => {
+      const values = line.split(",");
+      const obj = {};
+      headers.forEach((h, i) => (obj[h.trim()] = values[i] ? values[i].trim() : ""));
+      return obj;
+    });
+    return rows;
   }
 
-  // Normalize a date string (handles Excel or ISO formats)
   function normalizeDate(dateStr) {
-    if (!dateStr) return "-";
+    if (!dateStr) return "";
     if (dateStr.includes("T")) return dateStr.split("T")[0];
+    const parts = dateStr.split(/[\/-]/);
+    if (parts.length === 3) {
+      let [a, b, c] = parts;
+      if (c.length === 4) return `${c}-${b.padStart(2, "0")}-${a.padStart(2, "0")}`; // dd/MM/yyyy
+      else return `${a}-${b.padStart(2, "0")}-${c.padStart(2, "0")}`;
+    }
     return dateStr;
   }
 
-  function renderTable(data, statusFilter, dateType) {
+  function showMessage(msg) {
+    const tbody = document.querySelector("#reportTable tbody");
+    tbody.innerHTML = `<tr><td colspan="6">${msg}</td></tr>`;
+  }
+
+  function renderTable(data, dateType) {
     const tbody = document.querySelector("#reportTable tbody");
     tbody.innerHTML = "";
 
-    // Group data by date
     const grouped = {};
 
-    data.forEach(item => {
-      const rawDate = dateType === "created" ? item.createdDate : item.slotDate;
-      const dateKey = normalizeDate(rawDate);
-      if (!dateKey) return;
+    data.forEach(row => {
+      const dateField = dateType === "created" ? "Created On" : "Preferred Date";
+      const rawDate = row[dateField];
+      const date = normalizeDate(rawDate);
+      if (!date) return;
 
-      const status = (item.status || "").toLowerCase();
-      if (statusFilter !== "all" && status !== statusFilter) return;
+      const status = (row["Status"] || "").toLowerCase();
+      const totalToPay = parseFloat((row["Total To Pay"] || "0").toString().replace(/[₹,]/g, "")) || 0;
 
-      if (!grouped[dateKey]) {
-        grouped[dateKey] = {
-          bookings: 0,
-          paid: 0,
-          confirm: 0,
-          cancel: 0,
-          toPay: 0
-        };
+      if (!grouped[date]) {
+        grouped[date] = { totalBookings: 0, paid: 0, confirm: 0, cancel: 0, totalToPay: 0 };
       }
 
-      grouped[dateKey].bookings++;
-
-      if (status === "paid") grouped[dateKey].paid++;
-      if (status === "confirm") grouped[dateKey].confirm++;
-      if (status === "cancel") grouped[dateKey].cancel++;
-
-      const payValue = parseFloat((item.totalToPay || "0").toString().replace(/[₹,]/g, "")) || 0;
-      grouped[dateKey].toPay += payValue;
+      grouped[date].totalBookings++;
+      if (status === "paid") grouped[date].paid++;
+      else if (status === "confirm") grouped[date].confirm++;
+      else if (status === "cancel") grouped[date].cancel++;
+      grouped[date].totalToPay += totalToPay;
     });
 
-    const allDates = Object.keys(grouped).sort();
-    if (allDates.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6">No records found for selected filters.</td></tr>`;
+    const sortedDates = Object.keys(grouped).sort();
+    if (sortedDates.length === 0) {
+      showMessage("No records found for the applied filters.");
       return;
     }
 
     // Totals
-    let totalBookings = 0, totalPaid = 0, totalConfirm = 0, totalCancel = 0, totalToPay = 0;
+    let totalBookings = 0, totalPaid = 0, totalConfirm = 0, totalCancel = 0, totalPay = 0;
 
-    allDates.forEach(date => {
+    sortedDates.forEach(date => {
       const g = grouped[date];
-      totalBookings += g.bookings;
+      totalBookings += g.totalBookings;
       totalPaid += g.paid;
       totalConfirm += g.confirm;
       totalCancel += g.cancel;
-      totalToPay += g.toPay;
+      totalPay += g.totalToPay;
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${date}</td>
-        <td>${g.bookings}</td>
+        <td>${g.totalBookings}</td>
         <td>${g.paid}</td>
         <td>${g.confirm}</td>
         <td>${g.cancel}</td>
-        <td>₹${g.toPay.toFixed(2)}</td>
+        <td>₹${g.totalToPay.toFixed(2)}</td>
       `;
       tbody.appendChild(tr);
     });
 
+    // Add total row
     const totalRow = document.createElement("tr");
     totalRow.classList.add("total-row");
     totalRow.innerHTML = `
@@ -183,12 +191,12 @@
       <td>${totalPaid}</td>
       <td>${totalConfirm}</td>
       <td>${totalCancel}</td>
-      <td>₹${totalToPay.toFixed(2)}</td>
+      <td>₹${totalPay.toFixed(2)}</td>
     `;
     tbody.appendChild(totalRow);
   }
 
-  clearTable();
+  showMessage("Select a date range and click Apply Filter.");
 </script>
 
 </body>
