@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Admin Report</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; }
@@ -26,10 +26,18 @@
   </select>
 
   <label for="fromDate">From:</label>
-  <input type="date" id="fromDate" />
+  <input type="date" id="fromDate">
 
   <label for="toDate">To:</label>
-  <input type="date" id="toDate" />
+  <input type="date" id="toDate">
+
+  <label for="statusFilter">Status:</label>
+  <select id="statusFilter">
+    <option value="all">All</option>
+    <option value="paid">Paid</option>
+    <option value="confirm">Confirm</option>
+    <option value="cancel">Cancel</option>
+  </select>
 
   <button onclick="applyFilter()">Apply Filter</button>
 </div>
@@ -37,9 +45,7 @@
 <table id="reportTable">
   <thead>
     <tr>
-      <th>Agent</th>
-      <th>Phlebo</th>
-      <th>Location</th>
+      <th>Date</th>
       <th>Total Bookings</th>
       <th>Total Paid</th>
       <th>Total Confirm</th>
@@ -51,13 +57,13 @@
 </table>
 
 <script>
-  const WEB_APP_URL =
-    "https://script.google.com/macros/s/AKfycbw4sBOSu5WL_Cep7M1B9qYgfvBSQ0iuuCfbrRQDG6y4qPl6fJfap-4LLaX_wMqvg3ZV8A/exec";
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw4sBOSu5WL_Cep7M1B9qYgfvBSQ0iuuCfbrRQDG6y4qPl6fJfap-4LLaX_wMqvg3ZV8A/exec";
 
   async function applyFilter() {
     const dateType = document.getElementById("dateType").value;
     const fromDate = document.getElementById("fromDate").value;
     const toDate = document.getElementById("toDate").value;
+    const statusFilter = document.getElementById("statusFilter").value;
 
     if (!fromDate || !toDate) {
       alert("Please select both From and To dates.");
@@ -76,87 +82,113 @@
 
     try {
       const res = await fetch(`${WEB_APP_URL}?${params.toString()}`);
-      if (!res.ok) throw new Error("HTTP error " + res.status);
       const data = await res.json();
       console.log("Fetched Data:", data);
 
-      if (!data || data.length === 0) {
-        clearTable("No records found for the applied filters.");
+      if (!Array.isArray(data) || data.length === 0) {
+        alert("No records found.");
+        clearTable();
         return;
       }
 
-      renderTable(data);
+      renderTable(data, statusFilter, dateType);
     } catch (err) {
       console.error("Fetch Error:", err);
-      clearTable("Error fetching report. Please try again.");
+      alert("Error fetching report. Check console for details.");
+      clearTable();
     }
   }
 
-  function clearTable(message) {
+  function clearTable() {
     const tbody = document.querySelector("#reportTable tbody");
-    tbody.innerHTML = `<tr><td colspan="8">${message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6">No records to display.</td></tr>`;
   }
 
-  function renderTable(data) {
+  // Normalize a date string (handles Excel or ISO formats)
+  function normalizeDate(dateStr) {
+    if (!dateStr) return "-";
+    if (dateStr.includes("T")) return dateStr.split("T")[0];
+    return dateStr;
+  }
+
+  function renderTable(data, statusFilter, dateType) {
     const tbody = document.querySelector("#reportTable tbody");
     tbody.innerHTML = "";
 
-    let grandTotals = {
-      bookings: 0,
-      paid: 0,
-      confirm: 0,
-      cancel: 0,
-      toPay: 0,
-    };
+    // Group data by date
+    const grouped = {};
 
-    data.forEach((row) => {
-      const totalBookings = Number(row.totalBookings || 0);
-      const totalPaid = Number(row.totalPaid || 0);
+    data.forEach(item => {
+      const rawDate = dateType === "created" ? item.createdDate : item.slotDate;
+      const dateKey = normalizeDate(rawDate);
+      if (!dateKey) return;
 
-      // Detect possible field names for confirm count
-      const totalConfirm =
-        Number(row.totalConfirm || row.confirmedBookings || row.confirmBookings || row.confirmCount || 0);
+      const status = (item.status || "").toLowerCase();
+      if (statusFilter !== "all" && status !== statusFilter) return;
 
-      const totalCancel = Number(row.totalCancelled || row.cancelCount || 0);
-      const totalToPay = parseFloat(
-        (row.totalToPay || "0").toString().replace(/[₹,]/g, "")
-      );
+      if (!grouped[dateKey]) {
+        grouped[dateKey] = {
+          bookings: 0,
+          paid: 0,
+          confirm: 0,
+          cancel: 0,
+          toPay: 0
+        };
+      }
 
-      grandTotals.bookings += totalBookings;
-      grandTotals.paid += totalPaid;
-      grandTotals.confirm += totalConfirm;
-      grandTotals.cancel += totalCancel;
-      grandTotals.toPay += totalToPay;
+      grouped[dateKey].bookings++;
+
+      if (status === "paid") grouped[dateKey].paid++;
+      if (status === "confirm") grouped[dateKey].confirm++;
+      if (status === "cancel") grouped[dateKey].cancel++;
+
+      const payValue = parseFloat((item.totalToPay || "0").toString().replace(/[₹,]/g, "")) || 0;
+      grouped[dateKey].toPay += payValue;
+    });
+
+    const allDates = Object.keys(grouped).sort();
+    if (allDates.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6">No records found for selected filters.</td></tr>`;
+      return;
+    }
+
+    // Totals
+    let totalBookings = 0, totalPaid = 0, totalConfirm = 0, totalCancel = 0, totalToPay = 0;
+
+    allDates.forEach(date => {
+      const g = grouped[date];
+      totalBookings += g.bookings;
+      totalPaid += g.paid;
+      totalConfirm += g.confirm;
+      totalCancel += g.cancel;
+      totalToPay += g.toPay;
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${row.agentName || "All Agents"}</td>
-        <td>${row.phleboName || "All Phlebos"}</td>
-        <td>${row.location || "All Locations"}</td>
-        <td>${totalBookings}</td>
-        <td>${totalPaid}</td>
-        <td>${totalConfirm}</td>
-        <td>${totalCancel}</td>
-        <td>₹${totalToPay.toFixed(2)}</td>
+        <td>${date}</td>
+        <td>${g.bookings}</td>
+        <td>${g.paid}</td>
+        <td>${g.confirm}</td>
+        <td>${g.cancel}</td>
+        <td>₹${g.toPay.toFixed(2)}</td>
       `;
       tbody.appendChild(tr);
     });
 
-    // Grand Total Row
     const totalRow = document.createElement("tr");
     totalRow.classList.add("total-row");
     totalRow.innerHTML = `
-      <td colspan="3">Grand Total</td>
-      <td>${grandTotals.bookings}</td>
-      <td>${grandTotals.paid}</td>
-      <td>${grandTotals.confirm}</td>
-      <td>${grandTotals.cancel}</td>
-      <td>₹${grandTotals.toPay.toFixed(2)}</td>
+      <td>Total</td>
+      <td>${totalBookings}</td>
+      <td>${totalPaid}</td>
+      <td>${totalConfirm}</td>
+      <td>${totalCancel}</td>
+      <td>₹${totalToPay.toFixed(2)}</td>
     `;
     tbody.appendChild(totalRow);
   }
 
-  clearTable("Please apply filters to view report.");
+  clearTable();
 </script>
 
 </body>
